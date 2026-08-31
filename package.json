@@ -1,0 +1,30 @@
+{
+  "name": "ngg-lms",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "NGG Learning Platform — learner and admin sides for NGG's AI-literacy curriculum.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --noEmit",
+    "preview": "vite preview --port 4173",
+    "build:pages": "cross-env DEPLOY_TARGET=pages tsc -b && cross-env DEPLOY_TARGET=pages vite build",
+    "scan:audio": "node scripts/scan-audio.mjs",
+    "prebuild": "node scripts/scan-audio.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "cross-env": "^7.0.3",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
+  }
+}

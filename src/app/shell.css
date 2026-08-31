@@ -1,0 +1,121 @@
+/* App shell: header, page frame, tabs. */
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+.topbar {
+  flex: none;
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 60;
+}
+.topbar__brand { display: flex; align-items: center; gap: 10px; text-decoration: none; color: inherit; }
+.topbar__brand:hover { text-decoration: none; color: inherit; }
+.topbar__brand img { height: 22px; width: auto; display: block; }
+.topbar__brand b { font-weight: 600; font-size: 14.5px; letter-spacing: -0.01em; white-space: nowrap; }
+.topbar__sep { width: 1px; height: 18px; background: var(--line); flex: none; }
+.topbar__crumb {
+  font-size: 12.5px;
+  color: var(--ink-4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.topbar__modes { display: flex; gap: 3px; padding: 3px; background: var(--sunk); border-radius: 8px; flex: none; }
+.topbar__modes a {
+  padding: 5px 12px;
+  border-radius: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-3);
+  text-decoration: none;
+}
+.topbar__modes a:hover { text-decoration: none; color: var(--ink); }
+.topbar__modes a[aria-current='true'] { background: #fff; color: var(--ink); box-shadow: 0 1px 2px rgba(21, 21, 31, 0.12); }
+.topbar__who {
+  width: 28px;
+  height: 28px;
+  border-radius: 99px;
+  background: var(--sunk);
+  color: var(--ink-3);
+  font: 600 11px/28px var(--sans);
+  text-align: center;
+  flex: none;
+}
+
+.page { flex: 1; width: 100%; max-width: 1480px; margin: 0 auto; padding: 22px 24px 56px; }
+.page--narrow { max-width: 1080px; }
+.page__head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+.page__head h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.025em; }
+.page__head p { margin-top: 3px; font-size: 13.5px; color: var(--ink-3); max-width: 68ch; }
+
+.admin { display: flex; align-items: stretch; flex: 1; }
+.admin__nav {
+  flex: none;
+  width: 218px;
+  border-inline-end: 1px solid var(--line);
+  background: var(--card);
+  padding: 16px 12px;
+  position: sticky;
+  top: var(--header-h);
+  height: calc(100vh - var(--header-h));
+  overflow-y: auto;
+}
+.admin__nav > .eyebrow { display: block; padding: 0 8px 10px; font-family: var(--mono); letter-spacing: 0.09em; }
+.admin__nav a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--r);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+  margin-bottom: 2px;
+}
+.admin__nav a:hover { background: var(--sunk); text-decoration: none; color: var(--ink); }
+.admin__nav a[aria-current='page'] { background: var(--pink-wash); color: var(--pink-deep); font-weight: 600; }
+.admin__nav a .count { margin-inline-start: auto; font: 400 10.5px/1 var(--mono); color: var(--ink-4); }
+.admin__body { flex: 1; min-width: 0; }
+@media (max-width: 900px) {
+  .admin { flex-direction: column; }
+  .admin__nav { width: auto; height: auto; position: static; border-inline-end: 0; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: 4px; }
+  .admin__nav > .eyebrow { display: none; }
+  .admin__nav a { width: auto; margin: 0; }
+}
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.tile { padding: 14px 16px; }
+.tile__k { font-size: 12px; color: var(--ink-4); font-weight: 500; }
+.tile__v { margin-top: 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; }
+.tile__n { margin-top: 3px; font-size: 12px; color: var(--ink-4); }
+
+.section { margin-top: 22px; }
+.section__head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.section__head h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+
+.toast {
+  position: fixed;
+  bottom: 22px;
+  inset-inline-start: 22px;
+  z-index: 200;
+  padding: 11px 16px;
+  border-radius: var(--r);
+  background: var(--ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 12px 30px -12px rgba(21, 21, 31, 0.6);
+  animation: rise-sm 0.25s ease both;
+}
+
+.loading { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: var(--ink-4); font-size: 13.5px; }

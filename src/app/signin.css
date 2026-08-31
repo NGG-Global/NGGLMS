@@ -1,0 +1,6 @@
+.signin { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 32px 20px; }
+.signin__card { width: 100%; max-width: 420px; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 13px; animation: rise-sm 0.35s ease both; }
+.signin__logo { height: 26px; width: auto; align-self: flex-start; margin-bottom: 4px; }
+.signin__card h1 { font-size: 20px; font-weight: 700; letter-spacing: -0.025em; }
+.signin__lead { font-size: 13.5px; line-height: 1.6; color: var(--ink-3); margin-bottom: 4px; }
+.signin__note { margin-top: 6px; font-size: 11.5px; line-height: 1.55; color: var(--ink-4); }
