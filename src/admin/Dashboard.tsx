@@ -27,8 +27,15 @@ export function Dashboard() {
     return { program, learners: learners.length, avg };
   });
 
-  const overallAvg = averages.length
-    ? Math.round(averages.reduce((a, b) => a + b.avg, 0) / averages.length)
+  // Averaged over learners, not over programmes: a programme with no cohort yet should
+  // not pull the headline number down.
+  const enrolled = live.flatMap((program) =>
+    workspace.learners
+      .filter((l) => l.programIds.includes(program.id))
+      .map((l) => programCompletion(program, progressFor(l.id)).pct),
+  );
+  const overallAvg = enrolled.length
+    ? Math.round(enrolled.reduce((a, b) => a + b, 0) / enrolled.length)
     : 0;
 
   return (
@@ -59,7 +66,9 @@ export function Dashboard() {
           <div className="card tile">
             <div className="tile__k">התקדמות ממוצעת</div>
             <div className="tile__v">{overallAvg}%</div>
-            <div className="tile__n">משוקלל על פני התוכניות שפורסמו</div>
+            <div className="tile__n">
+              ממוצע על פני {enrolled.length} רישומים בתוכניות שפורסמו
+            </div>
           </div>
           <div className="card tile">
             <div className="tile__k">יחידות בספרייה</div>

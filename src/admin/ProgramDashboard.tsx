@@ -28,9 +28,14 @@ export function ProgramDashboard() {
   const link = `${location.origin}${location.pathname}#/learn/${program.id}?c=${program.accessCode}`;
 
   const perUnit = units.map((unit) => {
-    const started = learners.filter((l) => unitCompletion(progressFor(l.id), unit.contentId).practised > 0).length;
-    const done = learners.filter((l) => unitCompletion(progressFor(l.id), unit.contentId).complete).length;
-    return { unit, started, done };
+    const playable = isPlayable(unit);
+    const started = playable
+      ? learners.filter((l) => unitCompletion(progressFor(l.id), unit.contentId).practised > 0).length
+      : 0;
+    const done = playable
+      ? learners.filter((l) => unitCompletion(progressFor(l.id), unit.contentId).complete).length
+      : 0;
+    return { unit, started, done, playable };
   });
 
   const averages = learners.map((l) => programCompletion(program, progressFor(l.id)).pct);
@@ -114,7 +119,7 @@ export function ProgramDashboard() {
             <h2>התקדמות לפי יחידה</h2>
             <span className="spacer" />
             <span style={{ fontSize: 12.5, color: 'var(--ink-4)' }}>
-              התחילו / סיימו, מתוך {learners.length} לומדים
+              סיימו / התחילו, מתוך {learners.length} לומדים
             </span>
           </div>
           <div className="card card--pad">
@@ -122,17 +127,21 @@ export function ProgramDashboard() {
               <p className="empty">אין יחידות במסלול.</p>
             ) : (
               <div className="bars">
-                {perUnit.map(({ unit, started, done }) => {
+                {perUnit.map(({ unit, started, done, playable }) => {
                   const pct = learners.length ? Math.round((done / learners.length) * 100) : 0;
                   return (
                     <div key={unit.id} className="barrow">
                       <b title={unit.title}>{unit.title}</b>
-                      <span className="meter meter--tall">
-                        <i style={{ width: `${pct}%` }} />
-                      </span>
-                      <span className="v">
-                        {done}/{started || 0}
-                      </span>
+                      {playable ? (
+                        <span className="meter meter--tall">
+                          <i style={{ width: `${pct}%` }} />
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>
+                          היחידה בהפקה — לא נספרת בהתקדמות
+                        </span>
+                      )}
+                      <span className="v">{playable ? `${done}/${started}` : '—'}</span>
                     </div>
                   );
                 })}

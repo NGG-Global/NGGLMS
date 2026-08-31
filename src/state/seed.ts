@@ -1,5 +1,6 @@
 import { seedFlagshipProgram, seedLearners, seedPrograms } from '../content/library';
-import type { Learner, Program, ProgramStatus, Workspace } from './types';
+import { builtUnits, libraryUnit } from '../content';
+import type { Learner, LearnerProgress, Program, ProgramStatus, Workspace } from './types';
 
 const STATUS_FROM_HEBREW: Record<string, ProgramStatus> = {
   פורסם: 'published',
@@ -57,7 +58,10 @@ export function seedWorkspace(): Workspace {
     units: SEED_UNITS[p.id] ?? ['u1', 'u2'],
     welcome: p.id === 'p1' ? seedFlagshipProgram.welcome : 'ברוכים הבאים. עשו יחידה אחת בכל פעם.',
     closing: 'סיימתם את התוכנית. אישור ההשתתפות יישלח אליכם במייל.',
-    sequential: true,
+    // The flagship programme is open order, the managers' programme locks units in
+    // sequence — so both completion models are visible in the workspace. New programmes
+    // still default to sequential.
+    sequential: p.id !== 'p1',
     requireAll: true,
     requireAssessment: true,
     status: STATUS_FROM_HEBREW[p.status] ?? 'draft',
@@ -67,18 +71,65 @@ export function seedWorkspace(): Workspace {
     publishedAt: STATUS_FROM_HEBREW[p.status] === 'published' ? NOW : undefined,
   }));
 
-  const learners: Learner[] = seedLearners.map((l) => {
+  // Half the cohort also sits on the managers' programme, so both published programmes
+  // have learners on them during a walkthrough.
+  const ALSO_ON_P4 = new Set([1, 3, 6]);
+  const learners: Learner[] = seedLearners.map((l, i) => {
     const email = learnerEmail(l.name);
     return {
       id: slug(email),
       name: l.name,
       email,
       org: l.org,
-      programIds: ['p1'],
+      programIds: ALSO_ON_P4.has(i) ? ['p1', 'p4'] : ['p1'],
       createdAt: NOW,
     };
   });
 
-  return { programs, learners, progress: {}, updatedAt: NOW };
+  return { programs, learners, progress: demoProgress(programs), updatedAt: NOW };
+}
+
+/**
+ * Progress for the pre-loaded demo cohort.
+ *
+ * These eight learners ship with the workspace so the admin side has something to show
+ * on day one — the percentages come from the platform design, not from real people, and
+ * their addresses are on the reserved .invalid domain. Real learners are recorded from
+ * actual playback. The admin UI labels the cohort as demo data.
+ */
+function demoProgress(programs: Program[]): Record<string, LearnerProgress> {
+  const flagship = programs.find((p) => p.id === 'p1');
+  if (!flagship) return {};
+
+  // Every nugget in the programme, in learning order.
+  const nuggets: { contentId: string; segmentId: string }[] = [];
+  for (const unitId of flagship.units) {
+    const contentId = libraryUnit(unitId)?.contentId;
+    const content = contentId ? builtUnits[contentId] : undefined;
+    if (!contentId || !content) continue;
+    for (const segment of content.segments) nuggets.push({ contentId, segmentId: segment.id });
+  }
+  if (!nuggets.length) return {};
+
+  const out: Record<string, LearnerProgress> = {};
+  for (const person of seedLearners) {
+    const reached = Math.round((person.progress / 100) * nuggets.length);
+    if (!reached) continue;
+    const record: LearnerProgress = {};
+    nuggets.slice(0, reached).forEach(({ contentId, segmentId }, i) => {
+      const unitRecord = record[contentId] ?? (record[contentId] = {});
+      // A plausible spread of exercise scores, deterministic so the demo looks the same
+      // on every machine.
+      const outOf = 6;
+      unitRecord[segmentId] = {
+        watched: true,
+        practised: true,
+        score: outOf - (i % 3 === 2 ? 1 : 0),
+        outOf,
+      };
+    });
+    out[slug(learnerEmail(person.name))] = record;
+  }
+  return out;
 }
 

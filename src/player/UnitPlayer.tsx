@@ -29,8 +29,9 @@ interface Props {
   onProgress: (segmentId: string, patch: Partial<SegmentProgress>) => void;
   /** Called when the last segment's exercise is completed. */
   onUnitComplete?: () => void;
-  initialSegment?: number;
-  onSegmentChange?: (index: number) => void;
+  /** Which nugget is open. Controlled by the route, so a deep link like ?n=3 lands on it. */
+  segmentIndex: number;
+  onSegmentChange: (index: number) => void;
 }
 
 /**
@@ -46,11 +47,11 @@ export function UnitPlayer({
   progress,
   onProgress,
   onUnitComplete,
-  initialSegment = 0,
+  segmentIndex,
   onSegmentChange,
 }: Props) {
   const segments = content.segments;
-  const [index, setIndex] = useState(() => Math.min(Math.max(0, initialSegment), segments.length - 1));
+  const index = Math.min(Math.max(0, segmentIndex), segments.length - 1);
   const [showThink, setShowThink] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
   const [introOpen, setIntroOpen] = useState(false);
@@ -92,17 +93,16 @@ export function UnitPlayer({
   useEffect(() => {
     lastSaved.current = 0;
     setShowThink(false);
-    onSegmentChange?.(index);
-  }, [index, onSegmentChange]);
+  }, [index]);
 
   const select = useCallback(
     (next: number) => {
-      if (next < 0 || next >= segments.length) return;
-      setIndex(next);
+      if (next < 0 || next >= segments.length || next === index) return;
+      onSegmentChange(next);
       setIntroOpen(false);
       mainRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' });
     },
-    [segments.length],
+    [segments.length, index, onSegmentChange],
   );
 
   const cue = timeline.cues[clock.cueIndex];

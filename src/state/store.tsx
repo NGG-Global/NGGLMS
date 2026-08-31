@@ -32,6 +32,12 @@ interface StoreValue {
 
   progressFor: (learnerId: string) => LearnerProgress;
   recordSegment: (learnerId: string, contentId: string, segmentId: string, patch: Partial<SegmentRecord>) => void;
+
+  /**
+   * Restores the demo seed. Only exposed when persistence is browser-local, so it can
+   * never clear a server-backed workspace that has real learner records in it.
+   */
+  resetToDemoSeed: () => void;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
@@ -272,6 +278,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate],
   );
 
+  const resetToDemoSeed = useCallback(() => {
+    if (persistenceStatus.mode !== 'local') return;
+    dirty.current = true;
+    setWorkspace({ ...seedWorkspace(), updatedAt: new Date().toISOString() });
+  }, [persistenceStatus.mode]);
+
   const value = useMemo<StoreValue>(
     () => ({
       ready,
@@ -287,6 +299,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       enrol,
       progressFor,
       recordSegment,
+      resetToDemoSeed,
     }),
     [
       ready,
@@ -302,6 +315,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       enrol,
       progressFor,
       recordSegment,
+      resetToDemoSeed,
     ],
   );
 

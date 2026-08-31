@@ -8,7 +8,7 @@ export interface PersistenceStatus {
   note: string;
 }
 
-const LOCAL_KEY = 'ngglms:workspace:v1';
+const LOCAL_KEY = 'ngglms:workspace:v2';
 
 /**
  * Talks to /api/store when the deployment has it, and to localStorage when it does not.

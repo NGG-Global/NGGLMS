@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useStore } from '../state/store';
 import { allUnitHealth, narrationTracks } from '../content';
 import { formatTime } from '../player/timeline';
@@ -12,7 +13,8 @@ const MODE_LABEL = {
 /** Workspace settings, plus the two things an operator actually needs to see:
  *  where data is stored, and which narration files are missing. */
 export function Settings() {
-  const { workspace, persistenceStatus } = useStore();
+  const { workspace, persistenceStatus, resetToDemoSeed } = useStore();
+  const [confirmReset, setConfirmReset] = useState(false);
   const health = allUnitHealth();
   const missing = health.flatMap((h) => h.silentSegments);
   const missingFiles = [...new Set(missing.map((s) => s.src))];
@@ -40,6 +42,10 @@ export function Settings() {
             <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>{persistenceStatus.note}</span>
           </div>
           <p style={{ marginTop: 10, fontSize: 12.5, color: 'var(--ink-4)', lineHeight: 1.6 }}>
+            מרחב עבודה חדש נטען עם תוכניות וקבוצת לומדים לדוגמה (דומיין <code className="mono">.invalid</code>)
+            לצורכי הדגמה. התקדמות של משתתפים אמיתיים נרשמת מהנגן בלבד.
+          </p>
+          <p style={{ marginTop: 8, fontSize: 12.5, color: 'var(--ink-4)', lineHeight: 1.6 }}>
             לפריסה על Vercel: חיבור Vercel KV (או Upstash Redis) והגדרת המשתנים
             <code className="mono"> KV_REST_API_URL</code> ו־<code className="mono">KV_REST_API_TOKEN</code>{' '}
             מעבירים את הנתונים למאגר משותף וקבוע. בפריסת GitHub Pages אין שרת, ולכן הנתונים נשמרים
@@ -140,6 +146,42 @@ export function Settings() {
             עדכון אחרון של מרחב העבודה: {new Date(workspace.updatedAt).toLocaleString('he-IL')}
           </p>
         </section>
+
+        {persistenceStatus.mode === 'local' && (
+          <section className="card card--pad" style={{ marginTop: 18 }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>
+              איפוס לנתוני הדגמה
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.65, color: 'var(--ink-2)' }}>
+              מחזיר את מרחב העבודה לתוכניות, ללומדים ולהתקדמות שאיתם הוא נטען — שימושי בין
+              הדגמות. הפעולה מוחקת תוכניות והתקדמות שנוצרו בדפדפן הזה, ולכן היא מוצעת רק
+              כשהאחסון מקומי. בפריסה עם מאגר מנוהל האפשרות אינה מופיעה.
+            </p>
+            <div className="row" style={{ gap: 9, marginTop: 12, flexWrap: 'wrap' }}>
+              {confirmReset ? (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn--primary"
+                    onClick={() => {
+                      resetToDemoSeed();
+                      setConfirmReset(false);
+                    }}
+                  >
+                    לאפס — הפעולה אינה ניתנת לביטול
+                  </button>
+                  <button type="button" className="btn btn--ghost" onClick={() => setConfirmReset(false)}>
+                    ביטול
+                  </button>
+                </>
+              ) : (
+                <button type="button" className="btn btn--ghost" onClick={() => setConfirmReset(true)}>
+                  איפוס מרחב העבודה
+                </button>
+              )}
+            </div>
+          </section>
+        )}
       </main>
     </AdminLayout>
   );

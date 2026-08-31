@@ -138,6 +138,12 @@ export function Learners() {
           </div>
         )}
 
+        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--ink-4)', maxWidth: '72ch' }}>
+          מרחב העבודה נטען עם קבוצת הדגמה של שמונה משתתפים (כתובות בדומיין השמור
+          <code className="mono"> .invalid</code>), כדי שמסכי הניהול והאנליטיקה יהיו מלאים
+          מהרגע הראשון. משתתפים אמיתיים נרשמים מהתקדמות שנמדדת בפועל בנגן.
+        </p>
+
         {toast && <div className="toast">{toast}</div>}
       </main>
     </AdminLayout>

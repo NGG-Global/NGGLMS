@@ -54,7 +54,9 @@ export interface ProgramCompletion {
   playable: LibraryUnit[];
   /** Units still in production; visible to the learner but not counted. */
   pending: LibraryUnit[];
+  /** Units finished end to end. */
   done: number;
+  /** Percentage of the programme's nuggets completed. */
   pct: number;
   complete: boolean;
   /** Next unit the learner should open. */
@@ -70,9 +72,13 @@ export function programCompletion(program: Program, progress: LearnerProgress): 
   const playable = units.filter((u) => u.contentId && builtUnits[u.contentId]);
   const pending = units.filter((u) => !u.contentId || !builtUnits[u.contentId]);
   let done = 0;
+  let segmentsDone = 0;
+  let segmentsTotal = 0;
   let nextUnitId: string | undefined;
   for (const unit of playable) {
     const completion = unitCompletion(progress, unit.contentId);
+    segmentsDone += completion.practised;
+    segmentsTotal += completion.total;
     if (completion.complete) done += 1;
     else if (!nextUnitId) nextUnitId = unit.id;
   }
@@ -81,7 +87,9 @@ export function programCompletion(program: Program, progress: LearnerProgress): 
     playable,
     pending,
     done,
-    pct: total ? Math.round((done / total) * 100) : 0,
+    // Weighted by nugget, not by unit: someone four nuggets into a five-nugget unit has
+    // made real progress, and a unit-only count would report that as zero.
+    pct: segmentsTotal ? Math.round((segmentsDone / segmentsTotal) * 100) : 0,
     complete: total > 0 && done === total,
     nextUnitId: nextUnitId ?? playable[0]?.id,
   };

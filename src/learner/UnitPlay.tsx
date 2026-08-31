@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { builtUnits, libraryUnit } from '../content';
@@ -20,6 +20,18 @@ export function UnitPlay() {
   const content = contentId ? builtUnits[contentId] : undefined;
 
   const learnerId = identity?.id ?? '';
+  const segmentCount = content?.segments.length ?? 0;
+
+  // Frozen per unit: the resume point is only a landing spot for a learner arriving
+  // without ?n. Recomputing it live would yank the view as they finish each nugget.
+  const resumeAt = useRef(0);
+  const resumeFor = useRef<string | null>(null);
+  if (contentId && resumeFor.current !== contentId) {
+    resumeFor.current = contentId;
+    resumeAt.current = learnerId
+      ? unitCompletion(progressFor(learnerId), contentId).resumeIndex
+      : 0;
+  }
 
   const onProgress = useCallback(
     (segmentId: string, patch: Partial<SegmentProgress>) => {
@@ -29,9 +41,10 @@ export function UnitPlay() {
     [contentId, learnerId, recordSegment],
   );
 
-  // Functional update so this callback keeps a stable identity; otherwise every URL
-  // write would change the callback and re-fire the player's segment-change effect.
-  const onSegmentChange = useCallback(
+  // The route owns which nugget is open, so a deep link like ?n=3 lands on nugget 3 and
+  // the address bar always matches what is on screen. Functional update keeps this
+  // callback's identity stable across URL writes.
+  const setSegment = useCallback(
     (index: number) => {
       setParams(
         (current) => {
@@ -44,6 +57,17 @@ export function UnitPlay() {
     },
     [setParams],
   );
+
+  // ?n is 1-based in the URL and the single source of truth for which nugget is open.
+  const rawN = params.get('n');
+  const parsedN = rawN === null ? Number.NaN : Number(rawN) - 1;
+  const fromUrl = Number.isInteger(parsedN) && parsedN >= 0 && parsedN < segmentCount ? parsedN : null;
+
+  // Seed ?n when the learner arrives without one, so the address bar is never a lie.
+  const needsSeed = Boolean(contentId) && fromUrl === null;
+  useEffect(() => {
+    if (needsSeed) setSegment(resumeAt.current);
+  }, [needsSeed, setSegment]);
 
   if (!identity) return null;
 
@@ -65,8 +89,7 @@ export function UnitPlay() {
   }
 
   const progress = progressFor(identity.id);
-  const initial = Math.max(0, Number(params.get('n') ?? '0') - 1);
-  const resumeAt = Number.isFinite(initial) && initial > 0 ? initial : unitCompletion(progress, contentId).resumeIndex;
+  const segmentIndex = fromUrl ?? resumeAt.current;
 
   if (finished) {
     const programState = programCompletion(program, progress);
@@ -125,8 +148,8 @@ export function UnitPlay() {
           progress={progress[contentId] ?? {}}
           onProgress={onProgress}
           onUnitComplete={() => setFinished(true)}
-          initialSegment={resumeAt}
-          onSegmentChange={onSegmentChange}
+          segmentIndex={segmentIndex}
+          onSegmentChange={setSegment}
         />
       </main>
     </Shell>
