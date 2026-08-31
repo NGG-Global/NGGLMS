@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html{direction:rtl}
+body{margin:0;direction:rtl;background:#f6f6f8;color:#15151f;font:400 14.5px/1.65 'Heebo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;text-wrap:pretty}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:right}
+h1,h2,h3,h4,p{margin:0}
+a{color:#d11e78;text-decoration:none}
+a:hover{color:#b01a65;text-decoration:underline}
+::selection{background:#fbd9ec;color:#15151f}
+button{transition:background .15s ease,border-color .15s ease,color .15s ease,opacity .15s ease}
+button:focus-visible,input:focus-visible{outline:2px solid rgba(236,42,140,.5);outline-offset:2px}
+input[type=range]{accent-color:#ec2a8c;height:16px;cursor:pointer}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pop{0%{opacity:0;transform:scale(.86)}60%{transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+@keyframes slidein{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:none}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes glow{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes capin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column">
+
+<header style="flex:none;height:58px;display:flex;align-items:center;gap:14px;padding:0 22px;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:1px solid #e5e4e7;position:sticky;top:0;z-index:60">
+<img src="assets/ngg-mark.png" alt="NGG" style="height:23px;width:auto;display:block">
+<div style="width:1px;height:18px;background:#e5e4e7"></div>
+<span style="font-weight:600;font-size:14.5px;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">יחידה 02 · לעבוד עם AI בצורה בטוחה ואחראית</span>
+<div style="flex:1;min-width:12px"></div>
+<span style="flex:none;font-size:12.5px;color:#5a5a5c;white-space:nowrap">{{ doneLabel }}</span>
+<span style="width:96px;height:5px;border-radius:99px;background:#ecebee;overflow:hidden;display:block"><span style="{{ doneBar }}"></span></span>
+</header>
+
+<div style="flex:1;width:100%;max-width:1480px;margin:0 auto;padding:20px 24px 46px;display:grid;grid-template-columns:minmax(0,1fr) 296px;gap:20px;align-items:start">
+
+<section style="min-width:0;display:flex;flex-direction:column;gap:14px">
+
+<div style="position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#14141c;box-shadow:0 1px 2px rgba(21,21,31,.06),0 18px 40px -22px rgba(21,21,31,.35)">
+{{ stage }}
+
+<div style="position:absolute;top:0;inset-inline:0;display:flex;align-items:center;gap:9px;padding:16px 20px;z-index:5;pointer-events:none">
+<span style="{{ kickerSt }}">{{ kicker }}</span>
+<div style="flex:1"></div>
+<span dir="ltr" style="{{ numSt }}">{{ segNum }} / 5</span>
+</div>
+
+<div style="position:absolute;bottom:0;inset-inline:0;display:flex;justify-content:center;padding:0 6% 22px;z-index:6;pointer-events:none">
+<span style="{{ capSt }}">{{ caption }}</span>
+</div>
+
+<sc-if value="{{ showPoster }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ play }}" style="position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:11px;background:linear-gradient(to top,rgba(10,10,16,.82) 0%,rgba(10,10,16,.34) 46%,rgba(10,10,16,.12) 100%);cursor:pointer;text-align:center;padding:0 8% clamp(26px,3.6vw,52px)">
+<span style="width:66px;height:66px;border-radius:99px;background:#ec2a8c;color:#fff;font:400 24px/66px 'Heebo',sans-serif;text-align:center;box-shadow:0 10px 30px -8px rgba(236,42,140,.7)">▶</span>
+<span style="display:block;color:rgba(255,255,255,.72);font-size:13.5px;font-weight:500">{{ segMeta }}</span>
+</button>
+</sc-if>
+
+<sc-if value="{{ think }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:9;background:rgba(12,12,18,.9);backdrop-filter:blur(6px);display:flex;flex-direction:column;justify-content:center;padding:clamp(28px,4.5vw,72px);animation:fade .35s ease both">
+<span style="font:600 10.5px/1 'Heebo',sans-serif;color:#ec2a8c;letter-spacing:.16em">עצור וחשוב</span>
+<p style="margin-top:14px;color:#fff;font-weight:600;font-size:clamp(17px,2.1vw,26px);line-height:1.4;letter-spacing:-.015em;max-width:34ch">{{ thinkQ }}</p>
+<div style="margin-top:26px;display:flex;flex-wrap:wrap;gap:9px">
+<button onClick="{{ closeThink }}" style="padding:11px 18px;border-radius:7px;background:#ec2a8c;color:#fff;font-weight:700;font-size:14px">לתרגיל של המקטע ↓</button>
+<button onClick="{{ replay }}" style="padding:11px 18px;border-radius:7px;border:1px solid rgba(255,255,255,.22);color:rgba(255,255,255,.82);font-size:14px">לצפות שוב</button>
+</div>
+</div>
+</sc-if>
+</div>
+
+<div style="display:flex;align-items:center;gap:12px;padding:11px 14px;background:#fff;border:1px solid #e5e4e7;border-radius:10px;box-shadow:0 1px 2px rgba(21,21,31,.05)">
+<button onClick="{{ toggle }}" style="flex:none;width:38px;height:38px;border-radius:99px;background:#15151f;color:#fff;font-size:14px;text-align:center;line-height:38px">{{ ppIcon }}</button>
+<span dir="ltr" style="flex:none;font-size:12.5px;color:#5a5a5c;width:88px;white-space:nowrap;text-align:right">{{ timeLabel }}</span>
+<div style="flex:1;min-width:60px;position:relative;height:18px;display:flex;align-items:center">
+<span style="display:block;width:100%;height:4px;border-radius:99px;background:#ecebee;overflow:hidden"><span style="{{ scrubFill }}"></span></span>
+<span style="{{ scrubDot }}"></span>
+<input type="range" min="0" max="1000" value="{{ scrub }}" onChange="{{ onScrub }}" aria-label="מיקום בהשמעה" style="position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;direction:rtl">
+</div>
+<div style="flex:none;display:flex;gap:2px;padding:2px;background:#f2f2f4;border-radius:7px">
+<sc-for list="{{ rates }}" as="r" hint-placeholder-count="4">
+<button onClick="{{ r.set }}" style="{{ r.st }}">{{ r.label }}</button>
+</sc-for>
+</div>
+<button onClick="{{ markDone }}" style="{{ doneBtnSt }}">{{ doneBtnLabel }}</button>
+</div>
+
+<sc-if value="{{ exOn }}" hint-placeholder-val="{{ true }}">
+<div style="padding:18px 20px;background:#fff;border:1px solid #e5e4e7;border-radius:10px;box-shadow:0 1px 2px rgba(21,21,31,.05);display:flex;flex-direction:column;gap:15px">
+
+<div style="display:flex;align-items:baseline;gap:10px">
+<span style="font-weight:600;font-size:10.5px;color:#d11e78;letter-spacing:.16em">{{ exKicker }}</span>
+<div style="flex:1;min-width:8px"></div>
+<span style="flex:none;font-size:12px;color:#949494;white-space:nowrap;unicode-bidi:plaintext">{{ exProgress }}</span>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:4px">
+<p style="font-weight:600;font-size:16px;line-height:1.45;letter-spacing:-.018em">{{ exHead }}</p>
+<p style="font-size:13.5px;line-height:1.6;color:#5a5a5c">{{ exSub }}</p>
+</div>
+
+<sc-if value="{{ exHasRows }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:7px">
+<sc-for list="{{ exRows }}" as="r" hint-placeholder-count="4">
+<div style="{{ r.rowSt }}">
+<span style="font-size:14px;font-weight:500;line-height:1.4;text-wrap:pretty">{{ r.label }}</span>
+<span style="{{ r.optsSt }}">
+<sc-for list="{{ r.opts }}" as="o" hint-placeholder-count="2">
+<button onClick="{{ o.set }}" style="{{ o.st }}">{{ o.label }}</button>
+</sc-for>
+</span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ exHasChips }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-wrap:wrap;gap:7px">
+<sc-for list="{{ exChips }}" as="c" hint-placeholder-count="6">
+<button onClick="{{ c.set }}" style="{{ c.st }}">{{ c.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ exHasPreview }}" hint-placeholder-val="{{ false }}">
+<div style="padding:14px 16px;border-radius:8px;background:#15151f">
+<span style="display:block;font-weight:600;font-size:10px;color:rgba(255,255,255,.45);letter-spacing:.14em;margin-bottom:7px">הבקשה שתישלח</span>
+<p style="font-size:13.5px;line-height:1.7;color:#f0f0f4;white-space:pre-line">{{ exPreview }}</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ exResult }}" hint-placeholder-val="{{ false }}">
+<div style="padding:14px 16px;border-radius:8px;background:rgba(236,42,140,.06);border:1px solid rgba(236,42,140,.22);animation:rise .35s ease both">
+<span style="display:block;font-weight:700;font-size:14px;letter-spacing:-.015em;margin-bottom:5px">{{ exVerdict }}</span>
+<p style="font-size:13.5px;line-height:1.65;color:#3a3a40">{{ exResult }}</p>
+</div>
+</sc-if>
+
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px">
+<button onClick="{{ exCheck }}" style="{{ exCheckSt }}">{{ exCheckLabel }}</button>
+<button onClick="{{ exReset }}" style="{{ exResetSt }}">להתחיל מחדש</button>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ txOpen }}" hint-placeholder-val="{{ false }}">
+<div style="padding:16px 18px;background:#fff;border:1px solid #e5e4e7;border-radius:10px;box-shadow:0 1px 2px rgba(21,21,31,.05)">
+<div style="display:flex;align-items:center;gap:9px;margin-bottom:10px">
+<h3 style="font-size:13px;font-weight:600">תמלול המקטע</h3>
+<div style="flex:1"></div>
+<button onClick="{{ hideTx }}" style="font-size:12.5px;color:#5a5a5c">להסתיר</button>
+</div>
+<div style="max-height:230px;overflow-y:auto;display:flex;flex-direction:column;gap:1px">
+<sc-for list="{{ txLines }}" as="l" hint-placeholder-count="8">
+<button onClick="{{ l.go }}" style="{{ l.st }}">{{ l.text }}</button>
+</sc-for>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ txClosed }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ showTx }}" style="align-self:flex-start;font-size:13px;font-weight:600;color:#d11e78">להציג את התמלול המלא ↓</button>
+</sc-if>
+</section>
+
+<aside style="display:flex;flex-direction:column;gap:14px;position:sticky;top:78px">
+<div style="background:#fff;border:1px solid #e5e4e7;border-radius:10px;box-shadow:0 1px 2px rgba(21,21,31,.05);overflow:hidden">
+<div style="padding:13px 15px;border-bottom:1px solid #ecebee">
+<h2 style="font-size:13px;font-weight:600">חמישה מקטעים</h2>
+<p style="margin-top:2px;font-size:12px;color:#949494">{{ totalLabel }}</p>
+</div>
+<sc-for list="{{ rail }}" as="s" hint-placeholder-count="5">
+<button onClick="{{ s.go }}" style="{{ s.st }}">
+<span style="{{ s.numSt }}">{{ s.num }}</span>
+<span style="flex:1;min-width:0">
+<span style="display:block;font-size:13.5px;font-weight:600;line-height:1.35">{{ s.title }}</span>
+<span style="display:block;margin-top:1px;font-size:11.5px;color:#949494">{{ s.meta }}</span>
+</span>
+</button>
+</sc-for>
+</div>
+
+<div style="padding:14px 15px;background:#fff;border:1px solid #e5e4e7;border-radius:10px;box-shadow:0 1px 2px rgba(21,21,31,.05)">
+<h3 style="font-size:12.5px;font-weight:600;color:#5a5a5c">פתיח היחידה</h3>
+<p style="margin-top:5px;font-size:13px;line-height:1.6;color:#3a3a40">ביחידה השנייה נתרגם את עקרונות ה-AI האחראי להתנהגויות יומיומיות: מה מזינים, מה המערכת רואה, איך בודקים ומתי האדם חייב להחזיק את ההגה.</p>
+<button onClick="{{ playIntro }}" style="margin-top:10px;font-size:12.5px;font-weight:600;color:#d11e78">{{ introLabel }}</button>
+</div>
+</aside>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860}}">
+const H = React.createElement;
+const PINK = '#ec2a8c';
+
+class Component extends DCLogic {
+  state = { segs: null, idx: 0, playing: false, t: 0, rate: 1, done: {}, think: false, started: false, tx: false, introOn: false, ex: {} };
+
+  setEx(sid, k, v) {
+    this.setState(st => {
+      const ex = Object.assign({}, st.ex); const cur = Object.assign({}, ex[sid] || {});
+      if (cur.__c) return null;
+      cur[k] = v; ex[sid] = cur; return { ex: ex };
+    });
+  }
+  toggleEx(sid, k) {
+    this.setState(st => {
+      const ex = Object.assign({}, st.ex); const cur = Object.assign({}, ex[sid] || {});
+      if (cur.__c) return null;
+      cur[k] = !cur[k]; ex[sid] = cur; return { ex: ex };
+    });
+  }
+  checkEx = () => {
+    const s = this.cur(); if (!s) return;
+    const done = Object.assign({}, this.state.done); done[s.id] = true;
+    try { localStorage.setItem('ngg-u2-done', JSON.stringify(done)); } catch (e) {}
+    this.setState(st => {
+      const ex = Object.assign({}, st.ex);
+      ex[s.id] = Object.assign({}, ex[s.id] || {}, { __c: true });
+      return { ex: ex, done: done };
+    });
+  };
+  resetEx = () => {
+    const s = this.cur(); if (!s) return;
+    this.setState(st => { const ex = Object.assign({}, st.ex); ex[s.id] = {}; return { ex: ex }; });
+  };
+
+  exVals(s) {
+    const E = s.ex, sid = s.id;
+    const A = (this.state.ex && this.state.ex[sid]) || {};
+    const ck = !!A.__c;
+    const OK = '#0f7f58', BAD = '#c3305e';
+    const btn = (on, tone) => {
+      const base = 'flex:none;white-space:normal;text-align:center;padding:6px 12px;border-radius:6px;font-size:12.5px;font-weight:600;line-height:1.35;border:1px solid ';
+      if (tone === 'ok') return base + OK + ';background:rgba(15,127,88,.1);color:' + OK;
+      if (tone === 'bad') return base + BAD + ';background:rgba(195,48,94,.08);color:' + BAD;
+      if (tone === 'miss') return base + OK + ';border-style:dashed;background:#fff;color:' + OK;
+      if (on) return base + '#ec2a8c;background:rgba(236,42,140,.1);color:#d11e78';
+      return base + '#e5e4e7;background:#fff;color:#5a5a5c';
+    };
+
+    let rows = [], chips = [], preview = '', verdict = '', result = '', canCheck = false, prog = '';
+
+    const stack = E.kind === 'assign';
+    const rowSt = 'padding:10px 13px;border:1px solid #ecebee;border-radius:8px;background:#fcfcfd;display:' + (stack ? 'flex;flex-direction:column;gap:9px' : 'grid;grid-template-columns:minmax(140px,1fr) auto;align-items:center;gap:14px');
+    const optsSt = 'display:flex;flex-wrap:wrap;gap:5px' + (stack ? '' : ';flex:none;justify-content:flex-end');
+
+    if (E.kind === 'sort' || E.kind === 'assign') {
+      const opts = E.kind === 'sort' ? E.cols : E.levels;
+      rows = E.items.map((it, i) => ({
+        label: it[0], rowSt: rowSt, optsSt: optsSt,
+        opts: opts.map((o, j) => {
+          const on = A['r' + i] === j;
+          return { label: o, st: btn(on, ck && on ? (j === it[1] ? 'ok' : 'bad') : (ck && !on && j === it[1] ? 'miss' : '')), set: () => this.setEx(sid, 'r' + i, j) };
+        })
+      }));
+      const ans = E.items.filter((it, i) => A['r' + i] != null).length;
+      canCheck = ans === E.items.length; prog = ans + ' / ' + E.items.length;
+      if (ck) {
+        const good = E.items.filter((it, i) => A['r' + i] === it[1]).length;
+        verdict = good === E.items.length ? 'הכול נכון' : good + ' מתוך ' + E.items.length + ' נכון';
+        result = E.after;
+      }
+    } else if (E.kind === 'sliders') {
+      rows = E.axes.map((a, i) => ({
+        label: a.label, rowSt: rowSt, optsSt: optsSt,
+        opts: a.opts.map((o, j) => ({ label: o, st: btn(A['r' + i] === j, ''), set: () => this.setEx(sid, 'r' + i, j) }))
+      }));
+      const ans = E.axes.filter((a, i) => A['r' + i] != null).length;
+      canCheck = ans === E.axes.length; prog = ans + ' / ' + E.axes.length;
+      if (ck) {
+        const sum = E.axes.reduce((x, a, i) => x + (A['r' + i] || 0), 0);
+        verdict = E.levels[sum <= 1 ? 0 : sum === 2 ? 1 : 2];
+        result = E.after;
+      }
+    } else {
+      const items = E.kind === 'multi' ? E.items : E.chips;
+      const good = it => (E.kind === 'multi' ? it[1] : it[2]);
+      chips = items.map((it, i) => {
+        const on = !!A['c' + i];
+        return { label: it[0], st: btn(on, ck ? (on ? (good(it) ? 'ok' : 'bad') : (good(it) ? 'miss' : '')) : ''), set: () => this.toggleEx(sid, 'c' + i) };
+      });
+      const sel = items.filter((it, i) => A['c' + i]).length;
+      canCheck = sel > 0; prog = sel + ' נבחרו';
+      if (E.kind === 'builder') preview = [E.prompt].concat(items.filter((it, i) => A['c' + i]).map(it => '· ' + it[0])).join('\n');
+      if (ck) {
+        const tot = items.filter(good).length;
+        const hit = items.filter((it, i) => A['c' + i] && good(it)).length;
+        const noise = items.filter((it, i) => A['c' + i] && !good(it)).length;
+        verdict = hit + ' מתוך ' + tot + ' נכונות' + (noise ? ' · ' + noise + ' מיותרות' : '');
+        result = E.after;
+      }
+    }
+
+    const touched = Object.keys(A).length > 0;
+    return {
+      exOn: true, exKicker: 'תרגיל · נאגט ' + s.n, exHead: E.head, exSub: E.sub,
+      exRows: rows, exChips: chips, exHasRows: rows.length > 0, exHasChips: chips.length > 0,
+      exPreview: preview, exHasPreview: E.kind === 'builder',
+      exProgress: ck ? 'נבדק' : prog, exVerdict: verdict, exResult: result,
+      exCheck: ck ? this.next : (canCheck ? this.checkEx : () => {}),
+      exCheckLabel: ck ? (this.state.idx < 4 ? 'למקטע הבא ←' : 'סיימתי את היחידה') : 'לבדוק',
+      exCheckSt: 'flex:none;padding:9px 18px;border-radius:7px;font-size:13.5px;font-weight:700;' + ((canCheck || ck) ? 'background:#ec2a8c;color:#fff' : 'background:#f2f2f4;color:#b4b4b8;cursor:default'),
+      exReset: this.resetEx,
+      exResetSt: 'flex:none;padding:9px 15px;border-radius:7px;font-size:13px;font-weight:600;border:1px solid #e5e4e7;color:#5a5a5c;' + (touched ? '' : 'display:none')
+    };
+  }
+
+  componentDidMount() {
+    try { const d = JSON.parse(localStorage.getItem('ngg-u2-done') || '{}'); if (d && typeof d === 'object') this.setState({ done: d }); } catch (e) {}
+    const a = new Audio(); a.preload = 'auto'; this.audio = a;
+    a.addEventListener('loadedmetadata', () => { if (this.pending != null) { a.currentTime = this.pending; this.pending = null; } });
+    this.tick = setInterval(this.onTick, 70);
+    Promise.all([
+      import('./unit2-data.js'),
+      fetch('./assets/audio/_speech.json').then(r => r.json()).catch(() => null)
+    ]).then(([m, sp]) => {
+      const segs = m.segments.map(s => this.buildCues(s, sp));
+      this.setState({ segs: segs, unit: m.unit });
+    });
+  }
+
+  // Distributes cues over SPEECH time, not wall time, so pauses don't swallow captions.
+  buildCues(s, sp) {
+    const total = s.end - s.start;
+
+    // Exact timestamps supplied with the transcript: honour them verbatim.
+    if (s.timed) {
+      const base = (s.tcBase != null ? s.tcBase : s.start) - s.start;
+      const rate = s.tcRate || 1;
+      const cueList = [];
+      s.timed.forEach(bl => {
+        const b0 = base + bl[0] * rate, b1 = base + bl[1] * rate, lines = bl[2];
+        const w = lines.map(l => l[2] != null ? l[2] : Math.max(14, l[0].length));
+        const sum = w.reduce((x, y) => x + y, 0);
+        let acc = 0;
+        lines.forEach((l, i) => {
+          const t0 = b0 + (b1 - b0) * acc / sum; acc += w[i];
+          cueList.push({ text: l[0], scene: l[1], t0: t0, t1: b0 + (b1 - b0) * acc / sum });
+        });
+      });
+      cueList[cueList.length - 1].t1 = total;
+      return Object.assign({}, s, { dur: total, cueList: cueList });
+    }
+
+    const b0 = (s.body != null ? s.body : s.start) - s.start;
+    const lens = s.cues.map(c => Math.max(14, c[0].length));
+    const sum = lens.reduce((x, y) => x + y, 0);
+    const key = (s.src.split('/').pop() || '').replace('.mp3', '');
+    const cum = sp && sp[key] && sp[key].cum;
+    let at;
+    if (cum && cum.length) {
+      const ix = t => Math.max(0, Math.min(cum.length - 1, Math.round(t / 0.02)));
+      const lo0 = ix(s.body != null ? s.body : s.start), hi0 = ix(s.end);
+      const S0 = cum[lo0], span = cum[hi0] - S0;
+      at = f => {
+        if (span <= 0) return b0 + f * (total - b0);
+        const target = S0 + f * span;
+        let lo = lo0, hi = hi0;
+        while (lo < hi) { const mid = (lo + hi) >> 1; if (cum[mid] < target) lo = mid + 1; else hi = mid; }
+        return Math.max(0, Math.min(total, lo * 0.02 - s.start));
+      };
+    } else {
+      at = f => b0 + f * (total - b0);
+    }
+    let acc = 0;
+    const cueList = s.cues.map((c, i) => {
+      const t0 = at(acc / sum); acc += lens[i];
+      return { text: c[0], scene: c[1], t0: Math.max(0, t0 - 0.14), t1: at(acc / sum) };
+    });
+    for (let i = 1; i < cueList.length; i++) if (cueList[i].t0 < cueList[i - 1].t0 + 0.25) cueList[i].t0 = cueList[i - 1].t0 + 0.25;
+    cueList[cueList.length - 1].t1 = total;
+    return Object.assign({}, s, { dur: total, cueList: cueList });
+  }
+  componentWillUnmount() { clearInterval(this.tick); if (this.audio) this.audio.pause(); }
+
+  cur() { return this.state.segs ? this.state.segs[this.state.idx] : null; }
+
+  onTick = () => {
+    const a = this.audio, s = this.cur();
+    if (!a || !s || this.pending != null || a.readyState < 1) return;
+    if (this.state.introOn) { if (a.currentTime >= this.state.unit.intro.end - 0.05) { a.pause(); this.setState({ introOn: false, playing: false }); } else if (!a.paused) this.forceUpdate(); return; }
+    if (a.currentTime >= s.end - 0.05 && this.state.started) { this.finish(); return; }
+    const t = Math.max(0, a.currentTime - s.start);
+    if (Math.abs(t - this.state.t) > 0.03) this.setState({ t: t });
+  };
+
+  seek(abs) { const a = this.audio; if (a.readyState >= 1) a.currentTime = abs; else this.pending = abs; }
+
+  load(src) { if (this.srcLoaded !== src) { this.audio.src = src; this.srcLoaded = src; this.pending = null; } }
+
+  play = () => {
+    const s = this.cur(); if (!s) return;
+    this.load(s.src);
+    const a = this.audio;
+    if (this.pending == null) {
+      const ct = a.currentTime;
+      if (this.state.introOn || ct < s.start || ct > s.end - 0.15) this.seek(s.start + this.state.t);
+    }
+    a.playbackRate = this.state.rate;
+    a.play().catch(() => {});
+    this.setState({ playing: true, started: true, think: false, introOn: false });
+  };
+  pause = () => { this.audio.pause(); this.setState({ playing: false }); };
+  toggle = () => { this.state.playing ? this.pause() : this.play(); };
+
+  finish() {
+    this.audio.pause();
+    const s = this.cur();
+    const done = Object.assign({}, this.state.done); done[s.id] = true;
+    try { localStorage.setItem('ngg-u2-done', JSON.stringify(done)); } catch (e) {}
+    this.setState({ playing: false, think: true, t: s.dur, done: done });
+  }
+
+  select = i => {
+    const s = this.state.segs[i];
+    this.audio.pause();
+    this.load(s.src); this.seek(s.start);
+    this.setState({ idx: i, t: 0, playing: false, think: false, started: false, introOn: false });
+  };
+  next = () => { const i = this.state.idx; if (i < 4) this.select(i + 1); else this.setState({ think: false }); };
+  replay = () => { this.setState({ t: 0, think: false, started: false }, () => { this.seek(this.cur().start); this.play(); }); };
+
+  playIntro = () => {
+    const u = this.state.unit; if (!u) return;
+    if (this.state.introOn && this.state.playing) { this.audio.pause(); this.setState({ playing: false }); return; }
+    this.audio.pause();
+    this.load(u.intro.src); this.seek(u.intro.start);
+    this.audio.playbackRate = this.state.rate;
+    this.audio.play().catch(() => {});
+    this.setState({ introOn: true, playing: true, think: false, started: false, t: 0 });
+  };
+
+  setRate = r => { this.audio.playbackRate = r; this.setState({ rate: r }); };
+
+  onScrub = e => {
+    const s = this.cur(); if (!s) return;
+    const t = (+e.target.value / 1000) * s.dur;
+    this.load(s.src); this.seek(s.start + t);
+    this.setState({ t: t, think: false, started: true, introOn: false });
+  };
+
+  goCue = i => {
+    const s = this.cur(); const t = s.cueList[i].t0;
+    this.load(s.src); this.seek(s.start + t);
+    this.setState({ t: t, think: false, started: true, introOn: false }, () => { if (!this.state.playing) this.play(); });
+  };
+
+  markDone = () => {
+    const s = this.cur(); const done = Object.assign({}, this.state.done);
+    done[s.id] = !done[s.id];
+    try { localStorage.setItem('ngg-u2-done', JSON.stringify(done)); } catch (e) {}
+    this.setState({ done: done });
+  };
+
+  fmt(x) { x = Math.max(0, Math.round(x)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); }
+
+  activeCue(s) {
+    const t = this.state.t;
+    for (let i = s.cueList.length - 1; i >= 0; i--) if (t >= s.cueList[i].t0) return i;
+    return 0;
+  }
+
+  // ---- scene rendering ----
+  scene(sc, key) {
+    if (!sc) return null;
+    const dark = sc.tone !== 'light';
+    const fg = dark ? '#f5f5f8' : '#15151f';
+    const dim = dark ? 'rgba(245,245,248,.5)' : '#6b6b70';
+    const bg = dark ? '#14141c' : '#fbfbfc';
+    const line = dark ? 'rgba(255,255,255,.13)' : '#e2e1e5';
+    const soft = dark ? 'rgba(255,255,255,.055)' : '#fff';
+    const st = (i, name) => ({ animation: (name || 'rise') + ' .55s cubic-bezier(.2,.85,.25,1) both', animationDelay: (0.06 + i * 0.085) + 's' });
+    const head = (txt, i) => H('div', { key: 'h', style: Object.assign({ font: "600 clamp(11px,1.15vw,14px)/1.4 'Heebo',sans-serif", color: PINK, letterSpacing: '.11em', marginBottom: 'clamp(14px,1.7vw,22px)' }, st(0)) }, txt);
+    const wrap = kids => H('div', { key: key, style: { position: 'absolute', inset: 0, background: bg, color: fg, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: 'clamp(26px,4.2vw,68px)', paddingBottom: 'clamp(92px,10.5vw,140px)', animation: 'fade .4s ease both', overflow: 'hidden' } }, kids);
+    const k = sc.kind;
+
+    if (k === 'type') {
+      const t = sc.head; const acc = sc.accent;
+      let parts = [t];
+      if (acc && t.indexOf(acc) > -1) { const i = t.indexOf(acc); parts = [t.slice(0, i), acc, t.slice(i + acc.length)]; }
+      return wrap([
+        sc.logo ? H('img', { key: 'lg', src: 'assets/copilot.png', alt: '', style: Object.assign({ width: 'clamp(30px,3.3vw,50px)', height: 'clamp(30px,3.3vw,50px)', objectFit: 'contain', display: 'block', marginBottom: 'clamp(15px,1.9vw,26px)' }, st(0, 'pop')) }) : null,
+        sc.sub ? H('div', { key: 's', style: Object.assign({ font: "600 clamp(11px,1.15vw,14px)/1 'Heebo',sans-serif", color: PINK, letterSpacing: '.16em', marginBottom: 'clamp(16px,2vw,26px)' }, st(sc.logo ? 0.6 : 0)) }, sc.sub) : null,
+        H('h2', { key: 'h', style: { font: "800 clamp(24px,3.9vw,58px)/1.14 'Heebo',sans-serif", letterSpacing: '-.03em', maxWidth: '21ch' } },
+          parts.map((p, i) => p ? H('span', { key: i, style: Object.assign({ display: 'inline', color: (parts.length === 3 && i === 1) ? PINK : 'inherit' }, st(i, 'rise')) }, p) : null))
+      ]);
+    }
+
+    if (k === 'chips') {
+      const big = sc.items.length <= 5;
+      return wrap([head(sc.head), H('div', { key: 'c', style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'clamp(6px,.75vw,11px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: Object.assign({ whiteSpace: 'nowrap', padding: 'clamp(7px,.85vw,13px) clamp(11px,1.35vw,20px)', borderRadius: 8, background: soft, border: '1px solid ' + line, font: '600 clamp(11.5px,' + (big ? 1.5 : 1.2) + 'vw,' + (big ? 23 : 19) + 'px)/1.2 \'Heebo\',sans-serif', letterSpacing: '-.015em' }, st(i, 'pop')) }, x)))]);
+    }
+
+    if (k === 'flow') {
+      return wrap([head(sc.head), H('div', { key: 'f', style: { display: 'flex', alignItems: 'stretch', flexWrap: 'wrap', gap: 'clamp(8px,1vw,16px)' } },
+        sc.nodes.map((x, i) => [
+          i ? H('span', { key: 'a' + i, style: Object.assign({ alignSelf: 'center', color: PINK, font: "400 clamp(15px,1.9vw,28px)/1 'Heebo',sans-serif" }, st(i * 2 - 1, 'fade')) }, '←') : null,
+          H('span', { key: 'n' + i, style: Object.assign({ padding: 'clamp(11px,1.3vw,20px) clamp(14px,1.7vw,26px)', borderRadius: 9, background: i === sc.nodes.length - 1 ? PINK : soft, color: i === sc.nodes.length - 1 ? '#fff' : fg, border: '1px solid ' + (i === sc.nodes.length - 1 ? PINK : line), font: "700 clamp(13px,1.65vw,24px)/1.25 'Heebo',sans-serif", letterSpacing: '-.02em', maxWidth: '13ch' }, st(i * 2, 'pop')) }, x)
+        ])),
+        sc.foot ? H('p', { key: 'ft', style: Object.assign({ marginTop: 'clamp(16px,2vw,28px)', color: dim, font: "400 clamp(12px,1.35vw,20px)/1.5 'Heebo',sans-serif", maxWidth: '34ch' }, st(sc.nodes.length * 2 + 1)) }, sc.foot) : null]);
+    }
+
+    if (k === 'negspace') {
+      return wrap([head(sc.head), H('div', { key: 'n', style: { display: 'flex', flexDirection: 'column', gap: 'clamp(7px,.9vw,14px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: Object.assign({ display: 'flex', alignItems: 'center', gap: 'clamp(9px,1.1vw,16px)', font: "500 clamp(13px,1.7vw,26px)/1.3 'Heebo',sans-serif", letterSpacing: '-.02em', color: dim }, st(i)) }, [
+          H('span', { key: 'd', style: { flex: 'none', width: 'clamp(8px,.85vw,13px)', height: 'clamp(8px,.85vw,13px)', borderRadius: 99, border: '2px solid ' + PINK } }),
+          H('span', { key: 't' }, x)
+        ])))]);
+    }
+
+    if (k === 'questions') {
+      return wrap([head(sc.head), H('div', { key: 'q', style: { display: 'flex', flexDirection: 'column', gap: 'clamp(5px,.7vw,11px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: Object.assign({ font: "600 clamp(14px,1.85vw,29px)/1.3 'Heebo',sans-serif", letterSpacing: '-.025em', maxWidth: '26ch' }, st(i)) }, x)))]);
+    }
+
+    if (k === 'principle') {
+      return wrap([head(sc.label),
+        H('div', { key: 'o', style: Object.assign({ display: 'flex', alignItems: 'center', gap: 'clamp(9px,1.1vw,16px)', font: "500 clamp(13px,1.6vw,24px)/1.35 'Heebo',sans-serif", color: dim, textDecoration: 'line-through', textDecorationColor: PINK, textDecorationThickness: '2px', maxWidth: '28ch' }, st(1)) }, sc.off),
+        H('div', { key: 'n', style: Object.assign({ marginTop: 'clamp(14px,1.8vw,26px)', font: "800 clamp(18px,2.7vw,42px)/1.2 'Heebo',sans-serif", letterSpacing: '-.03em', maxWidth: '24ch' }, st(2)) }, sc.on)]);
+    }
+
+    if (k === 'gauge') {
+      return wrap([head(sc.head), H('div', { key: 'g', style: { display: 'flex', flexDirection: 'column', gap: 'clamp(8px,1vw,15px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: { display: 'flex', alignItems: 'center', gap: 'clamp(10px,1.2vw,18px)' } }, [
+          H('span', { key: 'b', style: Object.assign({ flex: 'none', display: 'block', height: 'clamp(7px,.75vw,11px)', borderRadius: 99, background: PINK, opacity: .35 + i * (0.65 / Math.max(1, sc.items.length - 1)), width: (26 + (i * 62 / Math.max(1, sc.items.length - 1))) + '%', transformOrigin: 'right center' }, { animation: 'grow .6s cubic-bezier(.2,.85,.25,1) both', animationDelay: (0.08 + i * 0.1) + 's' }) }),
+          H('span', { key: 't', style: Object.assign({ font: "600 clamp(12px,1.5vw,23px)/1.25 'Heebo',sans-serif", letterSpacing: '-.02em', whiteSpace: 'nowrap' }, st(i, 'fade')) }, x)
+        ])))]);
+    }
+
+    if (k === 'butlist') {
+      return wrap([head(sc.head), H('div', { key: 'b', style: { display: 'flex', flexDirection: 'column', gap: 'clamp(9px,1.1vw,17px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: Object.assign({ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: 'clamp(10px,1.3vw,20px)' }, st(i)) }, [
+          H('span', { key: 'a', style: { font: "600 clamp(12px,1.45vw,22px)/1.3 'Heebo',sans-serif", letterSpacing: '-.02em' } }, x[0]),
+          H('span', { key: 'l', style: { display: 'block', width: 1, height: 'clamp(20px,2.4vw,38px)', background: line } }),
+          H('span', { key: 'b2', style: { font: "400 clamp(12px,1.45vw,22px)/1.3 'Heebo',sans-serif", color: dim } }, x[1])
+        ])))]);
+    }
+
+    if (k === 'twoq') {
+      return wrap([head(sc.head), H('div', { key: 'q', style: { display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 'clamp(10px,1.3vw,20px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: Object.assign({ display: 'block', padding: 'clamp(13px,1.6vw,26px)', borderRadius: 10, background: soft, border: '1px solid ' + line }, st(i, 'pop')) }, [
+          H('span', { key: 'n', style: { display: 'block', font: "700 clamp(13px,1.6vw,25px)/1.25 'Heebo',sans-serif", letterSpacing: '-.025em' } }, x[0]),
+          H('span', { key: 'b', style: { display: 'block', marginTop: 'clamp(7px,.9vw,13px)', font: "400 clamp(11.5px,1.25vw,18px)/1.5 'Heebo',sans-serif", color: dim } }, x[1])
+        ])))]);
+    }
+
+    if (k === 'dial') {
+      return wrap([head(sc.head),
+        H('div', { key: 'd', style: { position: 'relative', height: 'clamp(8px,.8vw,12px)', borderRadius: 99, background: 'linear-gradient(to left,' + PINK + ',rgba(236,42,140,.18))', animation: 'grow .7s cubic-bezier(.2,.85,.25,1) both', animationDelay: '.1s', transformOrigin: 'right center' } }),
+        H('div', { key: 'l', style: { marginTop: 'clamp(14px,1.7vw,24px)', display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: 'clamp(12px,1.5vw,24px)' } }, [
+          H('span', { key: 'a', style: Object.assign({ font: "600 clamp(12px,1.45vw,22px)/1.35 'Heebo',sans-serif", letterSpacing: '-.02em' }, st(1)) }, sc.low),
+          H('span', { key: 'b', style: Object.assign({ font: "600 clamp(12px,1.45vw,22px)/1.35 'Heebo',sans-serif", letterSpacing: '-.02em', color: PINK }, st(2)) }, sc.high)
+        ])]);
+    }
+
+    if (k === 'quote') {
+      return wrap([head(sc.head),
+        H('blockquote', { key: 'q', style: Object.assign({ margin: 0, padding: 'clamp(15px,1.9vw,30px)', borderRadius: 10, background: 'rgba(236,42,140,.09)', border: '1px solid rgba(236,42,140,.3)', font: "600 clamp(14px,1.85vw,28px)/1.4 'Heebo',sans-serif", letterSpacing: '-.025em' }, st(1, 'pop')) }, '"' + sc.quote + '"'),
+        sc.foot ? H('p', { key: 'f', style: Object.assign({ marginTop: 'clamp(12px,1.5vw,22px)', color: dim, font: "400 clamp(12px,1.3vw,19px)/1.5 'Heebo',sans-serif" }, st(2)) }, sc.foot) : null]);
+    }
+
+    if (k === 'stairs') {
+      return wrap([head(sc.head), H('div', { key: 's', style: { display: 'flex', flexDirection: 'column', gap: 'clamp(7px,.9vw,13px)' } },
+        sc.items.map((x, i) => H('span', { key: i, style: Object.assign({ display: 'flex', alignItems: 'baseline', gap: 'clamp(10px,1.2vw,18px)', marginInlineStart: (i * 7) + '%', padding: 'clamp(10px,1.2vw,19px) clamp(13px,1.5vw,24px)', borderRadius: 9, background: i === sc.items.length - 1 ? 'rgba(236,42,140,.12)' : soft, border: '1px solid ' + (i === sc.items.length - 1 ? 'rgba(236,42,140,.35)' : line) }, st(i, 'slidein')) }, [
+          H('span', { key: 'a', style: { flex: 'none', font: "700 clamp(12px,1.5vw,23px)/1.3 'Heebo',sans-serif", letterSpacing: '-.02em' } }, x[0]),
+          H('span', { key: 'b', style: { font: "400 clamp(11px,1.2vw,18px)/1.4 'Heebo',sans-serif", color: dim } }, x[1])
+        ])))]);
+    }
+
+    if (k === 'mock') {
+      const lines = (sc.reply || '').split('\n');
+      return wrap([
+        H('div', { key: 'p', style: Object.assign({ width: '100%', maxWidth: 'min(100%,760px)', borderRadius: 11, border: '1px solid #e2e1e5', background: '#fff', overflow: 'hidden', boxShadow: '0 14px 34px -20px rgba(21,21,31,.34)' }, st(0, 'pop')) }, [
+          H('div', { key: 'bar', style: { display: 'flex', alignItems: 'center', gap: 7, padding: 'clamp(8px,.9vw,14px) clamp(11px,1.2vw,18px)', borderBottom: '1px solid #ecebee', background: '#f9f9fa' } }, [
+            H('img', { key: 'd', src: 'assets/copilot.png', alt: '', style: { flex: 'none', width: 'clamp(14px,1.45vw,21px)', height: 'clamp(14px,1.45vw,21px)', objectFit: 'contain', display: 'block', animation: 'pop .5s cubic-bezier(.2,.85,.25,1) both' } }),
+            H('span', { key: 'l', style: { font: "600 clamp(10px,1.05vw,15px)/1 'Heebo',sans-serif", color: '#949494', letterSpacing: '.02em' } }, 'Copilot')
+          ]),
+          H('div', { key: 'body', style: { padding: 'clamp(12px,1.4vw,22px)', display: 'flex', flexDirection: 'column', gap: 'clamp(10px,1.2vw,18px)' } }, [
+            H('span', { key: 'u', style: Object.assign({ alignSelf: 'flex-start', maxWidth: '78%', padding: 'clamp(9px,1vw,15px) clamp(12px,1.3vw,20px)', borderRadius: '10px 10px 10px 3px', background: '#15151f', color: '#fff', font: "500 clamp(12px,1.4vw,21px)/1.4 'Heebo',sans-serif", letterSpacing: '-.015em' }, st(1)) }, sc.prompt),
+            lines.filter(l => l !== '').length ? H('span', { key: 'r', style: { display: 'flex', flexDirection: 'column', gap: 'clamp(3px,.4vw,7px)', paddingInlineStart: 'clamp(4px,.5vw,9px)' } },
+              lines.map((l, i) => l === '' ? H('span', { key: i, style: { height: 'clamp(4px,.5vw,9px)' } }) : H('span', { key: i, style: Object.assign({ font: "400 clamp(11.5px,1.3vw,19px)/1.5 'Heebo',sans-serif", color: '#33333f', fontWeight: i === 0 ? 600 : 400 }, st(2 + i * 0.6)) }, l))) : null
+          ])
+        ]),
+        sc.label ? H('p', { key: 'lab', style: Object.assign({ marginTop: 'clamp(12px,1.5vw,24px)', font: "600 clamp(12px,1.45vw,22px)/1.4 'Heebo',sans-serif", letterSpacing: '-.02em', color: '#15151f', maxWidth: '32ch' }, st(4)) }, sc.label) : null
+      ]);
+    }
+    return wrap([head(sc.head || '')]);
+  }
+
+  renderVals() {
+    const s = this.cur();
+    const segs = this.state.segs || [];
+    const doneN = segs.filter(x => this.state.done[x.id]).length;
+    const rateOpts = [0.75, 1, 1.25, 1.5];
+    const base = {
+      doneLabel: doneN + ' מתוך 5 הושלמו',
+      doneBar: 'display:block;height:100%;border-radius:99px;background:#ec2a8c;width:' + (doneN / 5 * 100) + '%;transition:width .3s ease',
+      kickerSt: "flex:none;white-space:nowrap;padding:5px 10px;border-radius:6px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);color:#fff;font:600 10.5px/1 'Heebo',sans-serif;letter-spacing:.1em",
+      numSt: "color:rgba(255,255,255,.55);font:500 11px/1 'Heebo',sans-serif;letter-spacing:.08em",
+      capSt: "max-width:88%;padding:9px 16px;border-radius:8px;background:rgba(10,10,16,.82);backdrop-filter:blur(8px);color:#fff;font:500 clamp(13px,1.45vw,22px)/1.45 'Heebo',sans-serif;letter-spacing:-.01em;text-align:center;animation:capin .25s ease both;" + (this.state.started && !this.state.introOn ? '' : 'display:none'),
+      rates: rateOpts.map(r => ({ label: r === 1 ? '1×' : r + '×', set: () => this.setRate(r), st: 'padding:5px 9px;border-radius:5px;font-size:12px;font-weight:600;' + (this.state.rate === r ? 'background:#fff;color:#15151f;box-shadow:0 1px 2px rgba(21,21,31,.12)' : 'color:#5a5a5c') })),
+      toggle: this.toggle, play: this.play, next: this.next, replay: this.replay, markDone: this.markDone, onScrub: this.onScrub, playIntro: this.playIntro,
+      showTx: () => this.setState({ tx: true }), hideTx: () => this.setState({ tx: false }),
+      closeThink: () => this.setState({ think: false }),
+      txOpen: this.state.tx, txClosed: !this.state.tx,
+      ppIcon: this.state.playing ? '❚❚' : '▶',
+      introLabel: this.state.introOn && this.state.playing ? 'להשהות את הפתיח ❚❚' : 'להאזין לפתיח (1:34) ▶'
+    };
+    if (!s) return Object.assign(base, { stage: null, caption: '', kicker: 'טוען', segNum: '1', showPoster: false, think: false, timeLabel: '0:00 / 0:00', scrub: 0, scrubFill: 'display:none', scrubDot: 'display:none', rail: [], txLines: [], totalLabel: '', doneBtnSt: 'display:none', doneBtnLabel: '', segTitle: '', segMeta: '', thinkQ: '', nextLabel: '', exOn: false, exKicker: '', exHead: '', exSub: '', exRows: [], exChips: [], exHasRows: false, exHasChips: false, exPreview: '', exHasPreview: false, exProgress: '', exVerdict: '', exResult: '', exCheck: () => {}, exCheckLabel: '', exCheckSt: 'display:none', exReset: () => {}, exResetSt: 'display:none' });
+
+    const ci = this.activeCue(s);
+    const cue = s.cueList[ci];
+    const introMode = this.state.introOn;
+    const preRoll = this.state.t < s.cueList[0].t0;
+    const key = introMode ? 'a' : (this.state.started && !preRoll ? cue.scene : 'a');
+    const sceneKey = introMode ? 'intro' : s.id + ':' + key;
+    const sc = introMode ? { kind: 'type', tone: 'dark', sub: 'יחידה 02', head: 'לעבוד עם AI בצורה בטוחה ואחראית', accent: 'בטוחה ואחראית' } : s.scenes[key];
+    const totalMin = Math.round(segs.reduce((a, x) => a + x.dur, 0) / 60);
+    const isDone = !!this.state.done[s.id];
+
+    return Object.assign(base, this.exVals(s), {
+      stage: this.scene(sc, sceneKey),
+      caption: introMode || preRoll ? '' : (this.state.started ? cue.text : ''),
+      capSt: base.capSt + ((introMode || preRoll || !this.state.started || !cue.text) ? ';display:none' : ''),
+      kicker: introMode ? 'פתיח היחידה' : s.kicker,
+      segNum: String(s.n),
+      segTitle: s.title,
+      segMeta: 'נאגט ' + s.n + ' · ' + this.fmt(s.dur),
+      showPoster: !this.state.started && !this.state.think && !introMode,
+      think: this.state.think,
+      thinkQ: s.think,
+      nextLabel: this.state.idx < 4 ? 'למקטע הבא ←' : 'סיימתי את היחידה',
+      timeLabel: this.fmt(this.state.t) + ' / ' + this.fmt(s.dur),
+      scrub: Math.round(this.state.t / s.dur * 1000),
+      scrubFill: 'display:block;height:100%;border-radius:99px;background:#ec2a8c;width:' + (this.state.t / s.dur * 100) + '%',
+      scrubDot: 'position:absolute;top:50%;width:11px;height:11px;border-radius:99px;background:#ec2a8c;box-shadow:0 1px 4px rgba(21,21,31,.3);pointer-events:none;transform:translate(50%,-50%);right:' + (this.state.t / s.dur * 100) + '%',
+      doneBtnSt: 'flex:none;white-space:nowrap;padding:7px 12px;border-radius:6px;font-size:12.5px;font-weight:600;border:1px solid ' + (isDone ? '#ec2a8c;background:rgba(236,42,140,.09);color:#d11e78' : '#e5e4e7;color:#5a5a5c'),
+      doneBtnLabel: isDone ? '✓ הושלם' : 'סמן כהושלם',
+      totalLabel: totalMin + ' דקות · תמלול וכתוביות בעברית',
+      rail: segs.map((x, i) => {
+        const on = i === this.state.idx, dn = !!this.state.done[x.id];
+        return {
+          num: dn ? '✓' : String(x.n), title: x.title, meta: x.kicker + ' · ' + this.fmt(x.dur),
+          go: () => this.select(i),
+          st: 'display:flex;align-items:flex-start;gap:10px;width:100%;padding:11px 15px;border-top:1px solid #f2f2f4;' + (on ? 'background:rgba(236,42,140,.06)' : ''),
+          numSt: "flex:none;width:22px;height:22px;border-radius:6px;text-align:center;font:600 11px/22px 'Heebo',sans-serif;" + (dn ? 'background:#ec2a8c;color:#fff' : on ? 'background:#15151f;color:#fff' : 'background:#f2f2f4;color:#949494')
+        };
+      }),
+      txLines: s.cueList.map((c, i) => ({
+        text: c.text, go: () => this.goCue(i),
+        st: 'display:block;width:100%;padding:4px 8px;border-radius:5px;font-size:13.5px;line-height:1.6;' + (i === ci && this.state.started ? 'background:rgba(236,42,140,.09);color:#15151f;font-weight:600' : 'color:#5a5a5c')
+      }))
+    });
+  }
+}
+
+</script>
+</body>
+</html>
