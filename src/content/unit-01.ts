@@ -3,6 +3,8 @@
 // silence detection on the source narration; cue timings follow the supplied transcript.
 // Segments s4 and s5 arrived without transcript timestamps, so their cues are
 // distributed by speech weight inside the segment (see buildTimeline).
+// Narration is one file per nugget: u1-n<N>.mp3, each starting at 0. Nuggets 3 and 4
+// have not been delivered yet and run without narration until their files land.
 
 import type { UnitContent } from './types';
 
@@ -182,7 +184,7 @@ export const unit01: UnitContent = {
       "kicker": "התאמת המשימה",
       "src": "assets/audio/u1-n2.mp3",
       "start": 0,
-      "end": 148.95,
+      "end": 148.98,
       "tcBase": 0,
       "timed": [
         [0, 13, [
@@ -360,10 +362,10 @@ export const unit01: UnitContent = {
       "n": 3,
       "title": "התשובה הראשונה היא טיוטה, לא אמת",
       "kicker": "איטרציה",
-      "src": "assets/audio/u1-n2.mp3",
-      "start": 149,
-      "end": 295.2,
-      "tcBase": 149,
+      "src": "assets/audio/u1-n3.mp3",
+      "start": 0,
+      "end": 146.23,
+      "tcBase": 0,
       "timed": [
         [0, 14, [
             ["", "a", 46],
@@ -529,10 +531,10 @@ export const unit01: UnitContent = {
       "n": 4,
       "title": "קונטקסט, מקורות ו-grounding",
       "kicker": "עיגון",
-      "src": "assets/audio/u1-n2.mp3",
-      "start": 295.68,
-      "end": 430.91,
-      "body": 299.72,
+      "src": "assets/audio/u1-n4.mp3",
+      "start": 0,
+      "end": 135.23,
+      "body": 4.04,
       "think": "קחו בקשה שקיבלה תשובה כללית מדי. מה בעצם נתתם לקופיילוט לעבוד איתו?",
       "ex": {
         "kind": "builder",

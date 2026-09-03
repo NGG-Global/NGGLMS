@@ -7,6 +7,12 @@
  * the MPEG frame headers, so a truncated or placeholder file reports 0 and is treated
  * as missing rather than silently serving garbage to a learner.
  *
+ * It also flags a stale Xing/Info header — a nugget cut out of a longer master keeps
+ * the master's header unless the tool rewrites it, and browsers trust that header for
+ * both `duration` and seeking. One such file shipped here claiming 431s of audio in a
+ * 149s file, which put every scrub in the wrong place. Fix by stripping the header
+ * frame (it carries no audio) or re-encoding, then run this again.
+ *
  * Run via `npm run scan:audio` (also wired into prebuild).
  */
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
@@ -18,14 +24,22 @@ const OUT = 'src/content/narration-manifest.ts';
 const BITRATES = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320, 0];
 const RATES = [44100, 48000, 32000];
 
-/** Sums frame durations across an MPEG audio file. Returns 0 if no valid frame is found. */
-function mp3Duration(buf) {
+/**
+ * Walks every MPEG frame in the file.
+ *
+ * Returns the real duration (0 when no valid frame is found) and, when the first frame
+ * carries a Xing/Info header, the duration that header claims — the two disagreeing is
+ * the stale-header case described above.
+ */
+function probeMp3(buf) {
   let i = 0;
   if (buf.length > 10 && buf.subarray(0, 3).toString('latin1') === 'ID3') {
     const size = ((buf[6] & 0x7f) << 21) | ((buf[7] & 0x7f) << 14) | ((buf[8] & 0x7f) << 7) | (buf[9] & 0x7f);
     i = 10 + size;
   }
   let seconds = 0;
+  let claimed = null;
+  let first = true;
   while (i < buf.length - 4) {
     if (buf[i] !== 0xff || (buf[i + 1] & 0xe0) !== 0xe0) { i++; continue; }
     const version = (buf[i + 1] >> 3) & 3;
@@ -40,19 +54,43 @@ function mp3Duration(buf) {
     const samplesPerFrame = version === 3 ? 1152 : 576;
     const frameLength = Math.floor((samplesPerFrame / 8) * bitrate * 1000 / rate) + padding;
     if (frameLength < 4) { i++; continue; }
+
+    if (first) {
+      first = false;
+      const frame = buf.subarray(i, i + frameLength);
+      for (const tag of ['Xing', 'Info']) {
+        const at = frame.indexOf(Buffer.from(tag));
+        if (at < 0) continue;
+        const flags = frame.readUInt32BE(at + 4);
+        // Bit 0 of the flags means a frame count follows the flags word.
+        if (flags & 1) claimed = (frame.readUInt32BE(at + 8) * samplesPerFrame) / rate;
+        break;
+      }
+    }
+
     seconds += samplesPerFrame / rate;
     i += frameLength;
   }
-  return seconds;
+  return { seconds, claimed };
 }
 
 const tracks = [];
+const warnings = [];
 for (const name of readdirSync(DIR).sort()) {
   if (!name.toLowerCase().endsWith('.mp3')) continue;
   const path = join(DIR, name);
   const bytes = statSync(path).size;
-  const duration = mp3Duration(readFileSync(path));
-  tracks.push({ file: `assets/audio/${name}`, bytes, duration: Math.round(duration * 100) / 100 });
+  const { seconds, claimed } = probeMp3(readFileSync(path));
+  const duration = Math.round(seconds * 100) / 100;
+  // A second of slack: the last frame often lands a hair short of a round number.
+  if (claimed != null && Math.abs(claimed - seconds) > 1) {
+    warnings.push(
+      `${name}: Xing/Info header claims ${claimed.toFixed(2)}s but the file holds ${duration}s. ` +
+        'Browsers trust that header for duration AND seeking, so scrubbing will land in the ' +
+        'wrong place. Strip the header frame or re-encode, then run this again.',
+    );
+  }
+  tracks.push({ file: `assets/audio/${name}`, bytes, duration });
 }
 
 const body = tracks
@@ -95,4 +133,9 @@ export function hasNarration(file: string, needUntil = 0): boolean {
 console.log(`${OUT}: ${tracks.length} tracks`);
 for (const t of tracks) {
   console.log(`  ${t.file.padEnd(28)} ${String(t.bytes).padStart(9)} bytes  ${t.duration.toFixed(2)}s${t.duration <= 0 ? '  << UNPLAYABLE' : ''}`);
+}
+if (warnings.length) {
+  console.warn('\nSTALE DURATION HEADER:');
+  for (const w of warnings) console.warn(`  ! ${w}`);
+  process.exitCode = 1;
 }

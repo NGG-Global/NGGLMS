@@ -195,11 +195,11 @@ console.log('   ' + mine);
 /[1-9]/.test((await learner.textContent('.resume__m span:last-child')).trim()) ? ok('progress persisted across reload') : bad('progress lost');
 await learner.screenshot({ path: `${SHOTS}/l7-progress.png`, fullPage: true });
 
-console.log('\n7. יחידה 01 — הנאגטים ללא קריינות');
-await learner.goto(`${BASE}#/learn/${pid}/u1/play?n=2`, { waitUntil: 'networkidle' });
+console.log('\n7. יחידה 01 — הנאגט שעדיין ללא קריינות (נאגט 4)');
+await learner.goto(`${BASE}#/learn/${pid}/u1/play?n=4`, { waitUntil: 'networkidle' });
 await learner.waitForSelector('.frame');
 const badge = await learner.textContent('.frame__silent').catch(() => null);
-badge ? ok('silent nugget is labelled: ' + badge.trim()) : bad('no label on the silent nugget');
+badge ? ok('silent nugget is labelled: ' + badge.trim()) : bad('no label on unit 01 nugget 4, which has no narration file yet');
 await learner.screenshot({ path: `${SHOTS}/l8-silent.png`, fullPage: true });
 
 console.log('\n═══ שגיאות ═══');
