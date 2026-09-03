@@ -1,24 +1,26 @@
 /**
  * `chips` — a set of capabilities.
  *
- * The shot runs 21 seconds but the first eleven are narration about *what the tool is*
- * ("a system that produces answers from language models and from the information it is
- * allowed to reach") before a single capability is named. Revealing six pills at the
- * top of the shot would leave the picture stalled through that whole passage and then
- * have nothing left to give when the list actually arrives.
+ * Each pill lands on the narration line that names it, which art.ts supplies: nugget 1
+ * names two capabilities on one line and four on the next, nugget 2 names eight, two to
+ * a line and then one to a line. Revealing the whole list at the top of a thirty-second
+ * shot would leave nothing for the twenty seconds the narrator spends going through it.
  *
- * So the shot opens on the mechanism. A grid of candidate tokens fills in, and then a
- * single path is drawn through it, one token per column: the model picking what comes
- * next, which is the honest picture of "produces answers on the basis of language
- * models". When the narration turns to what it is good at, the grid recedes behind the
- * headline and the capabilities land on the two lines that name them — two, then four.
+ * Nugget 1's shot also opens on eleven seconds of narration about *what the tool is*
+ * ("a system that produces answers from language models and from the information it is
+ * allowed to reach") before a single capability is named, so its art asks for the
+ * `token-path` motif: a grid of candidate tokens fills in and a single path is drawn
+ * through it, one token per column — the model picking what comes next. It recedes
+ * behind the headline when the narration turns to strengths. Nugget 2's shot opens
+ * straight into the list and gets no motif, because the same lattice over a list of
+ * strengths would mean nothing.
  */
 
 import { interpolate, random, useCurrentFrame } from 'remotion';
 import type { Scene } from '../../src/content/types';
 import { Reveal } from '../lib/kit';
 import { EASE_OUT, drift, reveal } from '../lib/motion';
-import { SceneBody, SceneHead, cue, type SceneProps } from '../lib/scene';
+import { SceneBody, SceneHead, cueFrame, type SceneProps } from '../lib/scene';
 import type { Tone } from '../theme';
 import { type as typeScale } from '../theme';
 import { Glyph } from './glyphs';
@@ -144,44 +146,70 @@ const TokenPath = ({ t, recede }: { t: Tone; recede: number }) => {
   );
 };
 
-/** Rows of three, so six capabilities never break as five and an orphan. */
-const chunk = <T,>(items: T[], size: number): T[][] => {
-  const rows: T[][] = [];
-  for (let i = 0; i < items.length; i += size) rows.push(items.slice(i, i + size));
-  return rows;
+/**
+ * Two balanced rows, never a row of five and an orphan. Six goes 3+3, eight goes 4+4;
+ * four or fewer stay on one line, and the cap keeps a long row inside the gutters.
+ */
+const rows = <T,>(items: T[]): T[][] => {
+  if (items.length <= 4) return [items];
+  const size = Math.min(4, Math.ceil(items.length / 2));
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
 };
 
-export const ChipsSceneView = ({ scene, cueAt, t }: SceneProps<ChipsScene>) => {
+export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>) => {
   const frame = useCurrentFrame();
 
-  const headFrom = Math.max(0, cue(cueAt, 2, 340) - 44);
-  const firstWave = cue(cueAt, 2, 340);
-  const secondWave = cue(cueAt, 3, 513);
-
+  const motif = art.motif === 'token-path';
+  // The head lands a beat before the first pill, so the list has something to hang off.
+  const headFrom = Math.max(0, cueFrame(cueAt, art.headAt) - (motif ? 44 : 0));
   // How far the mechanism has stepped back to let the list through.
-  const recede = reveal(frame, { delay: headFrom, duration: 50, easing: EASE_OUT });
-  // The narration names two capabilities on one line and four on the next.
-  const waveFor = (index: number) =>
-    index < 2 ? firstWave + index * 16 : secondWave + (index - 2) * 15;
+  const recede = motif ? reveal(frame, { delay: headFrom, duration: 50, easing: EASE_OUT }) : 1;
+
+  // Items sharing a line are spaced inside it rather than landing together.
+  let sameCue = 0;
+  const itemAt = art.itemCues.map((cueIndex, i) => {
+    sameCue = i > 0 && art.itemCues[i - 1] === cueIndex ? sameCue + 1 : 0;
+    return cueFrame(cueAt, cueIndex) + sameCue * 16;
+  });
+
+  // With no motif, the head opens near the centre of the stage and lifts as the first
+  // pill arrives, so the shot is not top-weighted through the run-up to the list.
+  const listFrom = itemAt[0] ?? 0;
+  const lift = motif ? 1 : reveal(frame, { delay: Math.max(0, listFrom - 30), duration: 44 });
+
+  // Once the list is complete the narration keeps going ("in such tasks it can save
+  // time and expand our options"), so a slow accent wave runs across the finished set.
+  const wave = reveal(frame, { delay: cueFrame(cueAt, art.payoffAt), duration: 96 });
 
   let index = -1;
 
   return (
-    <SceneBody justify="center" gap={44}>
-      <div style={{ display: 'grid', placeItems: 'center', height: GRID_H }}>
-        <TokenPath t={t} recede={recede} />
+    <SceneBody justify="center" gap={motif ? 44 : 52}>
+      {motif ? (
+        <div style={{ display: 'grid', placeItems: 'center', height: GRID_H }}>
+          <TokenPath t={t} recede={recede} />
+        </div>
+      ) : null}
+
+      <div style={{ transform: `translateY(${(1 - lift) * 148}px)` }}>
+        <Reveal at={headFrom} dy={20} blur={5}>
+          <SceneHead t={t}>{scene.head}</SceneHead>
+        </Reveal>
       </div>
 
-      <Reveal at={headFrom} dy={20} blur={5}>
-        <SceneHead t={t}>{scene.head}</SceneHead>
-      </Reveal>
-
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {chunk(scene.items, scene.items.length > 4 ? 3 : scene.items.length).map((row, r) => (
+        {rows(scene.items).map((row, r) => (
           <div key={r} style={{ display: 'flex', gap: 18 }}>
             {row.map((item) => {
               index += 1;
-              const p = reveal(frame, { delay: waveFor(index), duration: 26 });
+              const p = reveal(frame, { delay: itemAt[index] ?? 0, duration: 26 });
+              // Bell around the wave front, so the highlight travels rather than flashes.
+              const lit = Math.max(
+                0,
+                1 - Math.abs(wave * (scene.items.length + 2) - index - 1) / 1.4,
+              );
               return (
                 <span
                   key={item}
@@ -192,7 +220,7 @@ export const ChipsSceneView = ({ scene, cueAt, t }: SceneProps<ChipsScene>) => {
                     padding: '16px 28px 16px 32px',
                     borderRadius: 999,
                     background: t.panel,
-                    border: `1px solid ${p > 0.6 ? t.accentWash : t.edge}`,
+                    border: `1px solid ${lit > 0.05 ? t.accent : p > 0.6 ? t.accentWash : t.edge}`,
                     boxShadow: t.dark ? 'none' : '0 1px 2px rgba(21,21,31,0.04)',
                     fontSize: typeScale.item,
                     fontWeight: 700,
@@ -200,7 +228,7 @@ export const ChipsSceneView = ({ scene, cueAt, t }: SceneProps<ChipsScene>) => {
                     color: t.fg,
                     whiteSpace: 'nowrap',
                     opacity: p,
-                    transform: `translateY(${18 * (1 - p)}px) scale(${0.94 + 0.06 * p})`,
+                    transform: `translateY(${18 * (1 - p)}px) scale(${0.94 + 0.06 * p + 0.02 * lit})`,
                   }}
                 >
                   <span style={{ color: t.accent, display: 'grid', placeItems: 'center' }}>

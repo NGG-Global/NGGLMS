@@ -19,16 +19,9 @@ import { Reveal } from '../lib/kit';
 import { EASE_OUT, drift, reveal } from '../lib/motion';
 import { SceneBody, SceneHead, cue, type SceneProps } from '../lib/scene';
 import { palette, type as typeScale } from '../theme';
+import { Void } from './glyphs';
 
 type NegspaceScene = Extract<Scene, { kind: 'negspace' }>;
-
-/** An empty-set mark: what the row is missing, before anything fills it. */
-const Void = ({ color, size = 30 }: { color: string; size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8}>
-    <circle cx="12" cy="12" r="8.4" />
-    <path d="M6.4 17.6L17.6 6.4" strokeLinecap="round" />
-  </svg>
-);
 
 /** Frames one row takes to fill, and the gap between rows starting. */
 const FILL = 150;

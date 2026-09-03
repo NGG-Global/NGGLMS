@@ -10,6 +10,7 @@
 
 import type { ReactNode } from 'react';
 import type { Scene } from '../../src/content/types';
+import type { ResolvedArt } from '../art';
 import type { Tone } from '../theme';
 import { font, layout, type } from '../theme';
 
@@ -19,11 +20,25 @@ export interface SceneProps<S extends Scene = Scene> {
   cueAt: number[];
   durationInFrames: number;
   t: Tone;
+  /** Which line each element hangs off — see remotion/art.ts. */
+  art: ResolvedArt;
 }
 
 /** Cue anchor with a fallback, so a re-cut segment with fewer lines still renders. */
 export const cue = (cueAt: number[], index: number, fallback: number) =>
   cueAt[index] ?? fallback;
+
+/**
+ * Frame at which the cue named by an art entry starts.
+ *
+ * Art indexes cues; scenes need frames. A shot re-cut with fewer lines than the art
+ * expects clamps to its last line rather than reaching past the end and rendering an
+ * element that never arrives.
+ */
+export const cueFrame = (cueAt: number[], index: number | undefined, fallback = 0) => {
+  if (index == null || cueAt.length === 0) return fallback;
+  return cueAt[Math.min(Math.max(0, index), cueAt.length - 1)];
+};
 
 /**
  * The drawable area. Nothing may extend below `layout.stageBottom` — the caption band

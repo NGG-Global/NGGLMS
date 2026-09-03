@@ -20,6 +20,7 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from 'remotion';
+import { artFor } from './art';
 import { Backdrop } from './components/Backdrop';
 import { Captions } from './components/Captions';
 import { Frame } from './components/Frame';
@@ -58,9 +59,19 @@ export const resolveSegment = ({ contentId, segmentId }: NuggetProps) => {
 export const nuggetDuration = (props: NuggetProps) =>
   buildReel(resolveSegment(props).segment).narrationFrames + OUTRO_FRAMES;
 
-const ShotLayer = ({ shot }: { shot: Shot }) => {
+const ShotLayer = ({
+  shot,
+  contentId,
+  segmentId,
+}: {
+  shot: Shot;
+  contentId: string;
+  segmentId: string;
+}) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
+  // `items` differs by scene kind, so count whatever list the scene carries.
+  const scene = shot.scene as { items?: unknown[] };
   return (
     <AbsoluteFill style={{ opacity: shotFade(frame, durationInFrames, OVERLAP) }}>
       <SceneView
@@ -68,6 +79,7 @@ const ShotLayer = ({ shot }: { shot: Shot }) => {
         cueAt={shot.cueAt}
         durationInFrames={shot.durationInFrames}
         t={tone(shot.scene.tone !== 'light')}
+        art={artFor(contentId, segmentId, shot.key, scene.items?.length ?? 0, shot.cueAt.length)}
       />
     </AbsoluteFill>
   );
@@ -122,7 +134,7 @@ export const NuggetVideo = ({ contentId, segmentId }: NuggetProps) => {
             from={shot.from}
             durationInFrames={shot.durationInFrames + OVERLAP}
           >
-            <ShotLayer shot={shot} />
+            <ShotLayer shot={shot} contentId={contentId} segmentId={segmentId} />
           </Sequence>
         ))}
 
