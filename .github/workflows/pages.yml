@@ -1,0 +1,60 @@
+name: Deploy to GitHub Pages
+
+# Static fallback deployment, run on request only.
+#
+# Deliberately NOT triggered by pushes to main. GitHub Pages serves a site to the open
+# internet with no way to restrict access, so publishing NGG's training content there is
+# a decision someone has to take on purpose, not a side effect of merging. It also has no
+# server side, so the /api persistence layer is inactive and progress is stored per
+# browser. Vercel is the recommended target — see README, "פריסה".
+#
+# To use it: enable Pages in the repository settings with GitHub Actions as the source,
+# then run this workflow from the Actions tab.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        env:
+          DEPLOY_TARGET: pages
+          # GitHub Pages serves a project site from /<repo>/.
+          PAGES_BASE: /${{ github.event.repository.name }}/
+        run: npm run build
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

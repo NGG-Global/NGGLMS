@@ -1,0 +1,268 @@
+/* ============================================================================
+   The stage: full-frame animated scene cards behind the narration.
+   Every scene mounts fresh when the narration crosses into it, so the entry
+   animations are what synchronises motion to the voice.
+   ========================================================================== */
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(26px, 4.2vw, 68px);
+  padding-bottom: clamp(92px, 10.5vw, 140px);
+  overflow: hidden;
+  animation: fade 0.4s ease both;
+}
+.stage--dark { background: var(--stage-dark); color: #f5f5f8; }
+.stage--light { background: var(--stage-light); color: var(--ink); }
+
+.stage--dark { --s-dim: rgba(245, 245, 248, 0.5); --s-line: rgba(255, 255, 255, 0.13); --s-soft: rgba(255, 255, 255, 0.055); }
+.stage--light { --s-dim: #6b6b70; --s-line: #e2e1e5; --s-soft: #fff; }
+
+/* Staggered entry: each child declares its own index via --i. */
+.stage [data-anim] {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.2, 0.85, 0.25, 1);
+  animation-fill-mode: both;
+  animation-delay: calc(0.06s + var(--i, 0) * 0.085s);
+}
+.stage [data-anim='rise'] { animation-name: rise; }
+.stage [data-anim='pop'] { animation-name: pop; }
+.stage [data-anim='fade'] { animation-name: fade; }
+.stage [data-anim='slidein'] { animation-name: slidein; }
+.stage [data-anim='grow'] { animation-name: grow; animation-duration: 0.6s; transform-origin: right center; }
+
+.stage__head {
+  font: 600 clamp(11px, 1.15vw, 14px) / 1.4 var(--sans);
+  color: var(--pink);
+  letter-spacing: 0.11em;
+  margin-bottom: clamp(14px, 1.7vw, 22px);
+}
+
+/* --- type ---------------------------------------------------------------- */
+.sc-type__logo {
+  width: clamp(30px, 3.3vw, 50px);
+  height: clamp(30px, 3.3vw, 50px);
+  object-fit: contain;
+  display: block;
+  margin-bottom: clamp(15px, 1.9vw, 26px);
+}
+.sc-type__sub {
+  font: 600 clamp(11px, 1.15vw, 14px) / 1 var(--sans);
+  color: var(--pink);
+  letter-spacing: 0.16em;
+  margin-bottom: clamp(16px, 2vw, 26px);
+}
+.sc-type__head {
+  font: 800 clamp(24px, 3.9vw, 58px) / 1.14 var(--sans);
+  letter-spacing: -0.03em;
+  max-width: 21ch;
+}
+.sc-type__head em { font-style: normal; color: var(--pink); }
+
+/* --- chips --------------------------------------------------------------- */
+.sc-chips { display: flex; flex-wrap: wrap; align-items: center; gap: clamp(6px, 0.75vw, 11px); }
+.sc-chips span {
+  white-space: nowrap;
+  padding: clamp(7px, 0.85vw, 13px) clamp(11px, 1.35vw, 20px);
+  border-radius: var(--r);
+  background: var(--s-soft);
+  border: 1px solid var(--s-line);
+  font: 600 clamp(11.5px, 1.2vw, 19px) / 1.2 var(--sans);
+  letter-spacing: -0.015em;
+}
+.sc-chips--big span { font-size: clamp(11.5px, 1.5vw, 23px); }
+
+/* --- flow ---------------------------------------------------------------- */
+.sc-flow { display: flex; align-items: stretch; flex-wrap: wrap; gap: clamp(8px, 1vw, 16px); }
+.sc-flow__arrow { align-self: center; color: var(--pink); font: 400 clamp(15px, 1.9vw, 28px) / 1 var(--sans); }
+.sc-flow__node {
+  padding: clamp(11px, 1.3vw, 20px) clamp(14px, 1.7vw, 26px);
+  border-radius: 9px;
+  background: var(--s-soft);
+  border: 1px solid var(--s-line);
+  font: 700 clamp(13px, 1.65vw, 24px) / 1.25 var(--sans);
+  letter-spacing: -0.02em;
+  max-width: 13ch;
+}
+.sc-flow__node--last { background: var(--pink); color: #fff; border-color: var(--pink); }
+.sc-foot {
+  margin-top: clamp(16px, 2vw, 28px);
+  color: var(--s-dim);
+  font: 400 clamp(12px, 1.35vw, 20px) / 1.5 var(--sans);
+  max-width: 34ch;
+}
+
+/* --- negspace ------------------------------------------------------------ */
+.sc-neg { display: flex; flex-direction: column; gap: clamp(7px, 0.9vw, 14px); }
+.sc-neg > span {
+  display: flex;
+  align-items: center;
+  gap: clamp(9px, 1.1vw, 16px);
+  font: 500 clamp(13px, 1.7vw, 26px) / 1.3 var(--sans);
+  letter-spacing: -0.02em;
+  color: var(--s-dim);
+}
+.sc-neg i {
+  flex: none;
+  width: clamp(8px, 0.85vw, 13px);
+  height: clamp(8px, 0.85vw, 13px);
+  border-radius: 99px;
+  border: 2px solid var(--pink);
+}
+
+/* --- questions ----------------------------------------------------------- */
+.sc-q { display: flex; flex-direction: column; gap: clamp(5px, 0.7vw, 11px); }
+.sc-q > span {
+  font: 600 clamp(14px, 1.85vw, 29px) / 1.3 var(--sans);
+  letter-spacing: -0.025em;
+  max-width: 26ch;
+}
+
+/* --- principle ----------------------------------------------------------- */
+.sc-pr__off {
+  display: flex;
+  align-items: center;
+  gap: clamp(9px, 1.1vw, 16px);
+  font: 500 clamp(13px, 1.6vw, 24px) / 1.35 var(--sans);
+  color: var(--s-dim);
+  text-decoration: line-through;
+  text-decoration-color: var(--pink);
+  text-decoration-thickness: 2px;
+  max-width: 28ch;
+}
+.sc-pr__on {
+  margin-top: clamp(14px, 1.8vw, 26px);
+  font: 800 clamp(18px, 2.7vw, 42px) / 1.2 var(--sans);
+  letter-spacing: -0.03em;
+  max-width: 24ch;
+}
+
+/* --- gauge --------------------------------------------------------------- */
+.sc-gauge { display: flex; flex-direction: column; gap: clamp(8px, 1vw, 15px); }
+.sc-gauge > span { display: flex; align-items: center; gap: clamp(10px, 1.2vw, 18px); }
+.sc-gauge i {
+  flex: none;
+  display: block;
+  height: clamp(7px, 0.75vw, 11px);
+  border-radius: 99px;
+  background: var(--pink);
+}
+.sc-gauge b { font: 600 clamp(12px, 1.5vw, 23px) / 1.25 var(--sans); letter-spacing: -0.02em; white-space: nowrap; }
+
+/* --- butlist ------------------------------------------------------------- */
+.sc-but { display: flex; flex-direction: column; gap: clamp(9px, 1.1vw, 17px); }
+.sc-but > span {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(10px, 1.3vw, 20px);
+}
+.sc-but b { font: 600 clamp(12px, 1.45vw, 22px) / 1.3 var(--sans); letter-spacing: -0.02em; }
+.sc-but em { font: 400 clamp(12px, 1.45vw, 22px) / 1.3 var(--sans); font-style: normal; color: var(--s-dim); }
+.sc-but i { display: block; width: 1px; height: clamp(20px, 2.4vw, 38px); background: var(--s-line); }
+
+/* --- twoq ---------------------------------------------------------------- */
+.sc-twoq { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 1.3vw, 20px); }
+.sc-twoq > span {
+  display: block;
+  padding: clamp(13px, 1.6vw, 26px);
+  border-radius: var(--r-md);
+  background: var(--s-soft);
+  border: 1px solid var(--s-line);
+}
+.sc-twoq b { display: block; font: 700 clamp(13px, 1.6vw, 25px) / 1.25 var(--sans); letter-spacing: -0.025em; }
+.sc-twoq em {
+  display: block;
+  margin-top: clamp(7px, 0.9vw, 13px);
+  font: 400 clamp(11.5px, 1.25vw, 18px) / 1.5 var(--sans);
+  font-style: normal;
+  color: var(--s-dim);
+}
+
+/* --- dial ---------------------------------------------------------------- */
+.sc-dial__bar {
+  position: relative;
+  height: clamp(8px, 0.8vw, 12px);
+  border-radius: 99px;
+  background: linear-gradient(to left, var(--pink), rgba(236, 42, 140, 0.18));
+}
+.sc-dial__labels {
+  margin-top: clamp(14px, 1.7vw, 24px);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.5vw, 24px);
+}
+.sc-dial__labels span { font: 600 clamp(12px, 1.45vw, 22px) / 1.35 var(--sans); letter-spacing: -0.02em; }
+.sc-dial__labels span:last-child { color: var(--pink); }
+
+/* --- quote --------------------------------------------------------------- */
+.sc-quote {
+  margin: 0;
+  padding: clamp(15px, 1.9vw, 30px);
+  border-radius: var(--r-md);
+  background: var(--pink-wash);
+  border: 1px solid var(--pink-line);
+  font: 600 clamp(14px, 1.85vw, 28px) / 1.4 var(--sans);
+  letter-spacing: -0.025em;
+}
+
+/* --- stairs -------------------------------------------------------------- */
+.sc-stairs { display: flex; flex-direction: column; gap: clamp(7px, 0.9vw, 13px); }
+.sc-stairs > span {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(10px, 1.2vw, 18px);
+  padding: clamp(10px, 1.2vw, 19px) clamp(13px, 1.5vw, 24px);
+  border-radius: 9px;
+  background: var(--s-soft);
+  border: 1px solid var(--s-line);
+}
+.sc-stairs > span.is-last { background: var(--pink-wash); border-color: var(--pink-line); }
+.sc-stairs b { flex: none; font: 700 clamp(12px, 1.5vw, 23px) / 1.3 var(--sans); letter-spacing: -0.02em; }
+.sc-stairs em { font: 400 clamp(11px, 1.2vw, 18px) / 1.4 var(--sans); font-style: normal; color: var(--s-dim); }
+
+/* --- mock ---------------------------------------------------------------- */
+.sc-mock {
+  width: 100%;
+  max-width: min(100%, 760px);
+  border-radius: 11px;
+  border: 1px solid #e2e1e5;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: var(--shadow-pop);
+}
+.sc-mock__bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: clamp(8px, 0.9vw, 14px) clamp(11px, 1.2vw, 18px);
+  border-bottom: 1px solid var(--line-soft);
+  background: #f9f9fa;
+}
+.sc-mock__bar img { flex: none; width: clamp(14px, 1.45vw, 21px); height: clamp(14px, 1.45vw, 21px); object-fit: contain; display: block; }
+.sc-mock__bar span { font: 600 clamp(10px, 1.05vw, 15px) / 1 var(--sans); color: var(--ink-4); letter-spacing: 0.02em; }
+.sc-mock__body { padding: clamp(12px, 1.4vw, 22px); display: flex; flex-direction: column; gap: clamp(10px, 1.2vw, 18px); }
+.sc-mock__ask {
+  align-self: flex-start;
+  max-width: 78%;
+  padding: clamp(9px, 1vw, 15px) clamp(12px, 1.3vw, 20px);
+  border-radius: 10px 10px 10px 3px;
+  background: var(--ink);
+  color: #fff;
+  font: 500 clamp(12px, 1.4vw, 21px) / 1.4 var(--sans);
+  letter-spacing: -0.015em;
+}
+.sc-mock__reply { display: flex; flex-direction: column; gap: clamp(3px, 0.4vw, 7px); padding-inline-start: clamp(4px, 0.5vw, 9px); }
+.sc-mock__reply span { font: 400 clamp(11.5px, 1.3vw, 19px) / 1.5 var(--sans); color: #33333f; }
+.sc-mock__reply span.is-first { font-weight: 600; }
+.sc-mock__reply span.is-gap { height: clamp(4px, 0.5vw, 9px); }
+.sc-mock__label {
+  margin-top: clamp(12px, 1.5vw, 24px);
+  font: 600 clamp(12px, 1.45vw, 22px) / 1.4 var(--sans);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  max-width: 32ch;
+}
