@@ -13,8 +13,9 @@
     "scan:audio": "node scripts/scan-audio.mjs",
     "prebuild": "node scripts/scan-audio.mjs",
     "video": "remotion studio",
-    "video:render": "remotion render u01-n01 out/u01-n01.mp4",
-    "video:still": "remotion still u01-n01 out/still.png"
+    "video:render": "remotion render u01-n01 out/u01-n01.mp4 --crf=18",
+    "video:still": "remotion still u01-n01 out/still.png",
+    "video:audio": "remotion render u01-n01 out/u01-n01.wav"
   },
   "dependencies": {
     "react": "^18.3.1",

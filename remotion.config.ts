@@ -10,8 +10,6 @@ import { Config } from '@remotion/cli/config';
 Config.setEntryPoint('remotion/index.ts');
 Config.setVideoImageFormat('jpeg');
 Config.setOverwriteOutput(true);
-// x264 default is fine for review copies; the deliverable is re-encoded downstream.
-Config.setCrf(18);
 // No GPU in CI or in a container, and the stage leans on gradients and blurs that a
 // pure-software rasteriser gets visibly wrong. SwiftShader via ANGLE renders them
 // correctly at the cost of some speed.
