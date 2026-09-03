@@ -10,6 +10,13 @@
  * It follows the mock in src/player/stage.css — ink prompt bubble, plain reply, first
  * line bold — because a learner who has seen this scene in the platform should
  * recognise it here.
+ *
+ * Nugget 4's mock has no reply at all, and that is deliberate: the prompt is "prepare
+ * me a proposal for the meeting with the client" and the beat is that there is nothing
+ * to answer it with. So the pause never resolves — the dots keep going to the end of
+ * the shot — and the label asks which proposal, which client, which meeting. A reply
+ * that simply failed to appear would read as a broken asset; one that never arrives
+ * while the tool visibly keeps waiting reads as the point.
  */
 
 import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
@@ -44,11 +51,21 @@ const Thinking = ({ show }: { show: number }) => {
   );
 };
 
-export const MockSceneView = ({ scene, cueAt, t, art }: SceneProps<MockScene>) => {
+export const MockSceneView = ({
+  scene,
+  cueAt,
+  t,
+  art,
+  durationInFrames,
+}: SceneProps<MockScene>) => {
   const frame = useCurrentFrame();
+  const answers = Boolean(scene.reply);
 
-  const promptFrom = cueFrame(cueAt, art.itemCues[0], 110);
-  const replyFrom = cueFrame(cueAt, art.detailCues[0], 185);
+  // Fallbacks are fractions of the shot, not fixed frame counts: nugget 1's mock runs
+  // ten seconds and nugget 4's runs four and a half, and absolute defaults tuned for
+  // the first one land past the end of the second.
+  const promptFrom = cueFrame(cueAt, art.itemCues[0], Math.round(durationInFrames * 0.1));
+  const replyFrom = cueFrame(cueAt, art.detailCues[0], Math.round(durationInFrames * 0.55));
   // ~0.5 characters a frame: fast enough to finish inside the line that quotes it,
   // slow enough to read as typing rather than a paste.
   const typed = interpolate(frame, [promptFrom, promptFrom + scene.prompt.length * 2], [0, scene.prompt.length], {
@@ -63,8 +80,14 @@ export const MockSceneView = ({ scene, cueAt, t, art }: SceneProps<MockScene>) =
   // The turn is held until the answer is fully on screen and looking fine. Where the
   // script has a line for it, that line sets the moment; otherwise it follows the
   // answer by a beat.
+  const typedBy = promptFrom + scene.prompt.length * 2;
   const payoff = cueFrame(cueAt, art.payoffAt);
-  const labelFrom = payoff > replyFrom ? payoff : replyFrom + 56;
+  const labelFrom = answers
+    ? payoff > replyFrom
+      ? payoff
+      : replyFrom + 56
+    : // With no answer to wait for, the turn follows the typed prompt.
+      typedBy + 26;
   // A long reply has to give up some size to stay inside the stage.
   const replySize = (scene.reply || '').length > 150 ? 27 : 30;
 
@@ -131,10 +154,14 @@ export const MockSceneView = ({ scene, cueAt, t, art }: SceneProps<MockScene>) =
             ) : null}
 
             <Thinking
-              show={interpolate(frame, [promptFrom + scene.prompt.length * 2, replyFrom - 6, replyFrom], [0, 1, 0], {
-                extrapolateLeft: 'clamp',
-                extrapolateRight: 'clamp',
-              })}
+              show={
+                answers
+                  ? interpolate(frame, [typedBy, replyFrom - 6, replyFrom], [0, 1, 0], {
+                      extrapolateLeft: 'clamp',
+                      extrapolateRight: 'clamp',
+                    })
+                  : reveal(frame, { delay: typedBy, duration: 16 })
+              }
             />
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingInlineStart: 8 }}>

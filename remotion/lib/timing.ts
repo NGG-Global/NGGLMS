@@ -3,8 +3,9 @@
  *
  * Cue positions come from src/player/timeline.ts — the same resolver the web player
  * uses — so a nugget's video and its in-app playback cut at identical moments. Nothing
- * about timing is re-authored here; this module only converts seconds to frames and
- * groups the cue run that shares a scene key into one shot.
+ * about timing is re-authored here; this module only converts seconds to frames,
+ * groups the cue run that shares a scene key into one shot, and covers the title read
+ * that the cue list leaves out (see `leadShot`).
  */
 
 import type { Scene, Segment } from '../../src/content/types';
@@ -34,9 +35,42 @@ export interface Reel {
 
 const toFrames = (seconds: number) => Math.round(seconds * FPS);
 
+/**
+ * The shot for the read title, when the cue list has no line for it.
+ *
+ * Segments whose transcript arrived with timestamps open on a cue with empty text
+ * pointing at the title scene, so it becomes a shot like any other. Segments on the
+ * weighted path have no such cue — they carry `body` instead, the second the narration
+ * stops reading the title — and their title scene ends up declared but never
+ * referenced. Nugget 4 opened on four and a half seconds of empty stage under a spoken
+ * title before this existed.
+ *
+ * So: if the first cue starts late and exactly one scene is unreferenced, that scene
+ * covers the gap. Anything less certain (nothing unreferenced, or several) is left
+ * alone rather than guessed at.
+ */
+function leadShot(segment: Segment, cues: Cue[], firstFrame: number): Shot | null {
+  if (firstFrame < 15) return null;
+  const used = new Set(cues.map((cue) => cue.scene));
+  const spare = Object.keys(segment.scenes).filter((key) => !used.has(key));
+  if (spare.length !== 1) return null;
+  const key = spare[0];
+  return {
+    key,
+    scene: segment.scenes[key],
+    from: 0,
+    durationInFrames: firstFrame,
+    cueAt: [0],
+    cues: [],
+  };
+}
+
 export function buildReel(segment: Segment): Reel {
   const { cues, duration } = buildTimeline(segment);
   const shots: Shot[] = [];
+
+  const lead = cues.length ? leadShot(segment, cues, toFrames(cues[0].t0)) : null;
+  if (lead) shots.push(lead);
 
   for (const cue of cues) {
     const last = shots[shots.length - 1];

@@ -151,16 +151,49 @@ const TokenPath = ({ t, recede }: { t: Tone; recede: number }) => {
   );
 };
 
+/** Content width, less a little slack for the estimate below. */
+const ROW_MAX = 1620;
+const CHIP_GAP = 18;
+
 /**
- * Two balanced rows, never a row of five and an orphan. Six goes 3+3, eight goes 4+4;
- * four or fewer stay on one line, and the cap keeps a long row inside the gutters.
+ * Rough rendered width of a chip.
+ *
+ * Measuring for real would mean a layout pass, and a pass per frame at that. Hebrew at
+ * these sizes runs close enough to a fixed advance that an estimate plus slack decides
+ * the row breaks correctly, and being a little conservative only costs a row.
  */
-const rows = <T,>(items: T[]): T[][] => {
-  if (items.length <= 4) return [items];
-  const size = Math.min(4, Math.ceil(items.length / 2));
-  const out: T[][] = [];
-  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
-  return out;
+const chipWidth = (item: string, prompts: boolean, glyphs: boolean) =>
+  item.length * (prompts ? 16.5 : 18) + (prompts ? 95 : 60) + (glyphs ? 47 : 0);
+
+/**
+ * Fewest rows that fit, with the items spread evenly across them.
+ *
+ * Packing greedily is what you reach for first and it is wrong: it fills the first row
+ * to the brim and leaves the last item alone on its own line. So the row count comes
+ * from what fits, and then the items are divided as evenly as that count allows —
+ * six chips go 3+3 rather than 5+1, and nugget 4's three sources go 2+1 because the
+ * third is nearly twice the width of the others.
+ */
+const rows = (items: string[], prompts: boolean, glyphs: boolean): string[][] => {
+  const widths = items.map((item) => chipWidth(item, prompts, glyphs));
+  const fits = (groups: string[][]) =>
+    groups.every((group, g) => {
+      const offset = groups.slice(0, g).reduce((n, prev) => n + prev.length, 0);
+      const total = group.reduce((sum, _, i) => sum + widths[offset + i], 0);
+      return total + CHIP_GAP * (group.length - 1) <= ROW_MAX;
+    });
+
+  for (let count = 1; count <= items.length; count++) {
+    const groups: string[][] = [];
+    let taken = 0;
+    for (let g = 0; g < count; g++) {
+      const size = Math.ceil((items.length - taken) / (count - g));
+      groups.push(items.slice(taken, taken + size));
+      taken += size;
+    }
+    if (fits(groups)) return groups;
+  }
+  return items.map((item) => [item]);
 };
 
 export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>) => {
@@ -209,9 +242,9 @@ export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>)
         </Reveal>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {rows(scene.items).map((row, r) => (
-          <div key={r} style={{ display: 'flex', gap: 18 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: CHIP_GAP }}>
+        {rows(scene.items, prompts, glyphs).map((row, r) => (
+          <div key={r} style={{ display: 'flex', gap: CHIP_GAP }}>
             {row.map((item) => {
               index += 1;
               const p = reveal(frame, { delay: itemAt[index] ?? 0, duration: 26 });
@@ -236,7 +269,9 @@ export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>)
                     fontWeight: prompts ? 600 : 700,
                     letterSpacing: '-0.015em',
                     color: t.fg,
-                    whiteSpace: 'nowrap',
+                    // A chip wider than a whole row has to be allowed to wrap.
+                    whiteSpace:
+                      chipWidth(item, prompts, glyphs) > ROW_MAX ? 'normal' : 'nowrap',
                     opacity: p,
                     transform: `translateY(${18 * (1 - p)}px) scale(${0.94 + 0.06 * p + 0.02 * lit})`,
                   }}

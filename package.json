@@ -17,7 +17,8 @@
     "video:still": "remotion still u01-n01 out/still.png",
     "video:audio": "remotion render u01-n01 out/u01-n01.wav",
     "video:render:n02": "remotion render u01-n02 out/u01-n02.mp4 --crf=18",
-    "video:render:n03": "remotion render u01-n03 out/u01-n03.mp4 --crf=18"
+    "video:render:n03": "remotion render u01-n03 out/u01-n03.mp4 --crf=18",
+    "video:render:n04": "remotion render u01-n04 out/u01-n04.mp4 --crf=18"
   },
   "dependencies": {
     "react": "^18.3.1",
