@@ -9,6 +9,12 @@
  *
  * The numerals are not invented copy: the narration itself says "הראשונה" and "השאלה
  * השנייה", and the head calls them two questions.
+ *
+ * Nugget 5 uses the kind for two ways to finish a task rather than two questions, and
+ * they are not equivalent — one of them "creates a problem" in so many words. Where
+ * `verdicts` in art.ts records that, the cards carry it: amber for the one the copy
+ * warns about, green for the one it endorses. Drawing them identically would drop the
+ * contrast the beat exists for.
  */
 
 import { useCurrentFrame } from 'remotion';
@@ -40,6 +46,9 @@ export const TwoqSceneView = ({ scene, cueAt, t, art }: SceneProps<TwoqScene>) =
           const shell = reveal(frame, { delay: 10 + i * 12, duration: 30 });
           const asked = reveal(frame, { delay: cueFrame(cueAt, art.itemCues[i]), duration: 28 });
           const shown = reveal(frame, { delay: cueFrame(cueAt, art.detailCues[i]), duration: 30 });
+          const verdict = art.verdicts?.[i];
+          const mark =
+            verdict === 'warn' ? palette.amber : verdict === 'good' ? palette.green : null;
           return (
             <div
               key={question}
@@ -53,9 +62,7 @@ export const TwoqSceneView = ({ scene, cueAt, t, art }: SceneProps<TwoqScene>) =
                 // the card visibly becomes a question rather than arriving as one.
                 border: `2px ${asked > 0.5 ? 'solid' : 'dashed'} ${
                   asked > 0.5
-                    ? t.dark
-                      ? t.accent
-                      : palette.accentTintEdge
+                    ? (mark ?? (t.dark ? t.accent : palette.accentTintEdge))
                     : t.dark
                       ? t.edge
                       : '#e4e3e8'
@@ -77,8 +84,8 @@ export const TwoqSceneView = ({ scene, cueAt, t, art }: SceneProps<TwoqScene>) =
                   flex: 'none',
                   display: 'grid',
                   placeItems: 'center',
-                  background: asked > 0.5 ? t.accent : 'transparent',
-                  border: `2px solid ${asked > 0.5 ? t.accent : t.fg4}`,
+                  background: asked > 0.5 ? (mark ?? t.accent) : 'transparent',
+                  border: `2px solid ${asked > 0.5 ? (mark ?? t.accent) : t.fg4}`,
                   color: asked > 0.5 ? '#fff' : t.fg4,
                   fontSize: 30,
                   fontWeight: 800,
@@ -104,10 +111,12 @@ export const TwoqSceneView = ({ scene, cueAt, t, art }: SceneProps<TwoqScene>) =
               <div
                 style={{
                   fontSize: 29,
-                  fontWeight: 500,
                   lineHeight: 1.45,
                   letterSpacing: '-0.01em',
-                  color: t.dark ? t.fg3 : palette.ink3,
+                  // A judged option states its verdict in the detail line, so that
+                  // line carries the weight rather than reading as a footnote.
+                  color: mark ?? (t.dark ? t.fg3 : palette.ink3),
+                  fontWeight: mark ? 700 : 500,
                   opacity: shown,
                   transform: `translateY(${(1 - shown) * 12}px)`,
                 }}

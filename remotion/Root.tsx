@@ -17,6 +17,7 @@ const NUGGETS: { id: string; props: NuggetProps }[] = [
   { id: 'u01-n02', props: { contentId: 'unit-01', segmentId: 's2' } },
   { id: 'u01-n03', props: { contentId: 'unit-01', segmentId: 's3' } },
   { id: 'u01-n04', props: { contentId: 'unit-01', segmentId: 's4' } },
+  { id: 'u01-n05', props: { contentId: 'unit-01', segmentId: 's5' } },
 ];
 
 export const RemotionRoot = () => (

@@ -6,6 +6,7 @@
  *   sub, no accent            -> the title card (with the Copilot mark if `logo`)
  *   one clause with an accent -> a claim, accent phrase brushed
  *   "not X. rather Y", Y      -> the correction: X struck, Y promoted
+ *   accent not inside head    -> a question and its answer, on two lines
  *
  * That third case is worth spelling out. Nugget 1 gives a single head, "לא מומחה
  * שיודע הכול. שותף עבודה מהיר מאוד", with the second sentence as the accent.
@@ -256,6 +257,67 @@ export const TypeSceneView = ({ scene, cueAt, t, art }: SceneProps<TypeScene>) =
     );
   }
 
+  const headAt = cueFrame(cueAt, art.headAt);
+
+  // An accent that is not a phrase inside the head is a separate statement — nugget
+  // 5 asks "who is responsible for the result?" and answers "the answer is not
+  // Copilot". Rendering only the head would drop the answer entirely.
+  if (scene.accent && accentAt < 0) {
+    const answerAt = cueFrame(cueAt, art.itemCues[0], headAt + 90);
+    return (
+      <SceneBody align="center" justify="center" gap={52}>
+        {scene.logo ? <CopilotMark at={0} size={96} accent={t.accent} /> : null}
+        <Reveal at={headAt} duration={28} dy={24} from={0.97} blur={6}>
+          <div
+            style={{
+              fontSize: typeScale.head,
+              fontWeight: 900,
+              letterSpacing: '-0.028em',
+              lineHeight: 1.16,
+              color: t.fg,
+              textAlign: 'center',
+              maxWidth: 1420,
+            }}
+          >
+            {scene.head}
+          </div>
+        </Reveal>
+        <Reveal at={answerAt} duration={30} dy={26} from={0.96} blur={7}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 26,
+            }}
+          >
+            <span
+              style={{
+                width: 200,
+                height: 4,
+                borderRadius: 4,
+                background: `linear-gradient(90deg, rgba(0,0,0,0), ${t.accent}, rgba(0,0,0,0))`,
+              }}
+            />
+            <span
+              style={{
+                fontSize: typeScale.sub,
+                fontWeight: 800,
+                letterSpacing: '-0.022em',
+                lineHeight: 1.2,
+                color: t.accent,
+                textAlign: 'center',
+                maxWidth: 1420,
+              }}
+            >
+              {scene.accent}
+            </span>
+          </div>
+        </Reveal>
+      </SceneBody>
+    );
+  }
+
   // A claim, with whatever motif the shot's art calls for.
   const motifAt = cueFrame(cueAt, art.motifAt, 200);
   const motifOut = cueFrame(cueAt, art.motifOutAt, 10_000);
@@ -267,6 +329,9 @@ export const TypeSceneView = ({ scene, cueAt, t, art }: SceneProps<TypeScene>) =
         <AccentHead
           head={scene.head}
           accent={scene.accent}
+          at={headAt}
+          // Where the copy delivers the accent phrase on a later line, it lands there.
+          accentAt={art.itemCues.length ? cueFrame(cueAt, art.itemCues[0]) : undefined}
           color={t.fg}
           accentColor={t.accent}
           fontSize={typeScale.head}

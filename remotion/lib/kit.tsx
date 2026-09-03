@@ -67,6 +67,7 @@ export const AccentHead = ({
   head,
   accent,
   at = 0,
+  accentAt,
   color,
   accentColor,
   fontSize,
@@ -75,6 +76,8 @@ export const AccentHead = ({
   head: string;
   accent?: string;
   at?: number;
+  /** Frame the accent phrase lands on, when the copy delivers it on its own line. */
+  accentAt?: number;
   color: string;
   accentColor: string;
   fontSize: number;
@@ -91,8 +94,9 @@ export const AccentHead = ({
           { text: head.slice(cut + (accent as string).length), marked: false },
         ];
 
+  const markedAt = accentAt ?? at + 5;
   // The brush starts once the marked phrase is most of the way in.
-  const brush = reveal(frame, { delay: at + 16, duration: 26 });
+  const brush = reveal(frame, { delay: markedAt + 11, duration: 26 });
 
   return (
     <h2
@@ -109,7 +113,7 @@ export const AccentHead = ({
     >
       {parts.map((part, i) => {
         if (!part.text) return null;
-        const p = reveal(frame, { delay: at + i * 5, duration: 24 });
+        const p = reveal(frame, { delay: part.marked ? markedAt : at + i * 5, duration: 24 });
         return (
           <span
             key={i}

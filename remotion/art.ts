@@ -79,9 +79,31 @@ export interface ShotArt {
    * Nugget 1 turns a lot of text into a little ('condense'), so the source has real
    * bulk and it travels. Nugget 4's flow is grounding — connecting an answer to
    * defined information ('anchor') — and drawing that as compression would say
-   * grounding is summarisation, which is the opposite of the point.
+   * grounding is summarisation, which is the opposite of the point. Nugget 5's nodes
+   * are not a pipeline at all: they are four places one output ends up ('spread'),
+   * and the reason the scene exists is that it goes to all of them.
    */
-  flowStyle?: 'condense' | 'anchor';
+  flowStyle?: 'condense' | 'anchor' | 'spread';
+
+  /**
+   * Cue index at which a `negspace`'s rows appear as empty slots, before their labels.
+   *
+   * Nugget 5's shot spends nine seconds on what the tool is good at before naming the
+   * first thing it does not know, and a head alone for nine seconds is a stalled
+   * frame. The empty slots are exactly what the scene is about, so promising the shape
+   * early and populating it on the lines that name each row costs nothing and fills
+   * the run-up. Omitted, each row appears with its own label, which is nugget 1's look.
+   */
+  scaffoldAt?: number;
+
+  /**
+   * Per-item verdict for a `twoq`, when the copy passes judgement on its own options.
+   *
+   * Nugget 5's two ways to finish are not equivalent — one of them "creates a problem"
+   * in so many words — and rendering them identically drops the contrast the beat
+   * exists for.
+   */
+  verdicts?: ('warn' | 'good')[];
 
   /**
    * Cue index that completes a `principle`'s kept question, when the copy delivers it
@@ -161,6 +183,27 @@ const ART: Record<string, ShotArt> = {
   // Ways a source gives way. Nothing fills these in.
   'unit-01/s4.i': { fill: false, itemCues: [1, 1, 1], payoffAt: 1 },
   'unit-01/s4.j': { headAt: 0, itemCues: [1, 2] },
+
+  // Unit 01, nugget 5 --------------------------------------------------------
+  // Also on the weighted path: no transcript timestamps, so these anchors are
+  // estimates from text length rather than measured speech.
+  //
+  // The question, then the answer — which is not a phrase inside the question, so it
+  // lands as its own line.
+  'unit-01/s5.b': { headAt: 1, itemCues: [2] },
+  // One output, four places it ends up, named across three lines.
+  'unit-01/s5.c': { flowStyle: 'spread', itemCues: [3, 4, 4, 5], payoffAt: 6 },
+  'unit-01/s5.d': { itemCues: [1, 2] },
+  'unit-01/s5.e': { itemCues: [0], detailCues: [1], payoffAt: 2 },
+  // One way creates a problem, the other is the point.
+  'unit-01/s5.f': { itemCues: [0, 1], detailCues: [0, 3], verdicts: ['warn', 'good'] },
+  // The slots are promised early and named on the lines that name them.
+  'unit-01/s5.g': { scaffoldAt: 0, fill: false, itemCues: [3, 4, 4, 5], payoffAt: 6 },
+  // Each step: the task, then what it asks of the person.
+  'unit-01/s5.h': { itemCues: [1, 3, 5], detailCues: [2, 4, 6] },
+  'unit-01/s5.i': { itemCues: [1, 2] },
+  // The closing question builds in two strokes: the asking, then what it asks about.
+  'unit-01/s5.j': { itemCues: [3] },
 };
 
 /** Evenly spread `count` reveals across cue indices `[from .. last]`. */
