@@ -1,0 +1,179 @@
+/**
+ * `mock` — the tool, doing exactly what was asked.
+ *
+ * The whole force of this beat is that nothing goes wrong on screen. The prompt is
+ * reasonable, the answer is well formed, and the problem only becomes visible when
+ * you ask what "project status" was supposed to mean. So the panel is built to look
+ * genuinely good: real chrome, a typed prompt, a considered pause, an answer that
+ * arrives line by line.
+ *
+ * It follows the mock in src/player/stage.css — ink prompt bubble, plain reply, first
+ * line bold — because a learner who has seen this scene in the platform should
+ * recognise it here.
+ */
+
+import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import type { Scene } from '../../src/content/types';
+import { Reveal } from '../lib/kit';
+import { EASE_OUT, reveal, stagger } from '../lib/motion';
+import { SceneBody, cue, type SceneProps } from '../lib/scene';
+import { palette, type as typeScale } from '../theme';
+
+type MockScene = Extract<Scene, { kind: 'mock' }>;
+
+const CARD_W = 1120;
+
+/** Three dots, the pause before an answer. Sells the panel as live rather than drawn. */
+const Thinking = ({ show }: { show: number }) => {
+  const frame = useCurrentFrame();
+  return (
+    <div style={{ display: 'flex', gap: 10, alignItems: 'center', height: 26, opacity: show }}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: 12,
+            background: palette.ink5,
+            opacity: 0.35 + 0.65 * Math.max(0, Math.sin(frame / 5 - i * 0.9)),
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+export const MockSceneView = ({ scene, cueAt, t }: SceneProps<MockScene>) => {
+  const frame = useCurrentFrame();
+
+  const promptFrom = cue(cueAt, 1, 110);
+  const replyFrom = cue(cueAt, 2, 185);
+  // ~0.5 characters a frame: fast enough to finish inside the line that quotes it,
+  // slow enough to read as typing rather than a paste.
+  const typed = interpolate(frame, [promptFrom, promptFrom + scene.prompt.length * 2], [0, scene.prompt.length], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+    easing: EASE_OUT,
+  });
+  const promptText = scene.prompt.slice(0, Math.round(typed));
+  const typing = typed > 0 && typed < scene.prompt.length;
+
+  const lines = (scene.reply || '').split('\n');
+
+  return (
+    <SceneBody align="center" justify="center" gap={34}>
+      <Reveal at={0} duration={30} dy={26} from={0.97}>
+        <div
+          style={{
+            width: CARD_W,
+            borderRadius: 24,
+            border: `1px solid #e2e1e5`,
+            background: '#fff',
+            overflow: 'hidden',
+            boxShadow: '0 40px 90px -50px rgba(21,10,20,0.55)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 14,
+              padding: '20px 28px',
+              borderBottom: `1px solid ${palette.hairline}`,
+              background: '#f9f9fa',
+            }}
+          >
+            <Img src={staticFile('assets/copilot.png')} style={{ width: 32, height: 32, objectFit: 'contain' }} />
+            <span style={{ fontSize: 24, fontWeight: 600, letterSpacing: '0.02em', color: palette.ink4 }}>
+              Copilot
+            </span>
+          </div>
+
+          <div style={{ padding: 34, display: 'flex', flexDirection: 'column', gap: 24, minHeight: 250 }}>
+            {promptText ? (
+              <div
+                style={{
+                  alignSelf: 'flex-start',
+                  maxWidth: '78%',
+                  padding: '20px 28px',
+                  borderRadius: '16px 16px 16px 5px',
+                  background: palette.ink,
+                  color: '#fff',
+                  fontSize: typeScale.item,
+                  fontWeight: 500,
+                  lineHeight: 1.4,
+                  letterSpacing: '-0.015em',
+                }}
+              >
+                {promptText}
+                {typing ? (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      width: 3,
+                      height: '1em',
+                      marginInlineStart: 4,
+                      verticalAlign: '-0.12em',
+                      background: '#fff',
+                      opacity: Math.sin(frame / 4) > 0 ? 1 : 0.15,
+                    }}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+
+            <Thinking
+              show={interpolate(frame, [promptFrom + scene.prompt.length * 2, replyFrom - 6, replyFrom], [0, 1, 0], {
+                extrapolateLeft: 'clamp',
+                extrapolateRight: 'clamp',
+              })}
+            />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingInlineStart: 8 }}>
+              {lines.map((line, i) =>
+                line === '' ? (
+                  <span key={i} style={{ height: 14 }} />
+                ) : (
+                  <span
+                    key={i}
+                    style={{
+                      fontSize: 30,
+                      fontWeight: i === 0 ? 700 : 400,
+                      lineHeight: 1.5,
+                      color: i === 0 ? palette.ink : '#33333f',
+                      opacity: reveal(frame, { delay: replyFrom + stagger(i, 13), duration: 22 }),
+                      transform: `translateY(${
+                        10 * (1 - reveal(frame, { delay: replyFrom + stagger(i, 13), duration: 22 }))
+                      }px)`,
+                    }}
+                  >
+                    {line}
+                  </span>
+                ),
+              )}
+            </div>
+          </div>
+        </div>
+      </Reveal>
+
+      {/* The turn. Held back until the answer is fully on screen and looking fine. */}
+      {scene.label ? (
+        <Reveal at={replyFrom + 70} duration={28} dy={18} blur={5}>
+          <div
+            style={{
+              fontSize: typeScale.sub,
+              fontWeight: 800,
+              letterSpacing: '-0.022em',
+              color: t.fg,
+              textAlign: 'center',
+              maxWidth: 1200,
+            }}
+          >
+            {scene.label}
+          </div>
+        </Reveal>
+      ) : null}
+    </SceneBody>
+  );
+};
