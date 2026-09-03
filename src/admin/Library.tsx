@@ -133,6 +133,9 @@ export function Library() {
                     {health && health.silentSegments.length > 0 && (
                       <span className="pill pill--warn">{health.silentSegments.length} ללא קריינות</span>
                     )}
+                    {health && health.videoSegments.length > 0 && (
+                      <span className="pill">{health.videoSegments.length} עם סרטון</span>
+                    )}
                   </div>
                   <div className="libcard__foot">
                     <Link className="btn btn--quiet" to={`/admin/library/${unit.id}`}>
@@ -208,6 +211,7 @@ export function LibraryUnitPage() {
                       <span className="t">
                         {segment ? formatTime(segment.durationSec) : `${nugget.minutes} דק׳`}
                         {segment && !segment.hasAudio ? ' · ללא קריינות' : ''}
+                        {segment?.hasVideo ? ' · סרטון' : ''}
                       </span>
                     </li>
                   );
