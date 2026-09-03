@@ -15,6 +15,7 @@ import './fonts';
 const NUGGETS: { id: string; props: NuggetProps }[] = [
   { id: 'u01-n01', props: { contentId: 'unit-01', segmentId: 's1' } },
   { id: 'u01-n02', props: { contentId: 'unit-01', segmentId: 's2' } },
+  { id: 'u01-n03', props: { contentId: 'unit-01', segmentId: 's3' } },
 ];
 
 export const RemotionRoot = () => (

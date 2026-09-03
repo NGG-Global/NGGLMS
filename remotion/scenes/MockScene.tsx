@@ -16,7 +16,7 @@ import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
 import type { Scene } from '../../src/content/types';
 import { Reveal } from '../lib/kit';
 import { EASE_OUT, reveal, stagger } from '../lib/motion';
-import { SceneBody, cue, type SceneProps } from '../lib/scene';
+import { SceneBody, cueFrame, type SceneProps } from '../lib/scene';
 import { palette, type as typeScale } from '../theme';
 
 type MockScene = Extract<Scene, { kind: 'mock' }>;
@@ -44,11 +44,11 @@ const Thinking = ({ show }: { show: number }) => {
   );
 };
 
-export const MockSceneView = ({ scene, cueAt, t }: SceneProps<MockScene>) => {
+export const MockSceneView = ({ scene, cueAt, t, art }: SceneProps<MockScene>) => {
   const frame = useCurrentFrame();
 
-  const promptFrom = cue(cueAt, 1, 110);
-  const replyFrom = cue(cueAt, 2, 185);
+  const promptFrom = cueFrame(cueAt, art.itemCues[0], 110);
+  const replyFrom = cueFrame(cueAt, art.detailCues[0], 185);
   // ~0.5 characters a frame: fast enough to finish inside the line that quotes it,
   // slow enough to read as typing rather than a paste.
   const typed = interpolate(frame, [promptFrom, promptFrom + scene.prompt.length * 2], [0, scene.prompt.length], {
@@ -60,6 +60,13 @@ export const MockSceneView = ({ scene, cueAt, t }: SceneProps<MockScene>) => {
   const typing = typed > 0 && typed < scene.prompt.length;
 
   const lines = (scene.reply || '').split('\n');
+  // The turn is held until the answer is fully on screen and looking fine. Where the
+  // script has a line for it, that line sets the moment; otherwise it follows the
+  // answer by a beat.
+  const payoff = cueFrame(cueAt, art.payoffAt);
+  const labelFrom = payoff > replyFrom ? payoff : replyFrom + 56;
+  // A long reply has to give up some size to stay inside the stage.
+  const replySize = (scene.reply || '').length > 150 ? 27 : 30;
 
   return (
     <SceneBody align="center" justify="center" gap={34}>
@@ -138,7 +145,7 @@ export const MockSceneView = ({ scene, cueAt, t }: SceneProps<MockScene>) => {
                   <span
                     key={i}
                     style={{
-                      fontSize: 30,
+                      fontSize: replySize,
                       fontWeight: i === 0 ? 700 : 400,
                       lineHeight: 1.5,
                       color: i === 0 ? palette.ink : '#33333f',
@@ -157,9 +164,8 @@ export const MockSceneView = ({ scene, cueAt, t }: SceneProps<MockScene>) => {
         </div>
       </Reveal>
 
-      {/* The turn. Held back until the answer is fully on screen and looking fine. */}
       {scene.label ? (
-        <Reveal at={replyFrom + 70} duration={28} dy={18} blur={5}>
+        <Reveal at={labelFrom} duration={28} dy={18} blur={5}>
           <div
             style={{
               fontSize: typeScale.sub,

@@ -30,6 +30,45 @@ export interface ShotArt {
   detailCues?: number[];
   /** Cue index for a closing emphasis beat. */
   payoffAt?: number;
+
+  /**
+   * Whether a `gauge`'s items are one quantity climbing or a set of alternatives.
+   *
+   * Nugget 2 lists four conditions that escalate, so they read as a slope. Nugget 3
+   * lists three things a first draft might be — excellent, mediocre, or
+   * excellent-looking with a substantive problem — and there is no quantity there to
+   * climb: drawing a rising slope through them would assert an order the copy does
+   * not have. Defaults to 'climb', which is what the platform's own gauge renders.
+   */
+  series?: 'climb' | 'alternatives';
+
+  /**
+   * Whether `chips` are capabilities or things you would type.
+   *
+   * Nugget 3's chips are quoted follow-up prompts ("קצר את הפתיחה"), not things the
+   * tool is good at, so they are drawn as messages rather than labelled abilities.
+   */
+  chipStyle?: 'capability' | 'prompt';
+
+  /**
+   * A `questions` branch the tool picks for itself, and the two lines that do it.
+   *
+   * Only nugget 1 has this: its narration says the tool decides for itself what
+   * matters, so a ring lands on one branch and the rest drop away. Nugget 3's
+   * question sets are prompts for the learner, and dimming five of them would say
+   * something the copy never says.
+   */
+  pick?: number;
+  pickAt?: number;
+  verdictAt?: number;
+
+  /**
+   * Cue index that completes a `principle`'s kept question, when the copy delivers it
+   * across two lines. Never defaulted: without it the question is rendered whole,
+   * because splitting a list at a comma that was spoken in one breath reads as a
+   * sentence breaking rather than finishing.
+   */
+  tailAt?: number;
 }
 
 const ART: Record<string, ShotArt> = {
@@ -39,6 +78,11 @@ const ART: Record<string, ShotArt> = {
   'unit-01/s1.b': { motif: 'output-lines', motifAt: 2, motifOutAt: 4 },
   // Two capabilities are named on one line and four on the next.
   'unit-01/s1.c': { motif: 'token-path', headAt: 2, itemCues: [2, 2, 3, 3, 3, 3] },
+  // Three readings on one line and three on the next; then the tool picks one of
+  // them for itself, and then that pick is judged.
+  'unit-01/s1.g': { itemCues: [1], detailCues: [2] },
+  'unit-01/s1.h': { itemCues: [0, 0, 0, 1, 1, 1], pick: 4, pickAt: 2, verdictAt: 3 },
+  'unit-01/s1.i': { itemCues: [1, 2], tailAt: 3 },
 
   // Unit 01, nugget 2 --------------------------------------------------------
   // "to use it the same way for every kind of task" — identical tiles, which
@@ -55,6 +99,26 @@ const ART: Record<string, ShotArt> = {
   'unit-01/s2.f': { itemCues: [2, 7], detailCues: [3, 8] },
   // The handle sits low on "a simple task" and travels on "a sensitive task".
   'unit-01/s2.g': { itemCues: [3, 4], payoffAt: 5 },
+  'unit-01/s2.h': { itemCues: [1, 2], tailAt: 3 },
+
+  // Unit 01, nugget 3 --------------------------------------------------------
+  // "they arrive in seconds, usually written smoothly, tidily and confidently" —
+  // the same fluency bars nugget 1 uses, dismissed as the headline lands.
+  'unit-01/s3.b': { motif: 'output-lines', motifAt: 1, motifOutAt: 4 },
+  // Three things a draft might be, not three rungs of one ladder.
+  'unit-01/s3.d': { series: 'alternatives', itemCues: [1, 1, 2], payoffAt: 3 },
+  // The prompt is quoted across two lines; the answer is there by the line that
+  // calls it professional and pleasant.
+  'unit-01/s3.e': { itemCues: [0], detailCues: [1], payoffAt: 2 },
+  // "is it clear what changes? is the why explained?" — two on one line, then one
+  // each. No pick: these are the learner's questions, not the tool's.
+  'unit-01/s3.f': { headAt: 1, itemCues: [2, 2, 3, 4, 5] },
+  // Five quoted follow-ups, two on one line and then one each.
+  'unit-01/s3.g': { chipStyle: 'prompt', headAt: 2, itemCues: [3, 3, 4, 5, 6], payoffAt: 6 },
+  // Shallow use is named on one line, professional work on the next.
+  'unit-01/s3.h': { itemCues: [2, 3] },
+  // "what is good? what is missing? what is inaccurate?" all land together.
+  'unit-01/s3.i': { headAt: 2, itemCues: [4, 4, 4, 5] },
 };
 
 /** Evenly spread `count` reveals across cue indices `[from .. last]`. */
