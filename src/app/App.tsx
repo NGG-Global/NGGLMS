@@ -4,6 +4,7 @@ import { SignIn } from './SignIn';
 import { LearnerHome } from '../learner/LearnerHome';
 import { ProgramView } from '../learner/ProgramView';
 import { UnitOverview } from '../learner/UnitOverview';
+import { UnitOpening } from '../learner/UnitOpening';
 import { UnitPlay } from '../learner/UnitPlay';
 import { Dashboard } from '../admin/Dashboard';
 import { Programs } from '../admin/Programs';
@@ -58,6 +59,14 @@ export function App() {
         element={
           <Gate>
             <UnitOverview />
+          </Gate>
+        }
+      />
+      <Route
+        path="/learn/:programId/:unitId/opening"
+        element={
+          <Gate>
+            <UnitOpening />
           </Gate>
         }
       />

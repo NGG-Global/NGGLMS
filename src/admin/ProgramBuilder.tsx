@@ -540,7 +540,7 @@ function Toggle({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        style={{ marginTop: 3, accentColor: 'var(--pink)' }}
+        style={{ marginTop: 3, accentColor: 'var(--accent)' }}
       />
       <span>
         <span style={{ fontSize: 13.5, fontWeight: 600 }}>{label}</span>
@@ -587,7 +587,7 @@ function ReviewStep({
         </button>
       </div>
       {!canPublish && (
-        <p style={{ marginTop: 10, fontSize: 12.5, color: 'var(--warn)' }}>
+        <p style={{ marginTop: 10, fontSize: 12.5, color: 'var(--amber)' }}>
           יש להשלים את הסעיפים המסומנים לפני הפרסום.
         </p>
       )}

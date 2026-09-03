@@ -1,50 +1,143 @@
-import { Link } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { allUnitHealth, library, unitMinutes } from '../content';
-import { PROGRAM_STATUS_LABEL } from '../state/types';
-import { programCompletion } from '../app/progress';
+import { library, unitMinutes } from '../content';
+import { medianUnitMinutes, monthlyHoursTarget, weekActivity } from '../content/demo-analytics';
+import { PROGRAM_STATUS_LABEL, type Program, type ProgramStatus } from '../state/types';
+import {
+  activeLearners,
+  atRiskLearners,
+  learningHours,
+  overallScore,
+  programStats,
+  programsByScope,
+  type ProgramScope,
+} from '../app/progress';
+import { assetUrl } from '../app/paths';
 import { AdminLayout } from './AdminLayout';
+import { StatTiles, type StatTileProps } from './StatTile';
 
-function statusPill(status: string) {
-  const cls =
-    status === 'published' ? 'pill pill--ok' : status === 'ready' ? 'pill pill--pink' : 'pill';
-  return <span className={cls}>{PROGRAM_STATUS_LABEL[status as keyof typeof PROGRAM_STATUS_LABEL]}</span>;
+const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+const HEBREW_MONTHS = [
+  'בינואר', 'בפברואר', 'במרץ', 'באפריל', 'במאי', 'ביוני',
+  'ביולי', 'באוגוסט', 'בספטמבר', 'באוקטובר', 'בנובמבר', 'בדצמבר',
+];
+
+const STATUS_CHIP: Record<ProgramStatus, string> = {
+  published: 'chip chip--green',
+  draft: 'chip chip--plain',
+  ready: 'chip chip--amber',
+  archived: 'chip chip--outline',
+};
+
+function initials(name: string): string {
+  return name.trim().split(/\s+/).slice(0, 2).map((p) => p[0] ?? '').join('');
 }
 
 /** Workspace overview: what is live, who is learning, and what needs attention. */
 export function Dashboard() {
-  const { identity, workspace, progressFor } = useStore();
-  const health = allUnitHealth();
-  const silent = health.flatMap((h) => h.silentSegments);
+  const { identity, workspace } = useStore();
+  const navigate = useNavigate();
+  const [scope, setScope] = useState<ProgramScope>('mine');
+  const [toast, setToast] = useState<string | null>(null);
 
-  const live = workspace.programs.filter((p) => p.status === 'published');
-  const drafts = workspace.programs.filter((p) => p.status === 'draft' || p.status === 'ready');
+  const owner = identity?.name ?? '';
+  const mine = useMemo(() => programsByScope(workspace.programs, owner, 'mine'), [workspace.programs, owner]);
+  const team = useMemo(() => programsByScope(workspace.programs, owner, 'team'), [workspace.programs, owner]);
 
-  const averages = live.map((program) => {
-    const learners = workspace.learners.filter((l) => l.programIds.includes(program.id));
-    const values = learners.map((l) => programCompletion(program, progressFor(l.id)).pct);
-    const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
-    return { program, learners: learners.length, avg };
-  });
-
-  // Averaged over learners, not over programmes: a programme with no cohort yet should
-  // not pull the headline number down.
-  const enrolled = live.flatMap((program) =>
-    workspace.learners
-      .filter((l) => l.programIds.includes(program.id))
-      .map((l) => programCompletion(program, progressFor(l.id)).pct),
+  const stats = useMemo(
+    () => new Map(workspace.programs.map((p) => [p.id, programStats(workspace, p)])),
+    [workspace],
   );
-  const overallAvg = enrolled.length
-    ? Math.round(enrolled.reduce((a, b) => a + b, 0) / enrolled.length)
-    : 0;
+
+  const active = activeLearners(workspace, 7);
+  const atRisk = atRiskLearners(workspace, 10);
+  const hours = learningHours(workspace);
+  const score = overallScore(workspace);
+  const published = mine.filter((p) => p.status === 'published').length;
+  const ready = mine.filter((p) => p.status === 'ready').length;
+  const drafts = mine.filter((p) => p.status === 'draft').length;
+  const completed = workspace.programs.reduce((sum, p) => sum + (stats.get(p.id)?.completed ?? 0), 0);
+
+  const today = new Date();
+  const todayLabel = `יום ${HEBREW_DAYS[today.getDay()]} · ${today.getDate()} ${HEBREW_MONTHS[today.getMonth()]} ${today.getFullYear()}`;
+
+  const tiles: StatTileProps[] = [
+    {
+      label: 'התוכניות שלי',
+      value: String(mine.length),
+      pct: mine.length ? Math.round((published / mine.length) * 100) : 0,
+      sub: `${published} פורסמו · ${ready} מוכנה לפרסום · ${drafts} טיוטה`,
+      tone: 'magenta',
+    },
+    {
+      label: 'לומדים פעילים',
+      value: String(active.length),
+      pct: workspace.learners.length ? Math.round((active.length / workspace.learners.length) * 100) : 0,
+      sub: `מתוך ${workspace.learners.length} שהוזמנו · 7 ימים`,
+      tone: 'green',
+    },
+    {
+      label: 'זמן למידה בפועל',
+      value: `${hours} שע׳`,
+      pct: Math.min(100, Math.round((hours / monthlyHoursTarget) * 100)),
+      sub: `סך הכול · ${Math.round((hours / monthlyHoursTarget) * 100)}% מהצפי החודשי`,
+      tone: 'amber',
+    },
+    {
+      label: 'לומדים בסיכון',
+      value: String(atRisk.length),
+      pct: workspace.learners.length ? Math.round((atRisk.length / workspace.learners.length) * 100) : 0,
+      sub: 'ללא פעילות מעל 10 ימים',
+      tone: 'violet',
+    },
+  ];
+
+  // Programmes in scope, grouped by client, archived ones set aside.
+  const groups = useMemo(() => {
+    const list = (scope === 'mine' ? mine : team).filter((p) => p.status !== 'archived');
+    const byClient = new Map<string, Program[]>();
+    for (const program of list) {
+      const bucket = byClient.get(program.client) ?? [];
+      bucket.push(program);
+      byClient.set(program.client, bucket);
+    }
+    return [...byClient.entries()];
+  }, [scope, mine, team]);
+
+  const weekMax = Math.max(...weekActivity.map((d) => d.nuggets));
+  const weekTotal = weekActivity.reduce((a, d) => a + d.nuggets, 0);
+
+  const openProgram = (program: Program) =>
+    navigate(
+      program.status === 'draft' || program.status === 'ready'
+        ? `/admin/programs/${program.id}/build`
+        : `/admin/programs/${program.id}`,
+    );
+
+  const flash = (message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(null), 1900);
+  };
+
+  const monthLabel = `${HEBREW_MONTHS[today.getMonth()].replace('ב', '')} ${today.getFullYear()}`;
+  const marks = new Map(workspace.milestones.map((m) => [m.day, m.kind]));
+  const firstDow = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+
+  const newest = [...library].sort((a, b) => b.recencyRank - a.recencyRank).slice(0, 3);
 
   return (
-    <AdminLayout crumb="סקירת מרחב העבודה">
+    <AdminLayout crumb="דשבורד">
       <main className="page">
         <div className="page__head">
           <div>
-            <h1>בוקר טוב{identity ? `, ${identity.name.split(' ')[0]}` : ''}</h1>
-            <p>מצב התוכניות, הלומדים והתוכן במרחב העבודה של NGG.</p>
+            <div className="page__kicker">{todayLabel}</div>
+            <h1 style={{ marginTop: 4 }}>בוקר טוב{identity ? `, ${identity.name.split(' ')[0]}` : ''}</h1>
+            <p>
+              {mine.length} תוכניות בבעלותך · {published} באוויר
+              {ready ? `, ${ready} מחכה לפרסום` : ''}
+            </p>
           </div>
           <span className="spacer" />
           <Link className="btn btn--primary" to="/admin/programs/new">
@@ -52,137 +145,259 @@ export function Dashboard() {
           </Link>
         </div>
 
-        <div className="tiles">
-          <div className="card tile">
-            <div className="tile__k">תוכניות פעילות</div>
-            <div className="tile__v">{live.length}</div>
-            <div className="tile__n">{drafts.length} בטיוטה או מוכנות לפרסום</div>
+        <StatTiles tiles={tiles} />
+
+        <div className="dash" style={{ marginTop: 20 }}>
+          <div className="stack" style={{ gap: 20, minWidth: 0 }}>
+            <section className="card card--flush card--scroll">
+              <div className="section__head" style={{ padding: '16px 18px 14px' }}>
+                <h2>תוכניות פעילות</h2>
+                <div className="seg seg--ink">
+                  <button type="button" aria-pressed={scope === 'mine'} onClick={() => setScope('mine')}>
+                    שלי · {mine.length}
+                  </button>
+                  <button type="button" aria-pressed={scope === 'team'} onClick={() => setScope('team')}>
+                    של הצוות · {team.length}
+                  </button>
+                </div>
+                <span className="spacer" />
+                <Link className="btn btn--quiet" to="/admin/programs">
+                  כל התוכניות ←
+                </Link>
+              </div>
+
+              {groups.length === 0 ? (
+                <p className="empty" style={{ margin: 18 }}>
+                  אין תוכניות פעילות בתצוגה הזאת.
+                </p>
+              ) : (
+                groups.map(([client, rows]) => {
+                  const cohort = rows.reduce((sum, p) => sum + (stats.get(p.id)?.learners ?? 0), 0);
+                  return (
+                    <div key={client}>
+                      <div className="clientgroup">
+                        <span className="mono-badge mono-badge--sm">{client[0]}</span>
+                        <span className="clientgroup__body">
+                          <b>{client}</b>
+                          <span>
+                            {rows.length === 1 ? 'תוכנית אחת' : `${rows.length} תוכניות`} · {cohort} לומדים
+                          </span>
+                        </span>
+                        <em>{rows[0].owner}</em>
+                      </div>
+                      {rows.map((program) => {
+                        const s = stats.get(program.id);
+                        return (
+                          <button key={program.id} type="button" className="progrow" onClick={() => openProgram(program)}>
+                            <span className="progrow__name">
+                              <b>{program.title}</b>
+                              <span>
+                                {program.audience} · {program.cohort}
+                              </span>
+                            </span>
+                            <span className="progrow__cell">{program.units.length} יחידות</span>
+                            <span className="progrow__cell">{s?.learners ? s.learners : '—'}</span>
+                            <span>
+                              <span className={STATUS_CHIP[program.status]}>{PROGRAM_STATUS_LABEL[program.status]}</span>
+                            </span>
+                            <span className="progrow__prog">
+                              <span className="meter">
+                                <i style={{ width: `${s?.avgPct ?? 0}%` }} data-empty={!s?.started} />
+                              </span>
+                              <span>{s?.started ? `${s.avgPct}% בממוצע` : 'טרם התחיל'}</span>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  );
+                })
+              )}
+            </section>
+
+            <section className="card card--pad">
+              <div className="section__head">
+                <div>
+                  <h2>פעילות לומדים</h2>
+                  <p>שבעת הימים האחרונים · כל התוכניות שפורסמו</p>
+                </div>
+                <span className="spacer" />
+                <div style={{ textAlign: 'left' }}>
+                  <b style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-.03em', color: 'var(--ink)' }}>
+                    {weekTotal}
+                  </b>
+                  <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-4)' }}>נאגטים הושלמו</span>
+                </div>
+              </div>
+
+              <div className="weekchart">
+                {weekActivity.map((d) => {
+                  const peak = d.nuggets === weekMax;
+                  return (
+                    <div key={d.label}>
+                      <b data-peak={peak}>{d.nuggets}</b>
+                      <i data-peak={peak} style={{ height: `${Math.max(7, (d.nuggets / weekMax) * 70)}px` }} />
+                      <span>{d.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="factrow">
+                <div>
+                  <span>לומדים ייחודיים</span>
+                  <b>{active.length}</b>
+                </div>
+                <div>
+                  <span>סיימו תוכנית</span>
+                  <b>{completed}</b>
+                </div>
+                <div>
+                  <span>ציון תרגילים ממוצע</span>
+                  <b>{score == null ? '—' : `${score}%`}</b>
+                </div>
+                <div>
+                  <span>זמן חציוני ליחידה</span>
+                  <b>{medianUnitMinutes} דק׳</b>
+                </div>
+              </div>
+              <p style={{ marginTop: 12, fontSize: 11.5, color: 'var(--ink-5)' }}>
+                הפילוח היומי והזמן החציוני הם נתוני הדגמה — למרחב העבודה אין יומן פעילות שממנו
+                אפשר לגזור אותם. שאר המספרים מחושבים מרשומות ההתקדמות.
+              </p>
+            </section>
           </div>
-          <div className="card tile">
-            <div className="tile__k">לומדים רשומים</div>
-            <div className="tile__v">{workspace.learners.length}</div>
-            <div className="tile__n">בכל התוכניות הפעילות</div>
-          </div>
-          <div className="card tile">
-            <div className="tile__k">התקדמות ממוצעת</div>
-            <div className="tile__v">{overallAvg}%</div>
-            <div className="tile__n">
-              ממוצע על פני {enrolled.length} רישומים בתוכניות שפורסמו
-            </div>
-          </div>
-          <div className="card tile">
-            <div className="tile__k">יחידות בספרייה</div>
-            <div className="tile__v">{library.length}</div>
-            <div className="tile__n">{health.length} מהן מופקות ומוכנות להשמעה</div>
-          </div>
+
+          <aside className="dash__rail">
+            <section className="card card--pad-sm">
+              <div className="section__head">
+                <h3>מחזורי למידה</h3>
+                <span className="spacer" />
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-3)' }}>{monthLabel}</span>
+              </div>
+
+              <div className="cal">
+                {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map((d) => (
+                  <span key={d} className="cal__dow">
+                    {d}
+                  </span>
+                ))}
+                {Array.from({ length: firstDow }, (_, i) => (
+                  <span key={`pad${i}`} />
+                ))}
+                {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => (
+                  <span
+                    key={d}
+                    className="cal__day"
+                    data-today={d === today.getDate() || undefined}
+                    data-kind={marks.get(d)}
+                  >
+                    {d}
+                  </span>
+                ))}
+              </div>
+
+              <div className="callegend">
+                <span>
+                  <i style={{ background: 'var(--accent)' }} /> קיקאוף
+                </span>
+                <span>
+                  <i style={{ background: 'var(--amber)' }} /> דדליין
+                </span>
+                <span>
+                  <i style={{ background: 'var(--violet)' }} /> דוח לקוח
+                </span>
+              </div>
+
+              <div style={{ marginTop: 13 }}>
+                {workspace.milestones.map((m) => {
+                  const tint =
+                    m.kind === 'קיקאוף'
+                      ? { background: 'var(--accent-tint)', color: 'var(--accent-ink)' }
+                      : m.kind === 'דדליין'
+                        ? { background: 'var(--amber-tint)', color: 'var(--amber-ink)' }
+                        : { background: 'var(--violet-tint)', color: 'var(--violet-ink)' };
+                  return (
+                    <div key={`${m.day}-${m.title}`} className="milestone">
+                      <span className="milestone__date" style={tint}>
+                        <b>{m.day}</b>
+                        <span>{m.month}</span>
+                      </span>
+                      <span className="milestone__body">
+                        <b>{m.title}</b>
+                        <span>{m.subtitle}</span>
+                      </span>
+                      <span className="chip" style={tint}>
+                        {m.kind}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="card card--pad-sm">
+              <div className="section__head">
+                <h3>לומדים שנתקעו</h3>
+                <span className="chip chip--count">{atRisk.length}</span>
+                <span className="spacer" />
+                <Link className="btn btn--quiet" to="/admin/analytics">
+                  הכול ←
+                </Link>
+              </div>
+              <div style={{ marginTop: 6 }}>
+                {atRisk.slice(0, 4).map((row) => (
+                  <div key={row.learner.id} className="stuckrow">
+                    <span className="initials">{initials(row.learner.name)}</span>
+                    <span className="stuckrow__body">
+                      <b>{row.learner.name}</b>
+                      <span>
+                        {row.days} ימים ללא פעילות · {row.stuck}
+                      </span>
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn--well"
+                      onClick={() => flash(`תזכורת נשלחה ל${row.learner.name}`)}
+                    >
+                      תזכורת
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="dark-card">
+              <img className="dark-card__mark" src={assetUrl('assets/ngg-mark-white.png')} alt="" />
+              <div style={{ position: 'relative', padding: '16px 17px 12px' }}>
+                <h3 style={{ color: '#fff', fontSize: 15.5, fontWeight: 700, letterSpacing: '-.015em' }}>
+                  חדש בספריית NGG
+                </h3>
+              </div>
+              <div style={{ position: 'relative' }}>
+                {newest.map((unit) => (
+                  <div key={unit.id} className="dark-card__row">
+                    <b>{unit.title}</b>
+                    <span>
+                      {unit.topic} · {unitMinutes(unit)} דק׳
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ position: 'relative', padding: '13px 17px 16px' }}>
+                <Link
+                  className="btn btn--block"
+                  style={{ background: 'rgba(255,255,255,.12)', color: '#fff' }}
+                  to="/admin/library"
+                >
+                  לספריית התוכן ←
+                </Link>
+              </div>
+            </section>
+          </aside>
         </div>
 
-        {silent.length > 0 && (
-          <div className="banner banner--warn" style={{ marginTop: 16 }}>
-            <span>
-              <strong>תוכן חסר:</strong> {silent.length} מקטעים מופיעים במסלול אך אין להם קובץ קריינות
-              ({silent.map((s) => s.src.split('/').pop()).filter((v, i, a) => a.indexOf(v) === i).join(', ')}).
-              הלומדים רואים כתוביות ואנימציה מסונכרנות, ללא קול.{' '}
-              <Link to="/admin/settings">לפרטים בהגדרות ←</Link>
-            </span>
-          </div>
-        )}
-
-        <section className="section">
-          <div className="section__head">
-            <h2>תוכניות פעילות</h2>
-            <span className="spacer" />
-            <Link className="btn btn--quiet" to="/admin/programs">
-              כל התוכניות ←
-            </Link>
-          </div>
-          <div className="card card--flush">
-            <table className="grid">
-              <thead>
-                <tr>
-                  <th>תוכנית / לקוח</th>
-                  <th>קהל יעד</th>
-                  <th>יחידות</th>
-                  <th>לומדים</th>
-                  <th>סטטוס</th>
-                  <th>התקדמות</th>
-                </tr>
-              </thead>
-              <tbody>
-                {workspace.programs
-                  .filter((p) => p.status !== 'archived')
-                  .slice(0, 6)
-                  .map((program) => {
-                    const row = averages.find((a) => a.program.id === program.id);
-                    return (
-                      <tr key={program.id}>
-                        <td>
-                          <Link to={`/admin/programs/${program.id}`}>{program.title}</Link>
-                          <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>{program.client}</div>
-                        </td>
-                        <td>{program.audience || '—'}</td>
-                        <td>{program.units.length}</td>
-                        <td>{row?.learners ?? 0}</td>
-                        <td>{statusPill(program.status)}</td>
-                        <td style={{ minWidth: 130 }}>
-                          {program.status === 'published' ? (
-                            <span className="row" style={{ gap: 8 }}>
-                              <span className="meter" style={{ width: 68 }}>
-                                <i style={{ width: `${row?.avg ?? 0}%` }} />
-                              </span>
-                              <span style={{ fontSize: 12, color: 'var(--ink-4)' }}>{row?.avg ?? 0}%</span>
-                            </span>
-                          ) : (
-                            <span style={{ color: 'var(--ink-5)' }}>—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="section">
-          <div className="section__head">
-            <h2>מוכן להשמעה בספריית NGG</h2>
-            <span className="spacer" />
-            <Link className="btn btn--quiet" to="/admin/library">
-              לספריית התוכן ←
-            </Link>
-          </div>
-          <div className="libgrid">
-            {library
-              .filter((u) => u.contentId)
-              .map((unit) => {
-                const unitHealthRow = health.find((h) => h.contentId === unit.contentId);
-                return (
-                  <article key={unit.id} className="card libcard">
-                    <div className="libcard__top">
-                      <h3>{unit.title}</h3>
-                      <span className="spacer" />
-                      <span className="pill pill--ok">מופק</span>
-                    </div>
-                    <p>{unit.summary}</p>
-                    <div className="libcard__meta">
-                      <span className="pill pill--outline">{unit.topic}</span>
-                      <span className="pill pill--outline">{unitMinutes(unit)} דק׳</span>
-                      <span className="pill pill--outline">{unitHealthRow?.segments.length ?? 0} נאגטים</span>
-                      {unitHealthRow && unitHealthRow.silentSegments.length > 0 && (
-                        <span className="pill pill--warn">{unitHealthRow.silentSegments.length} ללא קריינות</span>
-                      )}
-                    </div>
-                    <div className="libcard__foot">
-                      <Link className="btn btn--quiet" to={`/admin/library/${unit.id}`}>
-                        לפרטי היחידה ←
-                      </Link>
-                    </div>
-                  </article>
-                );
-              })}
-          </div>
-        </section>
+        {toast && <div className="toast">{toast}</div>}
       </main>
     </AdminLayout>
   );

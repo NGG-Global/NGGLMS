@@ -230,7 +230,7 @@ export function LibraryUnitPage() {
                             key={j}
                             style={{
                               fontSize: 12.5,
-                              color: j === item.answer ? 'var(--ok)' : 'var(--ink-3)',
+                              color: j === item.answer ? 'var(--green)' : 'var(--ink-3)',
                               fontWeight: j === item.answer ? 600 : 400,
                             }}
                           >
@@ -255,8 +255,8 @@ export function LibraryUnitPage() {
                     style={{
                       marginTop: 10,
                       padding: '10px 13px',
-                      borderRadius: 'var(--r)',
-                      background: 'var(--pink-wash)',
+                      borderRadius: 'var(--r-well)',
+                      background: 'var(--accent-tint)',
                       fontSize: 13.5,
                       fontWeight: 600,
                     }}
@@ -275,7 +275,7 @@ export function LibraryUnitPage() {
             )}
           </div>
 
-          <aside className="stack" style={{ gap: 14, position: 'sticky', top: 'calc(var(--header-h) + 22px)' }}>
+          <aside className="stack" style={{ gap: 14, position: 'sticky', top: 'calc(var(--topbar-h) + 22px)' }}>
             <div className="card card--pad">
               <div className="eyebrow">למי היחידה מיועדת</div>
               <p style={{ marginTop: 6, fontSize: 13, lineHeight: 1.6, color: 'var(--ink-2)' }}>

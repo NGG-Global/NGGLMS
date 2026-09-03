@@ -9,8 +9,8 @@ import {
   type ReactNode,
 } from 'react';
 import { persistence, type PersistenceStatus } from './api';
-import { seedWorkspace } from './seed';
-import type { Identity, Learner, LearnerProgress, Program, SegmentRecord, Workspace } from './types';
+import { SEED_MILESTONES, SEED_OWNER, seedWorkspace } from './seed';
+import type { Identity, IntroHeard, Learner, LearnerProgress, Program, SegmentRecord, Workspace } from './types';
 
 const IDENTITY_KEY = 'ngglms:identity:v1';
 
@@ -32,6 +32,10 @@ interface StoreValue {
 
   progressFor: (learnerId: string) => LearnerProgress;
   recordSegment: (learnerId: string, contentId: string, segmentId: string, patch: Partial<SegmentRecord>) => void;
+
+  /** Which unit openings this learner has already heard. */
+  introHeardFor: (learnerId: string) => IntroHeard;
+  markIntroHeard: (learnerId: string, contentId: string) => void;
 
   /**
    * Restores the demo seed. Only exposed when persistence is browser-local, so it can
@@ -81,6 +85,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           programs: loaded.programs,
           learners: loaded.learners ?? [],
           progress: loaded.progress ?? {},
+          introsHeard: loaded.introsHeard ?? {},
+          milestones: loaded.milestones?.length ? loaded.milestones : SEED_MILESTONES,
           updatedAt: loaded.updatedAt ?? new Date().toISOString(),
         });
       }
@@ -153,6 +159,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     const now = new Date().toISOString();
     return {
       id: id('p_'),
+      owner: identity?.name ?? SEED_OWNER,
+      cohort: 'מחזור טרם נקבע',
       client: '',
       internalName: '',
       title: '',
@@ -172,7 +180,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       createdAt: now,
       updatedAt: now,
     };
-  }, []);
+  }, [identity]);
 
   const saveProgram = useCallback(
     (program: Program) => {
@@ -266,14 +274,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
           // lastT only ever moves forward, so re-watching does not lose the resume point.
           lastT: Math.max(existing.lastT ?? 0, patch.lastT ?? existing.lastT ?? 0),
         };
+        const at = new Date().toISOString();
         return {
           ...current,
+          learners: current.learners.map((l) => (l.id === learnerId ? { ...l, lastActiveAt: at } : l)),
           progress: {
             ...current.progress,
             [learnerId]: { ...forLearner, [contentId]: { ...forUnit, [segmentId]: merged } },
           },
         };
       });
+    },
+    [mutate],
+  );
+
+  const introHeardFor = useCallback(
+    (learnerId: string): IntroHeard => workspace.introsHeard[learnerId] ?? {},
+    [workspace.introsHeard],
+  );
+
+  const markIntroHeard = useCallback(
+    (learnerId: string, contentId: string) => {
+      mutate((current) => ({
+        ...current,
+        introsHeard: {
+          ...current.introsHeard,
+          [learnerId]: { ...(current.introsHeard[learnerId] ?? {}), [contentId]: true },
+        },
+      }));
     },
     [mutate],
   );
@@ -299,6 +327,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       enrol,
       progressFor,
       recordSegment,
+      introHeardFor,
+      markIntroHeard,
       resetToDemoSeed,
     }),
     [
@@ -315,6 +345,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       enrol,
       progressFor,
       recordSegment,
+      introHeardFor,
+      markIntroHeard,
       resetToDemoSeed,
     ],
   );

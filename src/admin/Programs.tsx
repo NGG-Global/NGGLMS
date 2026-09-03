@@ -1,31 +1,50 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { PROGRAM_STATUS_LABEL, type ProgramStatus } from '../state/types';
-import { programCompletion } from '../app/progress';
+import { programStats, programsByScope, type ProgramScope } from '../app/progress';
 import { AdminLayout } from './AdminLayout';
 
-const FILTERS: { key: ProgramStatus | 'all'; label: string }[] = [
-  { key: 'all', label: 'הכול' },
-  { key: 'published', label: 'פורסם' },
-  { key: 'ready', label: 'מוכן לפרסום' },
-  { key: 'draft', label: 'טיוטה' },
-  { key: 'archived', label: 'בארכיון' },
-];
+const STATUS_CHIP: Record<ProgramStatus, string> = {
+  published: 'chip chip--green',
+  draft: 'chip chip--plain',
+  ready: 'chip chip--amber',
+  archived: 'chip chip--outline',
+};
 
-/** All programmes in the workspace, with the one action that matters per row. */
+const SCOPE_NOTE: Record<ProgramScope, string> = {
+  mine: 'תוכניות שאת יצרת ומנהלת',
+  team: 'תוכניות של מנהלי תוכן אחרים ב-NGG',
+  all: 'כל התוכניות במרחב העבודה',
+};
+
+/** Every programme in the workspace, as client-branded cards split by ownership. */
 export function Programs() {
-  const { workspace, progressFor, setProgramStatus } = useStore();
-  const [filter, setFilter] = useState<ProgramStatus | 'all'>('all');
-  const [query, setQuery] = useState('');
+  const { identity, workspace } = useStore();
+  const [params, setParams] = useSearchParams();
+  const [scope, setScope] = useState<ProgramScope>('mine');
+  const query = params.get('q') ?? '';
 
-  const rows = workspace.programs
-    .filter((p) => (filter === 'all' ? true : p.status === filter))
-    .filter((p) => {
-      if (!query.trim()) return true;
-      const q = query.trim().toLowerCase();
-      return [p.title, p.client, p.course, p.audience].some((v) => v.toLowerCase().includes(q));
-    });
+  const owner = identity?.name ?? '';
+  const counts = {
+    mine: programsByScope(workspace.programs, owner, 'mine').length,
+    team: programsByScope(workspace.programs, owner, 'team').length,
+    all: workspace.programs.length,
+  };
+
+  const rows = useMemo(() => {
+    const scoped = programsByScope(workspace.programs, owner, scope);
+    if (!query.trim()) return scoped;
+    const q = query.trim().toLowerCase();
+    return scoped.filter((p) =>
+      [p.title, p.client, p.course, p.audience, p.cohort, p.owner].some((v) => v.toLowerCase().includes(q)),
+    );
+  }, [workspace.programs, owner, scope, query]);
+
+  const stats = useMemo(
+    () => new Map(workspace.programs.map((p) => [p.id, programStats(workspace, p)])),
+    [workspace],
+  );
 
   return (
     <AdminLayout crumb="תוכניות">
@@ -33,7 +52,7 @@ export function Programs() {
         <div className="page__head">
           <div>
             <h1>תוכניות</h1>
-            <p>כל מסלולי הלמידה במרחב העבודה, לפי לקוח וסטטוס.</p>
+            <p>{SCOPE_NOTE[scope]}</p>
           </div>
           <span className="spacer" />
           <Link className="btn btn--primary" to="/admin/programs/new">
@@ -42,19 +61,24 @@ export function Programs() {
         </div>
 
         <div className="filters">
-          <div className="chipset">
-            {FILTERS.map((f) => (
-              <button key={f.key} type="button" aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>
-                {f.label}
+          <div className="seg seg--ink">
+            {(['mine', 'team', 'all'] as ProgramScope[]).map((key) => (
+              <button key={key} type="button" aria-pressed={scope === key} onClick={() => setScope(key)}>
+                {key === 'mine' ? 'שלי' : key === 'team' ? 'של הצוות' : 'הכול'} · {counts[key]}
               </button>
             ))}
           </div>
           <span className="spacer" />
           <input
             type="search"
-            placeholder="חיפוש לפי שם, לקוח או קהל"
+            placeholder="חיפוש לפי שם, לקוח, קהל או מחזור"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              const next = new URLSearchParams(params);
+              if (e.target.value) next.set('q', e.target.value);
+              else next.delete('q');
+              setParams(next, { replace: true });
+            }}
             aria-label="חיפוש תוכניות"
           />
         </div>
@@ -62,76 +86,44 @@ export function Programs() {
         {rows.length === 0 ? (
           <p className="empty">אין תוכניות שמתאימות לסינון.</p>
         ) : (
-          <div className="card card--flush">
-            <table className="grid">
-              <thead>
-                <tr>
-                  <th>תוכנית</th>
-                  <th>לקוח</th>
-                  <th>קהל יעד</th>
-                  <th>יחידות</th>
-                  <th>לומדים</th>
-                  <th>התקדמות</th>
-                  <th>סטטוס</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((program) => {
-                  const learners = workspace.learners.filter((l) => l.programIds.includes(program.id));
-                  const values = learners.map((l) => programCompletion(program, progressFor(l.id)).pct);
-                  const avg = values.length ? Math.round(values.reduce((a, b) => a + b, 0) / values.length) : 0;
-                  return (
-                    <tr key={program.id}>
-                      <td>
-                        <Link to={`/admin/programs/${program.id}`}>{program.title || 'ללא שם'}</Link>
-                        <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>{program.course}</div>
-                      </td>
-                      <td>{program.client || '—'}</td>
-                      <td>{program.audience || '—'}</td>
-                      <td>{program.units.length}</td>
-                      <td>{learners.length}</td>
-                      <td>{program.status === 'published' ? `${avg}%` : '—'}</td>
-                      <td>
-                        <span
-                          className={`pill${program.status === 'published' ? ' pill--ok' : program.status === 'ready' ? ' pill--pink' : ''}`}
-                        >
-                          {PROGRAM_STATUS_LABEL[program.status]}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>
-                        <Link className="btn btn--quiet" to={`/admin/programs/${program.id}/build`}>
-                          עריכה
-                        </Link>
-                        {program.status === 'archived' ? (
-                          <button
-                            type="button"
-                            className="btn btn--quiet"
-                            style={{ marginInlineStart: 10 }}
-                            onClick={() => setProgramStatus(program.id, 'draft')}
-                          >
-                            שחזור
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            className="btn btn--quiet"
-                            style={{ marginInlineStart: 10, color: 'var(--ink-4)' }}
-                            onClick={() => setProgramStatus(program.id, 'archived')}
-                          >
-                            לארכיון
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="progcards">
+            {rows.map((program) => {
+              const s = stats.get(program.id);
+              const to =
+                program.status === 'draft' || program.status === 'ready'
+                  ? `/admin/programs/${program.id}/build`
+                  : `/admin/programs/${program.id}`;
+              return (
+                <Link key={program.id} className="card progcard" to={to}>
+                  <div className="progcard__top">
+                    <span className="mono-badge">{program.client[0]}</span>
+                    <span className="progcard__client">
+                      <b>{program.client}</b>
+                      <span>{program.cohort}</span>
+                    </span>
+                    <span className={STATUS_CHIP[program.status]}>{PROGRAM_STATUS_LABEL[program.status]}</span>
+                  </div>
+
+                  <div className="progcard__name">{program.title}</div>
+                  <div className="progcard__aud">{program.audience}</div>
+
+                  <span className="meter">
+                    <i style={{ width: `${s?.avgPct ?? 0}%` }} data-empty={!s?.started} />
+                  </span>
+
+                  <div className="progcard__foot">
+                    <span>{program.units.length} יחידות</span>
+                    <span>{s?.learners ? `${s.learners} לומדים` : 'טרם פורסם'}</span>
+                    <b>{s?.started ? `${s.avgPct}%` : '—'}</b>
+                    <em>{program.owner}</em>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
 
-        <p style={{ marginTop: 12, fontSize: 12, color: 'var(--ink-4)' }}>
+        <p style={{ marginTop: 14, fontSize: 12, color: 'var(--ink-4)' }}>
           תוכניות מועברות לארכיון ולא נמחקות, כדי לשמור על היסטוריית הלמידה של הלומדים.
         </p>
       </main>
