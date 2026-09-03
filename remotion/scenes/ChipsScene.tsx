@@ -6,6 +6,11 @@
  * a line and then one to a line. Revealing the whole list at the top of a thirty-second
  * shot would leave nothing for the twenty seconds the narrator spends going through it.
  *
+ * Nugget 3 uses the same kind for something else again: five quoted follow-up prompts
+ * ("קצר את הפתיחה"), which are things you would type rather than things the tool is
+ * good at. `chipStyle: 'prompt'` in art.ts draws them as messages, with a send mark
+ * instead of a capability glyph.
+ *
  * Nugget 1's shot also opens on eleven seconds of narration about *what the tool is*
  * ("a system that produces answers from language models and from the information it is
  * allowed to reach") before a single capability is named, so its art asks for the
@@ -23,7 +28,7 @@ import { EASE_OUT, drift, reveal } from '../lib/motion';
 import { SceneBody, SceneHead, cueFrame, type SceneProps } from '../lib/scene';
 import type { Tone } from '../theme';
 import { type as typeScale } from '../theme';
-import { Glyph } from './glyphs';
+import { Glyph, Send, hasGlyph } from './glyphs';
 
 type ChipsScene = Extract<Scene, { kind: 'chips' }>;
 
@@ -162,6 +167,11 @@ export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>)
   const frame = useCurrentFrame();
 
   const motif = art.motif === 'token-path';
+  const prompts = art.chipStyle === 'prompt';
+  // A glyph earns its place only if it tells the rows apart. When no label in the set
+  // matches a rule they would all carry the same neutral diamond, which is worse than
+  // no mark: it looks like information and is not.
+  const glyphs = !prompts && scene.items.some(hasGlyph);
   // The head lands a beat before the first pill, so the list has something to hang off.
   const headFrom = Math.max(0, cueFrame(cueAt, art.headAt) - (motif ? 44 : 0));
   // How far the mechanism has stepped back to let the list through.
@@ -217,13 +227,13 @@ export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>)
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 15,
-                    padding: '16px 28px 16px 32px',
+                    padding: prompts ? '16px 26px 16px 22px' : '16px 28px 16px 32px',
                     borderRadius: 999,
-                    background: t.panel,
+                    background: prompts ? (t.dark ? t.panel : '#fff') : t.panel,
                     border: `1px solid ${lit > 0.05 ? t.accent : p > 0.6 ? t.accentWash : t.edge}`,
                     boxShadow: t.dark ? 'none' : '0 1px 2px rgba(21,21,31,0.04)',
-                    fontSize: typeScale.item,
-                    fontWeight: 700,
+                    fontSize: prompts ? 34 : typeScale.item,
+                    fontWeight: prompts ? 600 : 700,
                     letterSpacing: '-0.015em',
                     color: t.fg,
                     whiteSpace: 'nowrap',
@@ -231,10 +241,20 @@ export const ChipsSceneView = ({ scene, cueAt, t, art }: SceneProps<ChipsScene>)
                     transform: `translateY(${18 * (1 - p)}px) scale(${0.94 + 0.06 * p + 0.02 * lit})`,
                   }}
                 >
-                  <span style={{ color: t.accent, display: 'grid', placeItems: 'center' }}>
-                    <Glyph label={item} size={32} />
-                  </span>
-                  {item}
+                  {glyphs ? (
+                    <span style={{ color: t.accent, display: 'grid', placeItems: 'center' }}>
+                      <Glyph label={item} size={32} />
+                    </span>
+                  ) : null}
+                  {/* Quoted in the script, so quoted on screen. Straight marks, like
+                      the content's own: directional ones invert in an RTL run and come
+                      out closing-then-opening. */}
+                  {prompts ? `"${item}"` : item}
+                  {prompts ? (
+                    <span style={{ color: t.accent, display: 'grid', placeItems: 'center' }}>
+                      <Send color="currentColor" size={28} />
+                    </span>
+                  ) : null}
                 </span>
               );
             })}

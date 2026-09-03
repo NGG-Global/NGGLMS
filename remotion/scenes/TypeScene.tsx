@@ -262,6 +262,7 @@ export const TypeSceneView = ({ scene, cueAt, t, art }: SceneProps<TypeScene>) =
 
   return (
     <SceneBody align="center" justify="center" gap={72}>
+      {scene.logo ? <CopilotMark at={0} size={96} accent={t.accent} /> : null}
       <div style={{ textAlign: 'center' }}>
         <AccentHead
           head={scene.head}

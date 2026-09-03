@@ -7,35 +7,45 @@
  * demoted underneath the new one — a viewer who joins here still sees both halves of
  * the correction.
  *
- * `on` is delivered across two narration lines ("which part of the work am I asking
- * it to do," / "and on the basis of what information"), so it is split at its last
- * comma and the second clause lands on the second line. It reads as the sentence
- * being completed rather than a block of text appearing.
+ * Nuggets 1 and 2 deliver `on` across two narration lines ("which part of the work am
+ * I asking it to do," / "and on the basis of what information"), so `tailAt` in art.ts
+ * names the line that completes it and the question arrives in two beats — the
+ * sentence being finished rather than a block of text appearing. Nugget 3 speaks its
+ * whole kept question in one breath ("ניסוח, הערכה, תיקון והשוואה"), so it has no
+ * `tailAt` and is rendered whole: splitting a list at a comma nobody paused on would
+ * read as the sentence breaking, not finishing.
  */
 
 import { interpolate, useCurrentFrame } from 'remotion';
 import type { Scene } from '../../src/content/types';
 import { Micro, Reveal } from '../lib/kit';
 import { EASE_IN_OUT, EASE_OUT, drift, reveal } from '../lib/motion';
-import { SceneBody, cue, type SceneProps } from '../lib/scene';
+import { SceneBody, cueFrame, type SceneProps } from '../lib/scene';
 import { type as typeScale } from '../theme';
 
 type PrincipleScene = Extract<Scene, { kind: 'principle' }>;
 
-/** Splits the kept question at its last comma, so it can arrive in two beats. */
+/**
+ * Splits the kept question at its first comma, so it can arrive in two beats.
+ *
+ * The first comma, not the last: both scripts that split deliver the opening clause
+ * on one line and everything after it on the next, and in nugget 2 that remainder is
+ * itself a list ("הבנה, בדיקה ושיקול דעת") that must not be broken up further.
+ */
 const splitClauses = (on: string): [string, string] => {
-  const at = on.lastIndexOf(', ');
+  const at = on.indexOf(', ');
   return at < 0 ? [on, ''] : [on.slice(0, at + 1), on.slice(at + 2)];
 };
 
-export const PrincipleSceneView = ({ scene, cueAt, t }: SceneProps<PrincipleScene>) => {
+export const PrincipleSceneView = ({ scene, cueAt, t, art }: SceneProps<PrincipleScene>) => {
   const frame = useCurrentFrame();
-  const [lead, tail] = splitClauses(scene.on);
+  const split = art.tailAt != null;
+  const [lead, tail] = split ? splitClauses(scene.on) : [scene.on, ''];
 
-  const offFrom = cue(cueAt, 1, 101);
-  const onFrom = cue(cueAt, 2, 199);
-  const tailFrom = cue(cueAt, 3, 317);
-  const closeFrom = cue(cueAt, 6, 555);
+  const offFrom = cueFrame(cueAt, art.itemCues[0], 101);
+  const onFrom = cueFrame(cueAt, art.itemCues[1], 199);
+  const tailFrom = cueFrame(cueAt, art.tailAt, 317);
+  const closeFrom = cueFrame(cueAt, art.payoffAt, 555);
 
   // The strike starts as the new question arrives: one movement, two halves.
   const strike = reveal(frame, { delay: onFrom - 22, duration: 30, easing: EASE_OUT });
@@ -48,7 +58,7 @@ export const PrincipleSceneView = ({ scene, cueAt, t }: SceneProps<PrincipleScen
 
   return (
     <SceneBody align="center" justify="center" gap={52}>
-      <Reveal at={0} dy={14}>
+      <Reveal at={cueFrame(cueAt, art.headAt)} dy={14}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20, direction: 'rtl' }}>
           <span
             style={{

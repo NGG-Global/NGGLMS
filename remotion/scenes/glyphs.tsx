@@ -134,6 +134,32 @@ export const Glyph = ({ label, size = 34 }: { label: string; size?: number }) =>
 };
 
 /**
+ * Whether a drawn mark exists for this label.
+ *
+ * A caller with a whole list should check all of them: a set where nothing matches
+ * gets the same neutral diamond on every row, and a column of identical marks is
+ * noise where a glyph is supposed to be the thing that tells rows apart.
+ */
+export const hasGlyph = (label: string) => RULES.some(([pattern]) => pattern.test(label));
+
+/** A message you would send: for chips that are quoted prompts, not capabilities. */
+export const Send = ({ color, size = 28 }: { color: string; size?: number }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={color}
+    strokeWidth={1.8}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M20.5 12L4 5.2l2.4 6.8L4 18.8z" />
+    <path d="M6.4 12h14.1" />
+  </svg>
+);
+
+/**
  * An empty-set mark: something the tool does not hold.
  *
  * Shared by `negspace` and `butlist` on purpose — a learner who met it as "what it
