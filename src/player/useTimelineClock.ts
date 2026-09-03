@@ -2,12 +2,22 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cueAt, type Cue } from './timeline';
 
 export interface ClockTarget {
-  /** Narration file, or null when the segment has no deliverable audio. */
+  /** Media file, or null when the segment has no deliverable narration. */
   src: string | null;
   /** Slice of that file the segment occupies. */
   start: number;
   end: number;
   cues: Cue[];
+  /**
+   * Media element to drive the clock from.
+   *
+   * Omitted, the hook makes its own <audio>, which is what a nugget playing the CSS
+   * stage needs. A nugget with a rendered visualizer passes its mounted <video>
+   * instead: the picture and the voice are then the same element, so they cannot
+   * drift from each other at all, and the rest of this hook is unchanged — a video
+   * is a media element with a currentTime like any other.
+   */
+  element?: HTMLMediaElement | null;
 }
 
 export interface Clock {
@@ -41,14 +51,14 @@ const TICK_MS = 60;
 /**
  * One clock for narration, captions and scene animations.
  *
- * When narration exists the audio element is the single source of truth, so a caption
- * can never drift from the voice — every frame reads `audio.currentTime`. When it does
+ * When narration exists the media element is the single source of truth, so a caption
+ * can never drift from the voice — every frame reads `currentTime`. When it does
  * not (a narration file that has not been delivered yet), the same loop runs off
  * `performance.now()` at the same playback rate, so captions and scenes still play in
  * step with each other and the segment stays teachable.
  */
 export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Clock {
-  const { src, start, end, cues } = target;
+  const { src, start, end, cues, element } = target;
   const duration = Math.max(0.01, end - start);
   const silent = src === null;
 
@@ -59,7 +69,7 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
   const [finished, setFinished] = useState(false);
   const [rate, setRateState] = useState(1);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLMediaElement | null>(null);
   const loadedSrc = useRef<string | null>(null);
   const pendingSeek = useRef<number | null>(null);
   const virtual = useRef({ t: 0, since: 0 });
@@ -67,26 +77,32 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
   const finishRef = useRef(onFinish);
   finishRef.current = onFinish;
 
-  // One audio element per player instance: segments that share an mp3 share the download.
+  // One media element per player instance: segments that share a file share the
+  // download. A supplied element belongs to the caller, so its src is left alone on
+  // teardown — clearing it would blank the <video> the caller is still rendering.
   useEffect(() => {
-    const audio = new Audio();
-    audio.preload = 'auto';
-    audioRef.current = audio;
+    const owned = element == null;
+    const media: HTMLMediaElement = element ?? new Audio();
+    if (owned) media.preload = 'auto';
+    audioRef.current = media;
+    // A different element has never been given this segment's file.
+    loadedSrc.current = null;
     const onMeta = () => {
       setReady(true);
       if (pendingSeek.current != null) {
-        audio.currentTime = pendingSeek.current;
+        media.currentTime = pendingSeek.current;
         pendingSeek.current = null;
       }
     };
-    audio.addEventListener('loadedmetadata', onMeta);
+    media.addEventListener('loadedmetadata', onMeta);
+    if (media.readyState >= 1) setReady(true);
     return () => {
-      audio.removeEventListener('loadedmetadata', onMeta);
-      audio.pause();
-      audio.src = '';
+      media.removeEventListener('loadedmetadata', onMeta);
+      media.pause();
+      if (owned) media.src = '';
       audioRef.current = null;
     };
-  }, []);
+  }, [element]);
 
   const load = useCallback(
     (file: string) => {
@@ -119,7 +135,10 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
     } else {
       setReady(true);
     }
-  }, [src, start, end, load]);
+    // `element` is a dependency because the media element arrives on the render after
+    // the player mounts it, and the file has to be handed to whichever element is
+    // current.
+  }, [src, start, end, load, element]);
 
   const commit = useCallback(
     (next: number, force: boolean) => {

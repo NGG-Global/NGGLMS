@@ -9,6 +9,7 @@
  * is produced.
  */
 
+import type { Scene } from '../../src/content/types';
 import type { SceneProps } from '../lib/scene';
 import { ButlistSceneView } from './ButlistScene';
 import { ChipsSceneView } from './ChipsScene';
@@ -20,6 +21,7 @@ import { NegspaceSceneView } from './NegspaceScene';
 import { PrincipleSceneView } from './PrincipleScene';
 import { QuestionsSceneView } from './QuestionsScene';
 import { QuoteSceneView } from './QuoteScene';
+import { StairsSceneView } from './StairsScene';
 import { TwoqSceneView } from './TwoqScene';
 import { TypeSceneView } from './TypeScene';
 
@@ -50,10 +52,17 @@ export const SceneView = (props: SceneProps) => {
       return <DialSceneView {...props} scene={scene} />;
     case 'quote':
       return <QuoteSceneView {...props} scene={scene} />;
-    default:
+    case 'stairs':
+      return <StairsSceneView {...props} scene={scene} />;
+    default: {
+      // Exhaustive: with every kind handled, `scene` narrows to never here, so adding
+      // a kind to the content model breaks the build until it has a picture. The throw
+      // stays for content that reaches this at runtime without passing the compiler.
+      const unbuilt: never = scene;
       throw new Error(
-        `No visualizer built for scene kind "${scene.kind}". Build it in remotion/scenes/ ` +
-          `before rendering a nugget that uses it.`,
+        `No visualizer built for scene kind "${(unbuilt as Scene).kind}". Build it in ` +
+          `remotion/scenes/ before rendering a nugget that uses it.`,
       );
+    }
   }
 };

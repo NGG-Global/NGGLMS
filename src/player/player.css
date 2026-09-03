@@ -20,6 +20,18 @@
   box-shadow: var(--shadow-card);
 }
 
+/* The rendered visualizer. Fills the frame exactly, so the 16/9 render lands on the
+   16/9 frame with nothing letterboxed and no scaling artefacts. */
+.frame__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  background: var(--stage-dark);
+}
+
 .frame__top {
   position: absolute;
   top: 0;

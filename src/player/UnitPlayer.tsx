@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Scene, UnitContent } from '../content/types';
 import { hasNarration } from '../content/narration-manifest';
+import { videoTrack } from '../content/video-manifest';
 import { assetUrl } from '../app/paths';
 import { buildTimeline, formatTime, type Timeline } from './timeline';
 import { useTimelineClock } from './useTimelineClock';
@@ -41,6 +42,14 @@ interface Props {
  * never ahead of the voice and a scene never lands early. Where a narration file has
  * not been delivered the clock falls back to a virtual timer and the frame says so —
  * the lesson stays usable instead of failing silently.
+ *
+ * A nugget with a rendered visualizer (see src/content/video-manifest.ts) plays that
+ * instead: the <video> becomes the clock's media element, and the frame drops its own
+ * caption line and header because the render already carries both. Nuggets without
+ * one keep the CSS stage, so a unit is switched over a nugget at a time as its video
+ * is produced. Playback stops at the end of the narration rather than the end of the
+ * file — the render's end card would otherwise say "עצור וחשוב" a beat before the
+ * player's own reflection panel says it again.
  */
 export function UnitPlayer({
   content,
@@ -63,15 +72,28 @@ export function UnitPlayer({
   const timeline = timelines[index];
 
   const audioAvailable = hasNarration(segment.src, segment.end);
+  const video = videoTrack(content.unit.n, segment.n, segment.end - segment.start);
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
 
   const clockTarget = useMemo(
-    () => ({
-      src: audioAvailable ? assetUrl(segment.src) : null,
-      start: segment.start,
-      end: segment.end,
-      cues: timeline.cues,
-    }),
-    [audioAvailable, segment.src, segment.start, segment.end, timeline.cues],
+    () =>
+      video
+        ? {
+            src: assetUrl(video.file),
+            // The render is already trimmed to the segment, so its clock starts at
+            // zero and the segment's own length is the whole of it.
+            start: 0,
+            end: segment.end - segment.start,
+            cues: timeline.cues,
+            element: videoEl,
+          }
+        : {
+            src: audioAvailable ? assetUrl(segment.src) : null,
+            start: segment.start,
+            end: segment.end,
+            cues: timeline.cues,
+          },
+    [video, videoEl, audioAvailable, segment.src, segment.start, segment.end, timeline.cues],
   );
 
   const handleFinish = useCallback(() => {
@@ -135,23 +157,38 @@ export function UnitPlayer({
     <div className="player">
       <div className="player__main" ref={mainRef}>
         <div className="frame">
-          <Stage key={sceneKey + segment.id} sceneKey={sceneKey + segment.id} scene={scene} />
+          {video ? (
+            // No `src` here: the clock owns loading, so the element is not asked for
+            // the same file twice. Metadata only until play — the file is ~23MB.
+            <video
+              className="frame__video"
+              ref={setVideoEl}
+              preload="metadata"
+              playsInline
+              disablePictureInPicture
+            />
+          ) : (
+            <Stage key={sceneKey + segment.id} sceneKey={sceneKey + segment.id} scene={scene} />
+          )}
 
-          <div className="frame__top">
-            <span className="frame__kicker">{segment.kicker}</span>
-            <span className="spacer" />
-            <span className="frame__num" dir="ltr">
-              {segment.n} / {segments.length}
-            </span>
-          </div>
+          {/* The render draws its own header and captions, so the frame does not. */}
+          {!video && (
+            <div className="frame__top">
+              <span className="frame__kicker">{segment.kicker}</span>
+              <span className="spacer" />
+              <span className="frame__num" dir="ltr">
+                {segment.n} / {segments.length}
+              </span>
+            </div>
+          )}
 
-          {!audioAvailable && (
+          {!audioAvailable && !video && (
             <p className="frame__silent">
               ללא קריינות — הכתוביות והאנימציה מסונכרנות ביניהן
             </p>
           )}
 
-          {captionText && (
+          {captionText && !video && (
             <div className="frame__caption-wrap">
               <p className="frame__caption" key={clock.cueIndex}>
                 {captionText}

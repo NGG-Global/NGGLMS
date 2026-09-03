@@ -49,6 +49,26 @@ const pageErrors = [];
 page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(BASE, { waitUntil: 'networkidle' });
+
+/**
+ * Can this browser decode the renders at all?
+ *
+ * Playwright ships the open-source Chromium build, which carries no H.264 or AAC
+ * decoder — every <video> fails with MEDIA_ERR_SRC_NOT_SUPPORTED regardless of whether
+ * the file, the server and the player are correct. Reporting twenty red lines for that
+ * would drown the findings that mean something, so the playback assertions are skipped
+ * with a reason and everything checkable without a decoder still runs.
+ */
+const canDecode = await page.evaluate(
+  () => document.createElement('video').canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') !== '',
+);
+const skips = [];
+const skip = (m) => { skips.push(m); console.log('   skip ' + m); };
+if (!canDecode) {
+  console.log('\nNOTE: this browser has no H.264/AAC decoder, so video playback cannot be');
+  console.log('      verified here. Run against a browser with proprietary codecs (Chrome,');
+  console.log('      Edge) to check playback itself.');
+}
 await page.fill('#si-name', 'מאיה כהן');
 await page.fill('#si-email', 'maya@nggconsult.com');
 await page.fill('#si-org', 'Learning');
@@ -60,6 +80,23 @@ const probeAudio = (file) => page.evaluate((f) => {
   const a = (window.__audio || []).filter((x) => x.src.includes(f)).pop();
   return a ? { rs: a.readyState, ct: +a.currentTime.toFixed(2), paused: a.paused, dur: +a.duration.toFixed(1), err: a.error?.code ?? null } : null;
 }, file);
+
+// A nugget with a rendered visualizer plays a <video> instead of the CSS stage, and
+// that element is the clock. Its currentTime is zero-based, because the render is
+// already trimmed to the segment — unlike the mp3 path, where the playhead sits at an
+// offset inside a possibly shared file.
+const probeVideo = () => page.evaluate(() => {
+  const v = document.querySelector('.frame__video');
+  if (!v) return null;
+  return {
+    src: v.currentSrc || v.src,
+    rs: v.readyState,
+    ct: +v.currentTime.toFixed(2),
+    paused: v.paused,
+    dur: Number.isFinite(v.duration) ? +v.duration.toFixed(1) : null,
+    err: v.error?.code ?? null,
+  };
+});
 
 for (const [unit, list] of Object.entries(SEGS)) {
   for (const seg of list) {
@@ -81,8 +118,18 @@ for (const [unit, list] of Object.entries(SEGS)) {
     const silent = await page.$('.frame__silent');
     const UNDELIVERED = new Set();
     const shouldBeSilent = UNDELIVERED.has(seg.file);
+    const onVideo = Boolean(await page.$('.frame__video'));
+    console.log(`   mode: ${onVideo ? 'rendered visualizer' : 'CSS stage'}`);
     if (shouldBeSilent && !silent) bad(`${unit} n${seg.n}: no silent badge though ${seg.file} is missing`);
-    if (!shouldBeSilent && silent) bad(`${unit} n${seg.n}: silent badge shown though ${seg.file} exists`);
+    if (!shouldBeSilent && silent && !onVideo) bad(`${unit} n${seg.n}: silent badge shown though ${seg.file} exists`);
+
+    if (onVideo) {
+      // The render carries its own header and captions; drawing them again would
+      // double every line on screen.
+      if (await page.$('.frame__caption')) bad(`${unit} n${seg.n}: frame caption drawn over a render that has burnt-in captions`);
+      if (await page.$('.frame__top')) bad(`${unit} n${seg.n}: frame header drawn over a render that has its own`);
+      if (await page.$('.stage')) bad(`${unit} n${seg.n}: CSS stage still mounted alongside the video`);
+    }
 
     // Play from a point mid-segment so the seek path into a shared file is exercised.
     await page.$eval('.transport__scrub input', (el) => {
@@ -101,7 +148,37 @@ for (const [unit, list] of Object.entries(SEGS)) {
       ? ok(`clock ${t} — advanced from the 40% mark`)
       : bad(`${unit} n${seg.n}: clock ${t}, expected ~${expectFrom.toFixed(0)}s`);
 
-    if (!shouldBeSilent) {
+    if (onVideo && !canDecode) {
+      const v = await probeVideo();
+      if (!v) bad(`${unit} n${seg.n}: no video element`);
+      else {
+        // Still worth asserting: the element exists and was pointed at the right file.
+        v.src.includes(`u0${unit.slice(1)}-n0${seg.n}.mp4`)
+          ? ok(`pointed at u0${unit.slice(1)}-n0${seg.n}.mp4`)
+          : bad(`${unit} n${seg.n}: video src is ${v.src}`);
+      }
+      skip(`${unit} n${seg.n}: playback, buffering and clock sync — no decoder in this browser`);
+    } else if (onVideo) {
+      const v = await probeVideo();
+      if (!v) bad(`${unit} n${seg.n}: no video element`);
+      else {
+        console.log(`   video: ${v.src.split('/').pop()} rs=${v.rs} ct=${v.ct} dur=${v.dur} paused=${v.paused} err=${v.err}`);
+        v.src.includes(`u0${unit.slice(1)}-n0${seg.n}.mp4`)
+          ? ok(`playing u0${unit.slice(1)}-n0${seg.n}.mp4`)
+          : bad(`${unit} n${seg.n}: video src is ${v.src}`);
+        v.rs >= 3 ? ok('video buffered and playable') : bad(`${unit} n${seg.n}: video readyState ${v.rs}`);
+        v.paused === false ? ok('video is playing') : bad(`${unit} n${seg.n}: video paused during playback`);
+        Math.abs(v.ct - elapsed) < 2
+          ? ok(`video playhead ${v.ct}s matches displayed ${elapsed}s`)
+          : bad(`${unit} n${seg.n}: video playhead ${v.ct}s vs displayed ${elapsed}s`);
+        // The render runs a few seconds past the narration for its end card; the
+        // player must stop at the narration end so the app's own reflection panel is
+        // not preceded by the card that says the same thing.
+        v.dur != null && v.dur > expectDur - 1
+          ? ok(`file ${v.dur}s covers the ${expectDur.toFixed(0)}s segment`)
+          : bad(`${unit} n${seg.n}: file is ${v.dur}s for a ${expectDur.toFixed(0)}s segment`);
+      }
+    } else if (!shouldBeSilent) {
       const a = await probeAudio(seg.file);
       if (!a) bad(`${unit} n${seg.n}: no audio element for ${seg.file}`);
       else {
@@ -119,10 +196,14 @@ for (const [unit, list] of Object.entries(SEGS)) {
       }
     }
 
-    const cap = (await page.textContent('.frame__caption').catch(() => '')) || '';
-    const head = (await page.textContent('.stage__head').catch(() => '')) || (await page.textContent('.sc-type__head').catch(() => '')) || '';
-    console.log(`   scene: ${head.slice(0, 40)} | caption: ${cap.slice(0, 56)}`);
-    cap.trim() ? ok('caption on screen') : bad(`${unit} n${seg.n}: no caption during playback`);
+    // A render carries its captions in the frame, so there is no DOM caption to find
+    // and no CSS scene behind it. Both absences are asserted above.
+    if (!onVideo) {
+      const cap = (await page.textContent('.frame__caption').catch(() => '')) || '';
+      const head = (await page.textContent('.stage__head').catch(() => '')) || (await page.textContent('.sc-type__head').catch(() => '')) || '';
+      console.log(`   scene: ${head.slice(0, 40)} | caption: ${cap.slice(0, 56)}`);
+      cap.trim() ? ok('caption on screen') : bad(`${unit} n${seg.n}: no caption during playback`);
+    }
     await page.click('.transport__pp');
   }
 }
@@ -151,4 +232,12 @@ console.log('\n── page errors ──');
 pageErrors.length === 0 ? ok('none') : pageErrors.forEach((e) => bad('pageerror: ' + e));
 
 await browser.close();
-console.log('\n' + (fails.length ? `FAILURES (${fails.length}):\n - ${fails.join('\n - ')}` : 'ALL 10 NUGGETS VERIFIED'));
+if (skips.length) console.log(`\nSKIPPED (${skips.length}):\n - ${skips.join('\n - ')}`);
+console.log(
+  '\n' +
+    (fails.length
+      ? `FAILURES (${fails.length}):\n - ${fails.join('\n - ')}`
+      : skips.length
+        ? `NO FAILURES — but ${skips.length} check(s) were skipped, so this is not a full pass`
+        : 'ALL 10 NUGGETS VERIFIED'),
+);

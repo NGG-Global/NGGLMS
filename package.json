@@ -11,14 +11,16 @@
     "preview": "vite preview --port 4173",
     "build:pages": "cross-env DEPLOY_TARGET=pages tsc -b && cross-env DEPLOY_TARGET=pages vite build",
     "scan:audio": "node scripts/scan-audio.mjs",
-    "prebuild": "node scripts/scan-audio.mjs",
+    "prebuild": "node scripts/scan-audio.mjs && node scripts/scan-video.mjs",
     "video": "remotion studio",
     "video:render": "remotion render u01-n01 out/u01-n01.mp4 --crf=18",
     "video:still": "remotion still u01-n01 out/still.png",
     "video:audio": "remotion render u01-n01 out/u01-n01.wav",
     "video:render:n02": "remotion render u01-n02 out/u01-n02.mp4 --crf=18",
     "video:render:n03": "remotion render u01-n03 out/u01-n03.mp4 --crf=18",
-    "video:render:n04": "remotion render u01-n04 out/u01-n04.mp4 --crf=18"
+    "video:render:n04": "remotion render u01-n04 out/u01-n04.mp4 --crf=18",
+    "video:render:n05": "remotion render u01-n05 out/u01-n05.mp4 --crf=18",
+    "scan:video": "node scripts/scan-video.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",

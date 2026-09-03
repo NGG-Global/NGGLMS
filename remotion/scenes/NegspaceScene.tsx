@@ -37,6 +37,9 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
 
   const filling = art.fill !== false;
   const rowAt = (i: number) => cueFrame(cueAt, art.itemCues[i], 117 + i * 84);
+  // The slots can be promised before they are named — see `scaffoldAt` in art.ts.
+  const slotAt = (i: number) =>
+    art.scaffoldAt != null ? cueFrame(cueAt, art.scaffoldAt) + 14 + i * 12 : rowAt(i);
   const fillFrom = cueFrame(cueAt, art.detailCues[0], 440);
   const alarmFrom = cueFrame(cueAt, art.payoffAt, 749);
 
@@ -57,7 +60,8 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         {scene.items.map((item, i) => {
-          const enter = reveal(frame, { delay: rowAt(i), duration: 28 });
+          const enter = reveal(frame, { delay: slotAt(i), duration: 28 });
+          const named = reveal(frame, { delay: rowAt(i), duration: 26 });
           const fill = filling
             ? reveal(frame, { delay: fillFrom + i * FILL_STAGGER, duration: FILL })
             : 0;
@@ -99,7 +103,8 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
                   fontWeight: 700,
                   letterSpacing: '-0.015em',
                   color: interpolateColors(filling ? fill : warn, [0, 1], [t.fg3, t.fg]),
-                  transform: `translateY(${drift(frame, 2, 620, i)}px)`,
+                  opacity: named,
+                  transform: `translateY(${(1 - named) * 10 + drift(frame, 2, 620, i)}px)`,
                   flex: 'none',
                 }}
               >

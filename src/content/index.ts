@@ -3,6 +3,7 @@ import { unit01 } from './unit-01';
 import { unit02 } from './unit-02';
 import { library, libraryUnit, type LibraryUnit } from './library';
 import { hasNarration } from './narration-manifest';
+import { videoTrack } from './video-manifest';
 
 export * from './types';
 export * from './library';
@@ -26,6 +27,8 @@ export interface SegmentHealth {
   cueCount: number;
   sceneCount: number;
   hasAudio: boolean;
+  /** A rendered visualizer exists, so this nugget plays video instead of the stage. */
+  hasVideo: boolean;
 }
 
 export interface UnitHealth {
@@ -35,6 +38,8 @@ export interface UnitHealth {
   segments: SegmentHealth[];
   /** Segments whose narration file is missing or too short. */
   silentSegments: SegmentHealth[];
+  /** Segments playing a rendered visualizer rather than the CSS stage. */
+  videoSegments: SegmentHealth[];
   totalSec: number;
   introHasAudio: boolean;
 }
@@ -57,6 +62,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     cueCount: cueCount(s),
     sceneCount: Object.keys(s.scenes).length,
     hasAudio: hasNarration(s.src, s.end),
+    hasVideo: Boolean(videoTrack(content.unit.n, s.n, s.end - s.start)),
   }));
   return {
     contentId,
@@ -64,6 +70,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     title: content.unit.title,
     segments,
     silentSegments: segments.filter((s) => !s.hasAudio),
+    videoSegments: segments.filter((s) => s.hasVideo),
     totalSec: segments.reduce((sum, s) => sum + s.durationSec, 0),
     introHasAudio: hasNarration(content.unit.intro.src, content.unit.intro.end),
   };

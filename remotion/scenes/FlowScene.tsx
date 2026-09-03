@@ -70,6 +70,137 @@ const SourceLines = ({ t, sweep }: { t: Tone; sweep: number }) => {
 export const FlowSceneView = ({ scene, cueAt, t, art }: SceneProps<FlowScene>) => {
   const frame = useCurrentFrame();
 
+  if (art.flowStyle === 'spread') {
+    const sourceW = 420;
+    const destW = 470;
+    const destH = 104;
+    const boardH = 460;
+    const cy = boardH / 2;
+    const rows = scene.nodes.map((_, i) =>
+      scene.nodes.length === 1
+        ? cy
+        : cy + (i - (scene.nodes.length - 1) / 2) * ((boardH - destH - 16) / (scene.nodes.length - 1)),
+    );
+    const sourceIn = reveal(frame, { delay: 8, duration: 30 });
+
+    return (
+      <SceneBody justify="center" gap={48}>
+        <Reveal at={cueFrame(cueAt, art.headAt)} dy={18}>
+          <SceneHead t={t}>{scene.head}</SceneHead>
+        </Reveal>
+
+        <div style={{ position: 'relative', width: BOARD, height: boardH, direction: 'ltr' }}>
+          {/* Connectors, drawn under everything. */}
+          <svg
+            viewBox={`0 0 ${BOARD} ${boardH}`}
+            style={{ position: 'absolute', inset: 0, width: BOARD, height: boardH }}
+          >
+            {scene.nodes.map((node, i) => {
+              const from = BOARD - sourceW;
+              const to = destW;
+              const mid = (from + to) / 2;
+              const p = reveal(frame, { delay: cueFrame(cueAt, art.itemCues[i]), duration: 32 });
+              return (
+                <path
+                  key={node}
+                  d={`M ${from} ${cy} C ${mid} ${cy}, ${mid} ${rows[i]}, ${to} ${rows[i]}`}
+                  fill="none"
+                  stroke={t.accent}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                  pathLength={1}
+                  strokeDasharray={1}
+                  strokeDashoffset={1 - p}
+                  opacity={0.6 * p}
+                />
+              );
+            })}
+          </svg>
+
+          {/* The output. Unlabelled on purpose: the head has just named it, and the
+              scene is about where it goes, not what it is. */}
+          <div
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: cy,
+              width: sourceW,
+              borderRadius: 22,
+              padding: '30px 30px',
+              background: t.dark ? 'rgba(255,255,255,0.07)' : '#fff',
+              border: `2px solid ${t.accent}`,
+              boxShadow: `0 0 ${26 * sourceIn}px rgba(236,42,140,0.22)`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              direction: 'rtl',
+              opacity: sourceIn,
+              transform: `translateY(calc(-50% + ${drift(frame, 4, 680)}px)) scale(${
+                0.96 + 0.04 * sourceIn
+              })`,
+            }}
+          >
+            {[1, 0.76, 0.9].map((w, i) => (
+              <span
+                key={i}
+                style={{
+                  height: 12,
+                  borderRadius: 12,
+                  width: `${w * 100}%`,
+                  background: t.accent,
+                  opacity: 0.85,
+                  transform: `scaleX(${reveal(frame, { delay: 14 + i * 8, duration: 24 })})`,
+                  transformOrigin: 'right center',
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Where it ends up. */}
+          {scene.nodes.map((node, i) => {
+            const p = reveal(frame, { delay: cueFrame(cueAt, art.itemCues[i]) + 8, duration: 28 });
+            return (
+              <div
+                key={node}
+                style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: rows[i],
+                  width: destW,
+                  minHeight: destH,
+                  borderRadius: 18,
+                  padding: '20px 26px',
+                  display: 'grid',
+                  placeItems: 'center',
+                  background: t.panel,
+                  border: `1px solid ${t.edge}`,
+                  direction: 'rtl',
+                  textAlign: 'center',
+                  fontSize: 32,
+                  fontWeight: 700,
+                  letterSpacing: '-0.015em',
+                  color: t.fg,
+                  opacity: p,
+                  transform: `translateY(calc(-50% + ${
+                    14 * (1 - p) + drift(frame, 2, 640, i)
+                  }px)) scale(${0.95 + 0.05 * p})`,
+                }}
+              >
+                {node}
+              </div>
+            );
+          })}
+        </div>
+
+        {scene.foot ? (
+          <Reveal at={cueFrame(cueAt, art.payoffAt)} duration={28} dy={14}>
+            <div style={{ fontSize: typeScale.body, color: t.fg3 }}>{scene.foot}</div>
+          </Reveal>
+        ) : null}
+      </SceneBody>
+    );
+  }
+
   if (art.flowStyle === 'anchor') {
     const tetherFrom = cueFrame(cueAt, art.itemCues[0], 90);
     // The answer starts adrift and is pulled into line as the tether takes hold.
