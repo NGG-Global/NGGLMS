@@ -10,13 +10,20 @@
  * tidy email, a set of options), which is why the transfer runs three times, once per
  * line, instead of playing once and leaving the frame static for twelve seconds.
  * Repeating the same motion is honest here: the copy is repeating the same claim.
+ *
+ * Nugget 4 uses the same kind for grounding, where the nodes are "relevant and defined
+ * information" and "an anchored answer". Compression is the wrong picture for that —
+ * it would say grounding is summarising, which is the opposite of the point — so
+ * `flowStyle: 'anchor'` draws the answer adrift and then tethers it to the source. The
+ * foot on that shot is "instead of letting the model act in empty space", and the
+ * untethered state is that space.
  */
 
 import { interpolate, random, useCurrentFrame } from 'remotion';
 import type { Scene } from '../../src/content/types';
 import { Micro, Reveal } from '../lib/kit';
-import { EASE_IN_OUT, EASE_OUT, reveal } from '../lib/motion';
-import { SceneBody, SceneHead, type SceneProps } from '../lib/scene';
+import { EASE_IN_OUT, EASE_OUT, drift, reveal } from '../lib/motion';
+import { SceneBody, SceneHead, cueFrame, type SceneProps } from '../lib/scene';
 import type { Tone } from '../theme';
 import { type as typeScale } from '../theme';
 
@@ -60,8 +67,165 @@ const SourceLines = ({ t, sweep }: { t: Tone; sweep: number }) => {
   );
 };
 
-export const FlowSceneView = ({ scene, cueAt, t }: SceneProps<FlowScene>) => {
+export const FlowSceneView = ({ scene, cueAt, t, art }: SceneProps<FlowScene>) => {
   const frame = useCurrentFrame();
+
+  if (art.flowStyle === 'anchor') {
+    const tetherFrom = cueFrame(cueAt, art.itemCues[0], 90);
+    // The answer starts adrift and is pulled into line as the tether takes hold.
+    const tether = reveal(frame, { delay: tetherFrom, duration: 54, easing: EASE_OUT });
+    const adrift = 1 - tether;
+    // Once anchored, a slow pulse runs the tether so the hold reads as live.
+    const pulse = (Math.sin(frame / 24) + 1) / 2;
+
+    const sourceW = 660;
+    const answerW = 560;
+    // The tether spans card edge to card edge. A gap at either end is a disconnect,
+    // in a scene whose whole subject is the connection.
+    const railStartX = answerW;
+    const railW = BOARD - sourceW - answerW;
+    // One height for both, so the tether meets each at its centre.
+    const cardH = 196;
+    const cardTop = 78;
+    const railTop = cardTop + cardH / 2 - 2;
+
+    return (
+      <SceneBody justify="center" gap={54}>
+        <Reveal at={0} dy={18}>
+          <SceneHead t={t}>{scene.head}</SceneHead>
+        </Reveal>
+
+        <div style={{ position: 'relative', width: BOARD, height: 380, direction: 'ltr' }}>
+          <Reveal at={14} dy={10} style={{ position: 'absolute', left: 0, top: 0, width: answerW }}>
+            <Micro color={t.accent} size={24} style={{ textAlign: 'center', direction: 'rtl' }}>
+              {scene.nodes[scene.nodes.length - 1]}
+            </Micro>
+          </Reveal>
+          <Reveal at={6} dy={10} style={{ position: 'absolute', right: 0, top: 0, width: sourceW }}>
+            <Micro color={t.fg3} size={24} style={{ textAlign: 'center', direction: 'rtl' }}>
+              {scene.nodes[0]}
+            </Micro>
+          </Reveal>
+
+          {/* The defined source: few lines, all solid. Nothing here is bulk. */}
+          <Reveal
+            at={4}
+            dy={0}
+            from={0.97}
+            style={{ position: 'absolute', right: 0, top: cardTop, width: sourceW }}
+          >
+            <div
+              style={{
+                borderRadius: 22,
+                padding: '0 36px',
+                height: cardH,
+                background: t.panel,
+                border: `1px solid ${t.edge}`,
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                gap: 20,
+                direction: 'rtl',
+              }}
+            >
+              {[1, 0.86, 0.94, 0.7].map((w, i) => (
+                <span
+                  key={i}
+                  style={{
+                    height: 14,
+                    borderRadius: 14,
+                    width: `${w * 100}%`,
+                    background: t.fg4,
+                    opacity: 0.7,
+                    transform: `scaleX(${reveal(frame, { delay: 16 + i * 8, duration: 26 })})`,
+                    transformOrigin: 'right center',
+                  }}
+                />
+              ))}
+            </div>
+          </Reveal>
+
+          {/* The tether. */}
+          <div style={{ position: 'absolute', left: railStartX, top: railTop, width: railW, height: 4 }}>
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: 4,
+                background: t.accent,
+                opacity: 0.35 + 0.4 * tether * pulse,
+                transform: `scaleX(${tether})`,
+                transformOrigin: 'right center',
+              }}
+            />
+            {/* The point of attachment, on the source side. */}
+            <div
+              style={{
+                position: 'absolute',
+                right: -9,
+                top: -7,
+                width: 18,
+                height: 18,
+                borderRadius: 18,
+                background: t.accent,
+                opacity: tether,
+              }}
+            />
+          </div>
+
+          {/* The answer: adrift, then held. */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: cardTop,
+              width: answerW,
+              height: cardH,
+              borderRadius: 22,
+              padding: '0 32px',
+              justifyContent: 'center',
+              background: t.dark ? 'rgba(255,255,255,0.07)' : '#fff',
+              border: `2px ${tether > 0.6 ? 'solid' : 'dashed'} ${
+                tether > 0.4 ? t.accent : t.fg4
+              }`,
+              boxShadow: t.dark
+                ? `0 0 ${30 * tether * pulse}px rgba(236,42,140,0.3)`
+                : `0 18px 40px -28px rgba(21,21,31,0.3)`,
+              // Adrift: it wanders, and off the tether's line. Anchored: it sits still.
+              transform: `translate(${adrift * -26}px, ${
+                adrift * (34 + drift(frame, 16, 150)) + drift(frame, 3, 700)
+              }px)`,
+              direction: 'rtl',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 18,
+            }}
+          >
+            {[1, 0.78, 0.9].map((w, i) => (
+              <span
+                key={i}
+                style={{
+                  height: 13,
+                  borderRadius: 13,
+                  width: `${w * 100}%`,
+                  background: t.accent,
+                  opacity: 0.4 + 0.6 * tether,
+                  transform: `scaleX(${reveal(frame, { delay: 22 + i * 8, duration: 26 })})`,
+                  transformOrigin: 'right center',
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {scene.foot ? (
+          <Reveal at={cueFrame(cueAt, art.payoffAt)} duration={28} dy={14}>
+            <div style={{ fontSize: typeScale.body, color: t.fg3 }}>{scene.foot}</div>
+          </Reveal>
+        ) : null}
+      </SceneBody>
+    );
+  }
 
   // One transfer per narration line, the first held back until the boards are built.
   const anchors = [Math.max(56, cueAt[0] + 56), ...cueAt.slice(1)];

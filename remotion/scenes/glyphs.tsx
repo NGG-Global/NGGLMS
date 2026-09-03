@@ -80,13 +80,57 @@ const RULES: [RegExp, (size: number) => ReactNode][] = [
       <path d="M9 16.5h4.5" />
     </Svg>
   )],
-  // Summarising: a page condensed to a few lines.
-  [/סכם|סיכום|מסמכ/, (s) => (
+  // Summarising: a page condensed to a few lines. Ahead of the document rule, so
+  // "לסכם מסמכים" reads as the act and a bare "מסמך" reads as the thing.
+  [/לסכם|סכם|סיכום/, (s) => (
     <Svg size={s}>
       <path d="M5 4.5h11a2 2 0 012 2V19a2 2 0 01-2 2H5" />
       <path d="M8.5 9h6" />
       <path d="M8.5 12.5h4" />
       <path d="M8.5 16h2" />
+    </Svg>
+  )],
+  // Source types. Nugget 4 lists what work can be based on, and six identical marks
+  // would tell a viewer nothing about which row is which.
+  [/מסמך|מסמכ/, (s) => (
+    <Svg size={s}>
+      <path d="M8 3h7l4 4v12a2 2 0 01-2 2H8a2 2 0 01-2-2V5a2 2 0 012-2z" />
+      <path d="M15 3v4h4" />
+    </Svg>
+  )],
+  [/מצגת/, (s) => (
+    <Svg size={s}>
+      <rect x="3.5" y="4.5" width="17" height="11.5" rx="2" />
+      <path d="M12 16v4" />
+      <path d="M8.5 20h7" />
+    </Svg>
+  )],
+  [/מייל|מיילים|שרשור/, (s) => (
+    <Svg size={s}>
+      <rect x="3" y="6.5" width="18" height="12" rx="2" />
+      <path d="M3.8 7.6L12 13.4l8.2-5.8" />
+    </Svg>
+  )],
+  [/נתונים|נתוני/, (s) => (
+    <Svg size={s}>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
+      <path d="M3.5 9.5h17" />
+      <path d="M9 9.5v10" />
+      <path d="M14.8 9.5v10" />
+    </Svg>
+  )],
+  [/מדיניות|ארגונית/, (s) => (
+    <Svg size={s}>
+      <path d="M12 3.5l7 2.6v5.4c0 4-2.9 7.2-7 8.5-4.1-1.3-7-4.5-7-8.5V6.1z" />
+      <path d="M9.2 12l2 2 3.6-3.8" />
+    </Svg>
+  )],
+  [/פגיש/, (s) => (
+    <Svg size={s}>
+      <circle cx="9" cy="9.4" r="2.7" />
+      <circle cx="16.2" cy="10.4" r="2.2" />
+      <path d="M4 19c0-2.6 2.2-4.4 5-4.4s5 1.8 5 4.4" />
+      <path d="M15 19c0-2 .6-3.3 2-3.9 1.9-.8 3.6.6 3.6 2.6" />
     </Svg>
   )],
   // Ideas: a spark.

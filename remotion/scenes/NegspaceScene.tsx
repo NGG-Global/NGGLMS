@@ -11,13 +11,18 @@
  * start filling themselves in, hatched, with a caret running ahead of the fill. By
  * the last line ("a convincing answer built on a bad basis") the fill has gone amber:
  * every slot is now full, and none of it came from us.
+ *
+ * Nugget 4 uses the same kind for something the tool does not do at all: three
+ * conditions under which a source fails ("if the document is old"). Nothing fills
+ * those in, so `fill: false` in art.ts leaves the rows empty and gives each a warning
+ * edge as it lands — they are ways the ground gives way, not gaps being invented.
  */
 
 import { interpolateColors, useCurrentFrame } from 'remotion';
 import type { Scene } from '../../src/content/types';
 import { Reveal } from '../lib/kit';
 import { EASE_OUT, drift, reveal } from '../lib/motion';
-import { SceneBody, SceneHead, cue, type SceneProps } from '../lib/scene';
+import { SceneBody, SceneHead, cueFrame, type SceneProps } from '../lib/scene';
 import { palette, type as typeScale } from '../theme';
 import { Void } from './glyphs';
 
@@ -27,14 +32,13 @@ type NegspaceScene = Extract<Scene, { kind: 'negspace' }>;
 const FILL = 150;
 const FILL_STAGGER = 44;
 
-export const NegspaceSceneView = ({ scene, cueAt, t }: SceneProps<NegspaceScene>) => {
+export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceScene>) => {
   const frame = useCurrentFrame();
 
-  // Line 0 is the claim ("it does not know things the way a person does"); the four
-  // absences are named one per line after it.
-  const rowAt = (i: number) => cue(cueAt, i + 1, 117 + i * 84);
-  const fillFrom = cue(cueAt, 5, 440);
-  const alarmFrom = cue(cueAt, 7, 749);
+  const filling = art.fill !== false;
+  const rowAt = (i: number) => cueFrame(cueAt, art.itemCues[i], 117 + i * 84);
+  const fillFrom = cueFrame(cueAt, art.detailCues[0], 440);
+  const alarmFrom = cueFrame(cueAt, art.payoffAt, 749);
 
   // The hatch is the tool's own material, so it stays accent throughout: that is
   // still the tool writing, and recolouring a thousand pixels of fill turns the frame
@@ -47,15 +51,27 @@ export const NegspaceSceneView = ({ scene, cueAt, t }: SceneProps<NegspaceScene>
 
   return (
     <SceneBody justify="center" gap={40}>
-      <Reveal at={0} dy={18}>
+      <Reveal at={cueFrame(cueAt, art.headAt)} dy={18}>
         <SceneHead t={t}>{scene.head}</SceneHead>
       </Reveal>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         {scene.items.map((item, i) => {
           const enter = reveal(frame, { delay: rowAt(i), duration: 28 });
-          const fill = reveal(frame, { delay: fillFrom + i * FILL_STAGGER, duration: FILL });
+          const fill = filling
+            ? reveal(frame, { delay: fillFrom + i * FILL_STAGGER, duration: FILL })
+            : 0;
           const running = fill > 0.004 && fill < 0.996;
+          // With no fill, the row's own edge carries the warning, a beat after it
+          // arrives, so three conditions read as three risks rather than three labels.
+          const warn = filling
+            ? 0
+            : reveal(frame, { delay: Math.max(rowAt(i), alarmFrom) + 26 + i * 20, duration: 40 });
+          const rowEdge = filling
+            ? fill > 0.35
+              ? edge
+              : t.fg4
+            : interpolateColors(warn, [0, 1], [t.fg4, palette.amber]);
 
           return (
             <div
@@ -64,7 +80,7 @@ export const NegspaceSceneView = ({ scene, cueAt, t }: SceneProps<NegspaceScene>
                 position: 'relative',
                 height: 90,
                 borderRadius: 20,
-                border: `2px ${fill > 0.6 ? 'solid' : 'dashed'} ${fill > 0.35 ? edge : t.fg4}`,
+                border: `2px ${fill > 0.6 ? 'solid' : 'dashed'} ${rowEdge}`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 22,
@@ -74,7 +90,7 @@ export const NegspaceSceneView = ({ scene, cueAt, t }: SceneProps<NegspaceScene>
                 transform: `translateY(${(1 - enter) * 20}px)`,
               }}
             >
-              <span style={{ color: fill > 0.6 ? edge : t.fg4, flex: 'none' }}>
+              <span style={{ color: filling ? (fill > 0.6 ? edge : t.fg4) : rowEdge, flex: 'none' }}>
                 <Void color="currentColor" />
               </span>
               <span
@@ -82,7 +98,7 @@ export const NegspaceSceneView = ({ scene, cueAt, t }: SceneProps<NegspaceScene>
                   fontSize: typeScale.item,
                   fontWeight: 700,
                   letterSpacing: '-0.015em',
-                  color: interpolateColors(fill, [0, 1], [t.fg3, t.fg]),
+                  color: interpolateColors(filling ? fill : warn, [0, 1], [t.fg3, t.fg]),
                   transform: `translateY(${drift(frame, 2, 620, i)}px)`,
                   flex: 'none',
                 }}

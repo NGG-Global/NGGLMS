@@ -63,6 +63,27 @@ export interface ShotArt {
   verdictAt?: number;
 
   /**
+   * Whether a `negspace`'s rows get filled in by the tool.
+   *
+   * Nugget 1's four rows are things the tool does not hold, and the beat that follows
+   * is it completing them itself — so the void fills, hatched. Nugget 4's three are
+   * conditions under which a source fails ("if the document is old"), and nothing
+   * fills them in: they are ways the ground gives way, so each simply takes a warning
+   * edge. Defaults to true.
+   */
+  fill?: boolean;
+
+  /**
+   * What a `flow` is doing between its nodes.
+   *
+   * Nugget 1 turns a lot of text into a little ('condense'), so the source has real
+   * bulk and it travels. Nugget 4's flow is grounding — connecting an answer to
+   * defined information ('anchor') — and drawing that as compression would say
+   * grounding is summarisation, which is the opposite of the point.
+   */
+  flowStyle?: 'condense' | 'anchor';
+
+  /**
    * Cue index that completes a `principle`'s kept question, when the copy delivers it
    * across two lines. Never defaulted: without it the question is rendered whole,
    * because splitting a list at a comma that was spoken in one breath reads as a
@@ -81,6 +102,9 @@ const ART: Record<string, ShotArt> = {
   // Three readings on one line and three on the next; then the tool picks one of
   // them for itself, and then that pick is judged.
   'unit-01/s1.g': { itemCues: [1], detailCues: [2] },
+  // Four absences named one per line, then the tool filling them in, then the line
+  // that calls the result unsound.
+  'unit-01/s1.e': { itemCues: [1, 2, 3, 4], detailCues: [5], payoffAt: 7 },
   'unit-01/s1.h': { itemCues: [0, 0, 0, 1, 1, 1], pick: 4, pickAt: 2, verdictAt: 3 },
   'unit-01/s1.i': { itemCues: [1, 2], tailAt: 3 },
 
@@ -119,6 +143,24 @@ const ART: Record<string, ShotArt> = {
   'unit-01/s3.h': { itemCues: [2, 3] },
   // "what is good? what is missing? what is inaccurate?" all land together.
   'unit-01/s3.i': { headAt: 2, itemCues: [4, 4, 4, 5] },
+
+  // Unit 01, nugget 4 --------------------------------------------------------
+  // No transcript timestamps for this segment, so every cue position below is an
+  // estimate from text length rather than a measured block. See src/player/timeline.ts.
+  // No reply to wait for: the prompt is typed and nothing can answer it.
+  'unit-01/s4.c': { itemCues: [0], detailCues: [0] },
+  'unit-01/s4.d': { itemCues: [0, 0, 0, 1, 1, 2] },
+  // The specimen assembles clause by clause, then the line about what it changes.
+  'unit-01/s4.e': { itemCues: [1, 2, 3], payoffAt: 4 },
+  // Five source types on one line, then the sixth.
+  'unit-01/s4.f': { itemCues: [1, 1, 1, 1, 1, 2] },
+  // Three quoted ways to ask for source-bound work.
+  'unit-01/s4.g': { chipStyle: 'prompt', headAt: 1, itemCues: [2, 3, 4] },
+  // Grounding: an answer tethered to defined information, not text compressed.
+  'unit-01/s4.h': { flowStyle: 'anchor', itemCues: [1], payoffAt: 3 },
+  // Ways a source gives way. Nothing fills these in.
+  'unit-01/s4.i': { fill: false, itemCues: [1, 1, 1], payoffAt: 1 },
+  'unit-01/s4.j': { headAt: 0, itemCues: [1, 2] },
 };
 
 /** Evenly spread `count` reveals across cue indices `[from .. last]`. */
