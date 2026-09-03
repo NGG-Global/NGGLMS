@@ -15,18 +15,8 @@ export interface Timeline {
   duration: number;
   /** Ordered scene keys as they first appear, for prefetch and for the scene strip. */
   sceneOrder: string[];
-  /** How cue positions were derived — surfaced in the player as a sync-quality note. */
-  source: 'transcript' | 'speech-map' | 'weighted';
-}
-
-/**
- * A speech-density map for one narration file: `cum[i]` is the number of seconds of
- * actual speech before second `i * step`. Used to spread captions over speech time
- * rather than wall time, so a long pause does not swallow the next three lines.
- */
-export interface SpeechMap {
-  step: number;
-  cum: number[];
+  /** How cue positions were derived. */
+  source: 'transcript' | 'weighted';
 }
 
 /** Weight a cue by its own hint if given, else by text length; empty title cards get a floor. */
@@ -59,15 +49,22 @@ function normalise(cues: Cue[], duration: number, min = 0.25): Cue[] {
 /**
  * Resolves a segment's caption cues onto the segment clock.
  *
- * Three strategies, best first:
+ * Two strategies:
  *   1. `timed` — the transcript arrived with block timestamps. Blocks are anchored
  *      verbatim (after applying tcBase/tcRate) and cues are spread inside each block
- *      by speech weight. This is accurate to roughly a line.
- *   2. `speechMap` — no block timestamps, but we know where the speech actually is in
- *      the audio, so cues are spread over speech time.
- *   3. weighted — neither, so cues are spread linearly by weight across the segment.
+ *      by text weight. Accurate to roughly a line, and it covers 8 of the 10 segments.
+ *   2. weighted — no block timestamps, so cues are spread by text weight across the
+ *      segment. Unit 01 nuggets 4 and 5 are the only two on this path.
+ *
+ * Spreading (2) over measured *speech* time instead — decoding the narration, finding
+ * the pauses, and distributing cues over the speech between them — was built and
+ * measured against the detected sentence boundaries. It came out worse on both
+ * segments: mean distance from a cue start to the nearest sentence start rose from
+ * 1.53s to 1.70s on nugget 4 and from 2.48s to 2.79s on nugget 5, because the
+ * narrator's rate is not constant enough for speech time to track text length better
+ * than wall time does. Not worth re-attempting without real transcript alignment.
  */
-export function buildTimeline(segment: Segment, speechMap?: SpeechMap): Timeline {
+export function buildTimeline(segment: Segment): Timeline {
   const duration = segment.end - segment.start;
   const cues: Cue[] = [];
 
@@ -106,36 +103,7 @@ export function buildTimeline(segment: Segment, speechMap?: SpeechMap): Timeline
   const rawBody = (segment.body != null ? segment.body : segment.start) - segment.start;
   const bodyStart = Math.min(Math.max(0, rawBody), Math.max(0, duration - 1));
 
-  let at: (fraction: number) => number;
-  let source: Timeline['source'] = 'weighted';
-
-  const speech = speechMap && speechMap.cum.length > 1 ? speechMap : undefined;
-  if (speech) {
-    const { step, cum } = speech;
-    const index = (t: number) => Math.max(0, Math.min(cum.length - 1, Math.round(t / step)));
-    const lo0 = index(segment.start + bodyStart);
-    const hi0 = index(segment.end);
-    const from = cum[lo0];
-    const span = cum[hi0] - from;
-    if (span > 0) {
-      source = 'speech-map';
-      at = (fraction) => {
-        const target = from + fraction * span;
-        let lo = lo0;
-        let hi = hi0;
-        while (lo < hi) {
-          const mid = (lo + hi) >> 1;
-          if (cum[mid] < target) lo = mid + 1;
-          else hi = mid;
-        }
-        return Math.max(0, Math.min(duration, lo * step - segment.start));
-      };
-    } else {
-      at = (fraction) => bodyStart + fraction * (duration - bodyStart);
-    }
-  } else {
-    at = (fraction) => bodyStart + fraction * (duration - bodyStart);
-  }
+  const at = (fraction: number) => bodyStart + fraction * (duration - bodyStart);
 
   let acc = 0;
   raw.forEach((line, i) => {
@@ -151,7 +119,7 @@ export function buildTimeline(segment: Segment, speechMap?: SpeechMap): Timeline
     });
   });
 
-  return finish(cues, duration, source);
+  return finish(cues, duration, 'weighted');
 }
 
 function finish(cues: Cue[], duration: number, source: Timeline['source']): Timeline {

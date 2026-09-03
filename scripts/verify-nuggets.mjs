@@ -25,7 +25,7 @@ const SEGS = {
     { n: 1, file: 'u1-n1.mp3', start: 36, end: 188.33, title: 'מה קופיילוט באמת עושה' },
     { n: 2, file: 'u1-n2.mp3', start: 0, end: 148.98, title: 'במה AI טוב, ובמה פחות' },
     { n: 3, file: 'u1-n3.mp3', start: 0, end: 146.23, title: 'התשובה הראשונה היא טיוטה, לא אמת' },
-    { n: 4, file: 'u1-n4.mp3', start: 0, end: 135.23, title: 'קונטקסט, מקורות ו-grounding' },
+    { n: 4, file: 'u1-n4.mp3', start: 0, end: 135.78, title: 'קונטקסט, מקורות ו-grounding' },
     { n: 5, file: 'u1-n5.mp3', start: 0, end: 153.08, title: 'האחריות נשארת אצל האדם' },
   ],
   u2: [
@@ -79,7 +79,7 @@ for (const [unit, list] of Object.entries(SEGS)) {
     shownDur === expectLabel ? ok(`duration ${shownDur}`) : bad(`${unit} n${seg.n}: duration shows ${shownDur}, expected ${expectLabel}`);
 
     const silent = await page.$('.frame__silent');
-    const UNDELIVERED = new Set(['u1-n4.mp3']);
+    const UNDELIVERED = new Set();
     const shouldBeSilent = UNDELIVERED.has(seg.file);
     if (shouldBeSilent && !silent) bad(`${unit} n${seg.n}: no silent badge though ${seg.file} is missing`);
     if (!shouldBeSilent && silent) bad(`${unit} n${seg.n}: silent badge shown though ${seg.file} exists`);

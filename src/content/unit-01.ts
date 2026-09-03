@@ -3,8 +3,10 @@
 // silence detection on the source narration; cue timings follow the supplied transcript.
 // Segments s4 and s5 arrived without transcript timestamps, so their cues are
 // distributed by speech weight inside the segment (see buildTimeline).
-// Narration is one file per nugget: u1-n<N>.mp3, each starting at 0. Nuggets 3 and 4
-// have not been delivered yet and run without narration until their files land.
+// Narration is one file per nugget: u1-n<N>.mp3, each starting at 0.
+// `end` is the delivered file's measured length (npm run scan:audio prints it), and
+// `body` — where the read title finishes — was measured from the RMS envelope of the
+// delivered cut rather than inherited from the master, which ran 0.55s shorter at the head.
 
 import type { UnitContent } from './types';
 
@@ -533,8 +535,8 @@ export const unit01: UnitContent = {
       "kicker": "עיגון",
       "src": "assets/audio/u1-n4.mp3",
       "start": 0,
-      "end": 135.23,
-      "body": 4.04,
+      "end": 135.78,
+      "body": 4.7,
       "think": "קחו בקשה שקיבלה תשובה כללית מדי. מה בעצם נתתם לקופיילוט לעבוד איתו?",
       "ex": {
         "kind": "builder",
