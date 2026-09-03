@@ -49,6 +49,26 @@ const pageErrors = [];
 page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(BASE, { waitUntil: 'networkidle' });
+
+/**
+ * Can this browser decode the renders at all?
+ *
+ * Playwright ships the open-source Chromium build, which carries no H.264 or AAC
+ * decoder — every <video> fails with MEDIA_ERR_SRC_NOT_SUPPORTED regardless of whether
+ * the file, the server and the player are correct. Reporting twenty red lines for that
+ * would drown the findings that mean something, so the playback assertions are skipped
+ * with a reason and everything checkable without a decoder still runs.
+ */
+const canDecode = await page.evaluate(
+  () => document.createElement('video').canPlayType('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') !== '',
+);
+const skips = [];
+const skip = (m) => { skips.push(m); console.log('   skip ' + m); };
+if (!canDecode) {
+  console.log('\nNOTE: this browser has no H.264/AAC decoder, so video playback cannot be');
+  console.log('      verified here. Run against a browser with proprietary codecs (Chrome,');
+  console.log('      Edge) to check playback itself.');
+}
 await page.fill('#si-name', 'מאיה כהן');
 await page.fill('#si-email', 'maya@nggconsult.com');
 await page.fill('#si-org', 'Learning');
@@ -128,7 +148,17 @@ for (const [unit, list] of Object.entries(SEGS)) {
       ? ok(`clock ${t} — advanced from the 40% mark`)
       : bad(`${unit} n${seg.n}: clock ${t}, expected ~${expectFrom.toFixed(0)}s`);
 
-    if (onVideo) {
+    if (onVideo && !canDecode) {
+      const v = await probeVideo();
+      if (!v) bad(`${unit} n${seg.n}: no video element`);
+      else {
+        // Still worth asserting: the element exists and was pointed at the right file.
+        v.src.includes(`u0${unit.slice(1)}-n0${seg.n}.mp4`)
+          ? ok(`pointed at u0${unit.slice(1)}-n0${seg.n}.mp4`)
+          : bad(`${unit} n${seg.n}: video src is ${v.src}`);
+      }
+      skip(`${unit} n${seg.n}: playback, buffering and clock sync — no decoder in this browser`);
+    } else if (onVideo) {
       const v = await probeVideo();
       if (!v) bad(`${unit} n${seg.n}: no video element`);
       else {
@@ -166,10 +196,14 @@ for (const [unit, list] of Object.entries(SEGS)) {
       }
     }
 
-    const cap = (await page.textContent('.frame__caption').catch(() => '')) || '';
-    const head = (await page.textContent('.stage__head').catch(() => '')) || (await page.textContent('.sc-type__head').catch(() => '')) || '';
-    console.log(`   scene: ${head.slice(0, 40)} | caption: ${cap.slice(0, 56)}`);
-    cap.trim() ? ok('caption on screen') : bad(`${unit} n${seg.n}: no caption during playback`);
+    // A render carries its captions in the frame, so there is no DOM caption to find
+    // and no CSS scene behind it. Both absences are asserted above.
+    if (!onVideo) {
+      const cap = (await page.textContent('.frame__caption').catch(() => '')) || '';
+      const head = (await page.textContent('.stage__head').catch(() => '')) || (await page.textContent('.sc-type__head').catch(() => '')) || '';
+      console.log(`   scene: ${head.slice(0, 40)} | caption: ${cap.slice(0, 56)}`);
+      cap.trim() ? ok('caption on screen') : bad(`${unit} n${seg.n}: no caption during playback`);
+    }
     await page.click('.transport__pp');
   }
 }
@@ -198,4 +232,12 @@ console.log('\n── page errors ──');
 pageErrors.length === 0 ? ok('none') : pageErrors.forEach((e) => bad('pageerror: ' + e));
 
 await browser.close();
-console.log('\n' + (fails.length ? `FAILURES (${fails.length}):\n - ${fails.join('\n - ')}` : 'ALL 10 NUGGETS VERIFIED'));
+if (skips.length) console.log(`\nSKIPPED (${skips.length}):\n - ${skips.join('\n - ')}`);
+console.log(
+  '\n' +
+    (fails.length
+      ? `FAILURES (${fails.length}):\n - ${fails.join('\n - ')}`
+      : skips.length
+        ? `NO FAILURES — but ${skips.length} check(s) were skipped, so this is not a full pass`
+        : 'ALL 10 NUGGETS VERIFIED'),
+);
