@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Scene, UnitContent } from '../content/types';
 import { hasNarration } from '../content/narration-manifest';
 import { videoTrack } from '../content/video-manifest';
-import { assetUrl } from '../app/paths';
+import { assetUrl, videoUrl } from '../app/paths';
 import { buildTimeline, formatTime, type Timeline } from './timeline';
 import { useTimelineClock } from './useTimelineClock';
 import { Stage } from './Stage';
@@ -79,7 +79,7 @@ export function UnitPlayer({
     () =>
       video
         ? {
-            src: assetUrl(video.file),
+            src: videoUrl(video.file),
             // The render is already trimmed to the segment, so its clock starts at
             // zero and the segment's own length is the whole of it.
             start: 0,
@@ -186,6 +186,12 @@ export function UnitPlayer({
             <p className="frame__silent">
               ללא קריינות — הכתוביות והאנימציה מסונכרנות ביניהן
             </p>
+          )}
+
+          {/* A render is ~23MB, so a slow network shows here rather than looking like
+              a frozen player. */}
+          {clock.playing && (clock.stalled || !clock.ready) && (
+            <p className="frame__buffering">טוען…</p>
           )}
 
           {captionText && !video && (
