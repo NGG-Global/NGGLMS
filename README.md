@@ -111,7 +111,10 @@ KV_REST_API_TOKEN=...
 ### GitHub Pages
 
 הוורקפלואו `.github/workflows/pages.yml` בונה עם `DEPLOY_TARGET=pages` ו-`PAGES_BASE=/<repo>/`
-ומפרסם. יש להפעיל Pages בהגדרות הריפו עם מקור **GitHub Actions**.
+ומפרסם. הוא **מופעל ידנית בלבד** (workflow_dispatch), ובכוונה: Pages מגיש לאינטרנט הפתוח בלי
+אפשרות להגביל גישה, ולכן פרסום תוכן ההדרכה שם צריך להיות החלטה מפורשת ולא תוצאת לוואי של מיזוג.
+
+להפעלה: הגדרות הריפו → Pages → מקור **GitHub Actions**, ואז הרצת הוורקפלואו מלשונית Actions.
 
 ---
 

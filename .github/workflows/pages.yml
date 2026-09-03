@@ -1,13 +1,18 @@
 name: Deploy to GitHub Pages
 
-# Static fallback deployment. Note that GitHub Pages serves the site publicly and has
-# no server side, so the /api persistence layer is inactive there and progress is stored
-# per browser. Vercel is the recommended target — see README, "פריסה".
+# Static fallback deployment, run on request only.
+#
+# Deliberately NOT triggered by pushes to main. GitHub Pages serves a site to the open
+# internet with no way to restrict access, so publishing NGG's training content there is
+# a decision someone has to take on purpose, not a side effect of merging. It also has no
+# server side, so the /api persistence layer is inactive and progress is stored per
+# browser. Vercel is the recommended target — see README, "פריסה".
+#
+# To use it: enable Pages in the repository settings with GitHub Actions as the source,
+# then run this workflow from the Actions tab.
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 permissions:
   contents: read
