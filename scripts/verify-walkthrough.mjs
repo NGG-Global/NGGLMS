@@ -195,12 +195,20 @@ console.log('   ' + mine);
 /[1-9]/.test((await learner.textContent('.resume__m span:last-child')).trim()) ? ok('progress persisted across reload') : bad('progress lost');
 await learner.screenshot({ path: `${SHOTS}/l7-progress.png`, fullPage: true });
 
-console.log('\n7. יחידה 01 — הנאגט שעדיין ללא קריינות (נאגט 4)');
-await learner.goto(`${BASE}#/learn/${pid}/u1/play?n=4`, { waitUntil: 'networkidle' });
+console.log('\n7. יחידה 01 — כל הנאגטים מוקראים');
+const pid2 = await learner.evaluate(() => location.hash.split('/')[2]);
+await learner.goto(`${BASE}#/learn/${pid2}/u1/play?n=4`, { waitUntil: 'networkidle' });
 await learner.waitForSelector('.frame');
-const badge = await learner.textContent('.frame__silent').catch(() => null);
-badge ? ok('silent nugget is labelled: ' + badge.trim()) : bad('no label on unit 01 nugget 4, which has no narration file yet');
-await learner.screenshot({ path: `${SHOTS}/l8-silent.png`, fullPage: true });
+(await learner.$('.frame__silent')) ? bad('unit 01 nugget 4 still reports no narration') : ok('no "missing narration" badge anywhere');
+await learner.click('.frame__poster');
+await learner.waitForTimeout(3000);
+const n4 = await learner.evaluate(() => {
+  const a = (window.__audio || []).filter((x) => x.src.includes('u1-n4')).pop();
+  return { rs: a?.readyState, ct: +a?.currentTime.toFixed(1), paused: a?.paused };
+});
+console.log('   audio ' + JSON.stringify(n4) + ' · caption: ' + (await learner.textContent('.frame__caption').catch(() => '(none)')));
+n4.rs >= 3 && n4.paused === false ? ok('nugget 4 narration playing') : bad('nugget 4 not playing: ' + JSON.stringify(n4));
+await learner.screenshot({ path: `${SHOTS}/l8-u1-n4.png`, fullPage: true });
 
 console.log('\n═══ שגיאות ═══');
 errs.length ? errs.forEach((e) => bad(e)) : ok('none on either side');

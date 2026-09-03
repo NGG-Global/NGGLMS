@@ -14,6 +14,7 @@ export const narrationTracks: NarrationTrack[] = [
   { file: "assets/audio/u1-n1.mp3", bytes: 4531130, duration: 188.4 },
   { file: "assets/audio/u1-n2.mp3", bytes: 3575431, duration: 148.98 },
   { file: "assets/audio/u1-n3.mp3", bytes: 3509604, duration: 146.23 },
+  { file: "assets/audio/u1-n4.mp3", bytes: 3258828, duration: 135.78 },
   { file: "assets/audio/u1-n5.mp3", bytes: 3779432, duration: 157.07 },
   { file: "assets/audio/u2-a.mp3", bytes: 17672000, duration: 735.9 },
   { file: "assets/audio/u2-intro.mp3", bytes: 2259358, duration: 93.7 },
