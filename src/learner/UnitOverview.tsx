@@ -1,7 +1,7 @@
 import { Link, useParams } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { unitCompletion, unitLocked } from '../app/progress';
-import { builtUnits, libraryUnit, unitHealth, unitMinutes, unitNuggets } from '../content';
+import { builtUnits, hasNarration, libraryUnit, unitHealth, unitMinutes, unitNuggets } from '../content';
 import { formatTime } from '../player/timeline';
 import { Shell } from '../app/Shell';
 import './learner.css';
@@ -9,7 +9,7 @@ import './learner.css';
 /** Unit landing page: what it is for, what is inside, and one button into the player. */
 export function UnitOverview() {
   const { programId, unitId } = useParams();
-  const { identity, workspace, progressFor } = useStore();
+  const { identity, workspace, progressFor, introHeardFor } = useStore();
   if (!identity) return null;
 
   const program = workspace.programs.find((p) => p.id === programId);
@@ -26,11 +26,22 @@ export function UnitOverview() {
   }
 
   const progress = progressFor(identity.id);
-  const content = unit.contentId ? builtUnits[unit.contentId] : undefined;
+  const contentId = unit.contentId;
+  const content = contentId ? builtUnits[contentId] : undefined;
   const completion = unitCompletion(progress, unit.contentId);
   const locked = unitLocked(program, unit, progress);
   const health = unit.contentId ? unitHealth(unit.contentId) : null;
   const nuggets = unitNuggets(unit);
+
+  // The opening is a step in the flow now: starting a unit routes through it until the
+  // learner has heard it, and only then straight to a nugget.
+  const intro = content?.unit.intro;
+  const introLength = intro ? intro.end - intro.start : 0;
+  const introHeard = Boolean(content?.unit && contentId && introHeardFor(identity.id)[contentId]);
+  const viaOpening = Boolean(content) && !introHeard && !completion.complete;
+  const startTo = viaOpening
+    ? `/learn/${program.id}/${unit.id}/opening`
+    : `/learn/${program.id}/${unit.id}/play`;
 
   return (
     <Shell crumb={`${program.course || program.title} · ${unit.title}`}>
@@ -55,9 +66,17 @@ export function UnitOverview() {
                 <span className="spacer" />
                 <span style={{ fontSize: 12.5, color: 'var(--ink-4)' }}>
                   {nuggets.length} נאגטים · {unitMinutes(unit)} דקות
+                  {intro && hasNarration(intro.src, intro.end) ? ' · כולל פתיח' : ''}
                 </span>
               </div>
               <ul className="blocklist">
+                {content && intro && (
+                  <li className="openrow" style={{ display: 'grid' }}>
+                    <span className="openrow__play">▶</span>
+                    <b>פתיח היחידה</b>
+                    <span className="t">{formatTime(introLength)}</span>
+                  </li>
+                )}
                 {nuggets.map((nugget, i) => {
                   const segment = content?.segments[i];
                   const record = segment ? progress[unit.contentId!]?.[segment.id] : undefined;
@@ -80,7 +99,7 @@ export function UnitOverview() {
             </section>
           </div>
 
-          <aside className="stack" style={{ gap: 14, position: 'sticky', top: 'calc(var(--header-h) + 22px)' }}>
+          <aside className="stack" style={{ gap: 14, position: 'sticky', top: 'calc(var(--topbar-h) + 22px)' }}>
             <div className="card card--pad">
               <div className="eyebrow">מטרת הלמידה</div>
               <p style={{ marginTop: 6, fontSize: 13.5, lineHeight: 1.6, color: 'var(--ink-2)' }}>
@@ -117,12 +136,14 @@ export function UnitOverview() {
                   יש להשלים את היחידה הקודמת במסלול לפני שנפתחת היחידה הזאת.
                 </p>
               ) : (
-                <Link className="btn btn--primary" to={`/learn/${program.id}/${unit.id}/play`}>
-                  {completion.practised === 0
-                    ? 'להתחיל את היחידה ←'
-                    : completion.complete
-                      ? 'לצפות שוב ←'
-                      : 'להמשיך ←'}
+                <Link className="btn btn--primary" to={startTo}>
+                  {completion.practised === 0 && viaOpening
+                    ? `להתחיל — פתיח היחידה (${formatTime(introLength)})`
+                    : completion.practised === 0
+                      ? 'להתחיל את היחידה ←'
+                      : completion.complete
+                        ? 'לצפות שוב ←'
+                        : 'להמשיך ←'}
                 </Link>
               )}
               {completion.score && (

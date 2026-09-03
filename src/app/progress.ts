@@ -109,3 +109,183 @@ export function unitLocked(program: Program, unit: LibraryUnit, progress: Learne
   if (position <= 0) return false;
   return !unitCompletion(progress, units[position - 1].contentId).complete;
 }
+
+/* ============================================================================
+   Derived analytics.
+
+   The redesign's dashboard and analytics screens read these rather than carrying
+   figures of their own. Everything here comes out of the workspace: cohort sizes and
+   completion from progress records, idle days from `Learner.lastActiveAt`, exercise
+   accuracy from the per-segment scores.
+
+   One thing is deliberately not here: activity over past weeks. The workspace stores
+   current state, not an event log, so a 12-week active-learners series cannot be derived
+   from it — see src/content/demo-analytics.ts.
+   ========================================================================== */
+
+import type { Learner, Milestone, Workspace } from '../state/types';
+
+/** Whole days since the learner last touched a nugget; Infinity if they never have. */
+export function idleDays(learner: Learner, now = Date.now()): number {
+  if (!learner.lastActiveAt) return Number.POSITIVE_INFINITY;
+  return Math.floor((now - new Date(learner.lastActiveAt).getTime()) / 86_400_000);
+}
+
+export function learnersOf(workspace: Workspace, programId: string): Learner[] {
+  return workspace.learners.filter((l) => l.programIds.includes(programId));
+}
+
+/** Learners who touched something inside the window. */
+export function activeLearners(workspace: Workspace, withinDays = 7, now = Date.now()): Learner[] {
+  return workspace.learners.filter((l) => idleDays(l, now) <= withinDays);
+}
+
+export type ProgramScope = 'mine' | 'team' | 'all';
+
+/** The שלי / של הצוות split, which is what `Program.owner` exists for. */
+export function programsByScope(programs: Program[], owner: string, scope: ProgramScope): Program[] {
+  if (scope === 'all') return programs;
+  return programs.filter((p) => (scope === 'mine' ? p.owner === owner : p.owner !== owner));
+}
+
+export interface ProgramStats {
+  program: Program;
+  learners: number;
+  /** Learners who have completed every playable unit. */
+  completed: number;
+  /** Mean nugget-level progress across the cohort. */
+  avgPct: number;
+  started: boolean;
+}
+
+export function programStats(workspace: Workspace, program: Program): ProgramStats {
+  const cohort = learnersOf(workspace, program.id);
+  const values = cohort.map((l) => programCompletion(program, workspace.progress[l.id] ?? {}));
+  const avgPct = values.length ? Math.round(values.reduce((a, b) => a + b.pct, 0) / values.length) : 0;
+  return {
+    program,
+    learners: cohort.length,
+    completed: values.filter((v) => v.complete).length,
+    avgPct,
+    started: values.some((v) => v.pct > 0),
+  };
+}
+
+/** Mean exercise accuracy for one produced unit, across everyone who has attempted it. */
+export function unitScore(workspace: Workspace, contentId: string): number | null {
+  let correct = 0;
+  let outOf = 0;
+  for (const perLearner of Object.values(workspace.progress)) {
+    for (const record of Object.values(perLearner[contentId] ?? {})) {
+      if (!record.outOf) continue;
+      correct += record.score ?? 0;
+      outOf += record.outOf;
+    }
+  }
+  return outOf ? Math.round((correct / outOf) * 100) : null;
+}
+
+/** Mean exercise accuracy across every produced unit. */
+export function overallScore(workspace: Workspace): number | null {
+  let correct = 0;
+  let outOf = 0;
+  for (const perLearner of Object.values(workspace.progress)) {
+    for (const perUnit of Object.values(perLearner)) {
+      for (const record of Object.values(perUnit)) {
+        if (!record.outOf) continue;
+        correct += record.score ?? 0;
+        outOf += record.outOf;
+      }
+    }
+  }
+  return outOf ? Math.round((correct / outOf) * 100) : null;
+}
+
+/** Where a learner stopped inside a programme, as the at-risk table phrases it. */
+export function stallPoint(program: Program, progress: LearnerProgress): string {
+  const units = programUnits(program).filter((u) => u.contentId && builtUnits[u.contentId]);
+  for (let i = 0; i < units.length; i++) {
+    const completion = unitCompletion(progress, units[i].contentId);
+    if (completion.complete) continue;
+    if (completion.practised === 0) return i === 0 ? 'לא התחיל' : `יחידה ${i + 1} · נאגט 1`;
+    if (completion.practised >= completion.total) return `יחידה ${i + 1} · תרגיל`;
+    return `יחידה ${i + 1} · נאגט ${completion.practised + 1}`;
+  }
+  return 'הושלם';
+}
+
+export interface AtRiskLearner {
+  learner: Learner;
+  program?: Program;
+  days: number;
+  stuck: string;
+  /** Exercise accuracy, or null when they have not attempted one. */
+  score: number | null;
+}
+
+/**
+ * Learners idle for `threshold` days or more, worst first.
+ *
+ * Never-active learners are excluded: they are a separate problem (never invited in, or
+ * never opened the link) and lumping them in would hide the people who started and
+ * stalled, who are the ones a reminder can still reach.
+ */
+export function atRiskLearners(workspace: Workspace, threshold = 10, now = Date.now()): AtRiskLearner[] {
+  const byId = new Map(workspace.programs.map((p) => [p.id, p]));
+  return workspace.learners
+    .filter((l) => {
+      const days = idleDays(l, now);
+      return Number.isFinite(days) && days >= threshold;
+    })
+    .map((learner) => {
+      const progress = workspace.progress[learner.id] ?? {};
+      const program = learner.programIds.map((id) => byId.get(id)).find((p): p is Program => Boolean(p));
+      let correct = 0;
+      let outOf = 0;
+      for (const perUnit of Object.values(progress)) {
+        for (const record of Object.values(perUnit)) {
+          if (!record.outOf) continue;
+          correct += record.score ?? 0;
+          outOf += record.outOf;
+        }
+      }
+      return {
+        learner,
+        program,
+        days: idleDays(learner, now),
+        stuck: program ? stallPoint(program, progress) : '—',
+        score: outOf ? Math.round((correct / outOf) * 100) : null,
+      };
+    })
+    .sort((a, b) => b.days - a.days);
+}
+
+/** Total nuggets completed across the workspace — the "יחידות שהושלמו" style figures. */
+export function totalNuggetsCompleted(workspace: Workspace): number {
+  let total = 0;
+  for (const perLearner of Object.values(workspace.progress)) {
+    for (const perUnit of Object.values(perLearner)) {
+      total += Object.values(perUnit).filter((r) => r.practised).length;
+    }
+  }
+  return total;
+}
+
+/** Learning time actually delivered, from produced nugget lengths times completions. */
+export function learningHours(workspace: Workspace): number {
+  let seconds = 0;
+  for (const perLearner of Object.values(workspace.progress)) {
+    for (const [contentId, perUnit] of Object.entries(perLearner)) {
+      const content = builtUnits[contentId];
+      if (!content) continue;
+      for (const segment of content.segments) {
+        if (perUnit[segment.id]?.practised) seconds += segment.end - segment.start;
+      }
+    }
+  }
+  return Math.round(seconds / 3600);
+}
+
+export function milestonesFor(workspace: Workspace): Milestone[] {
+  return workspace.milestones ?? [];
+}

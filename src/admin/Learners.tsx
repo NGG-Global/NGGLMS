@@ -50,7 +50,7 @@ export function Learners() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             aria-label="חיפוש לומדים"
-            style={{ padding: '7px 11px', border: '1px solid var(--line)', borderRadius: 'var(--r)', fontSize: 13 }}
+            style={{ padding: '7px 11px', border: '1px solid var(--hairline)', borderRadius: 'var(--r-well)', fontSize: 13 }}
           />
         </div>
 

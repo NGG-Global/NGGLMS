@@ -28,7 +28,9 @@ interface Res {
   json: (body: unknown) => void;
 }
 
-const MAX_BYTES = 512 * 1024;
+// The workspace legitimately carries a few hundred learner records with their progress,
+// which runs to a couple of hundred KB.
+const MAX_BYTES = 1536 * 1024;
 
 export default async function handler(req: Req, res: Res): Promise<void> {
   res.setHeader('Cache-Control', 'no-store');

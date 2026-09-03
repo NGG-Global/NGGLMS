@@ -1,0 +1,140 @@
+/* ============================================================================
+   Unit opening (פתיח) — the first step of a unit.
+   Figures from design/DESIGN-HANDOFF-v2.md → "New screen: unit opening".
+   ========================================================================== */
+
+.opening { max-width: 980px; margin: 0 auto; }
+
+.opening__top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+.opening__step { font-size: 12.5px; color: var(--ink-4); white-space: nowrap; }
+.opening__track { flex: none; width: 130px; height: 6px; border-radius: var(--r-pill); background: #f2f1f5; overflow: hidden; }
+.opening__track i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--accent); }
+
+.opening__grid { display: grid; grid-template-columns: minmax(0, 1fr) 262px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .opening__grid { grid-template-columns: minmax(0, 1fr); } }
+
+.opening__panel {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-hero);
+  background: linear-gradient(155deg, #15151f 0%, #1b0f1c 55%, #33112b 100%);
+  padding: 34px 34px 30px;
+  box-shadow: var(--shadow-hero);
+  color: #fff;
+}
+.opening__mark { position: absolute; top: -34px; inset-inline-start: -28px; width: 168px; opacity: 0.06; pointer-events: none; }
+.opening__inner { position: relative; }
+
+.opening__kicker { display: flex; align-items: center; gap: 11px; flex-wrap: wrap; }
+.opening__kicker b {
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: rgba(236, 42, 140, 0.22);
+  color: #ff8ec5;
+  font: 700 10.5px/1.5 var(--sans);
+  letter-spacing: 0.1em;
+}
+.opening__kicker span { font-size: 12.5px; color: rgba(255, 255, 255, 0.6); }
+
+.opening__title { margin-top: 16px; font-size: 32px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; color: #fff; }
+.opening__obj { margin-top: 12px; font-size: 16px; line-height: 1.6; color: rgba(255, 255, 255, 0.72); max-width: 560px; }
+
+.introplayer {
+  margin-top: 26px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--r-card);
+  padding: 14px 16px;
+}
+.introplayer__row { display: flex; align-items: center; gap: 14px; }
+.introplayer__btn {
+  flex: none;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--r-pill);
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+  line-height: 52px;
+  box-shadow: 0 0 0 8px rgba(236, 42, 140, 0.16);
+}
+.introplayer__wave {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3px;
+  height: 30px;
+  min-width: 0;
+}
+.introplayer__wave i {
+  display: block;
+  /* Thin bars: capped so a wide container spreads them rather than fattening each one
+     into a blob at the 99px radius. */
+  flex: 1 1 0;
+  max-width: 4px;
+  border-radius: var(--r-pill);
+  transform-origin: center;
+  background: rgba(255, 255, 255, 0.22);
+}
+.introplayer__wave[data-on='true'] i { background: rgba(255, 143, 197, 0.9); animation-name: pulse; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.introplayer__wave[data-paused='true'] i { animation-play-state: paused; }
+.introplayer__time { flex: none; font-size: 12.5px; color: rgba(255, 255, 255, 0.6); direction: ltr; white-space: nowrap; }
+
+.introplayer__track { margin-top: 12px; height: 4px; border-radius: var(--r-pill); background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.introplayer__track i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--accent); }
+
+.opening__cta { margin-top: 24px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.opening__cta .btn { white-space: nowrap; }
+.opening__cta .btn--outline {
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14.5px;
+  background: none;
+}
+.opening__cta .btn--outline:hover { border-color: rgba(255, 255, 255, 0.5); }
+.opening__cta .btn--go {
+  padding: 13px 22px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  box-shadow: 0 12px 26px -12px rgba(236, 42, 140, 0.8);
+}
+.opening__hint { font-size: 13px; color: rgba(255, 255, 255, 0.55); }
+
+/* What comes next in the unit. */
+.upnext { padding: 16px 17px; }
+.upnext h3 { font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+.upnext__open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 11px;
+  padding: 10px 12px;
+  border-radius: var(--r-well-sm);
+  background: var(--accent-tint);
+}
+.upnext__open i { display: grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: var(--r-pill); background: var(--accent); color: #fff; font-size: 9px; font-style: normal; }
+.upnext__open b { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; color: var(--accent-ink); }
+.upnext__open span { flex: none; font-size: 11.5px; color: #c0508f; }
+
+.upnext__row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; }
+.upnext__row i {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  background: #f2f1f5;
+  color: var(--ink-4);
+  font: 700 10.5px/1 var(--sans);
+  font-style: normal;
+}
+.upnext__row b { flex: 1; min-width: 0; font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.upnext__row span { flex: none; font-size: 11.5px; color: var(--ink-4); white-space: nowrap; }
+.upnext__ex { margin-top: 7px; padding-top: 11px; border-top: 1px solid var(--hairline-2); }
