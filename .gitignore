@@ -8,3 +8,4 @@ dist/
 *.tsbuildinfo
 verify-shots/
 *.log
+out/
