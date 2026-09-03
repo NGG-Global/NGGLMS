@@ -1,4 +1,7 @@
-import { storeMode } from './_kv';
+// The .js extension is required, not cosmetic: package.json sets "type": "module",
+// so these run as ESM on Vercel and Node's resolver rejects an extensionless
+// relative specifier at load time — which surfaces as FUNCTION_INVOCATION_FAILED.
+import { storeMode } from './_kv.js';
 
 interface Res {
   status: (code: number) => Res;
