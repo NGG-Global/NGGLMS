@@ -98,8 +98,13 @@ export function buildTimeline(segment: Segment, speechMap?: SpeechMap): Timeline
   const raw = segment.cues ?? [];
   const weights = raw.map(cueWeight);
   const total = weights.reduce((a, b) => a + b, 0) || 1;
-  // Segments that open with a read title start their captions at `body`.
-  const bodyStart = (segment.body != null ? segment.body : segment.start) - segment.start;
+  // Segments that open with a read title start their captions at `body`. `body` is on
+  // the same clock as `start`, so re-pointing a segment at a different narration file
+  // has to move both. Clamped because a `body` outside the segment would push every cue
+  // past the end and the segment would play with no captions at all — a silent failure
+  // that is much worse than starting the captions a little early.
+  const rawBody = (segment.body != null ? segment.body : segment.start) - segment.start;
+  const bodyStart = Math.min(Math.max(0, rawBody), Math.max(0, duration - 1));
 
   let at: (fraction: number) => number;
   let source: Timeline['source'] = 'weighted';
