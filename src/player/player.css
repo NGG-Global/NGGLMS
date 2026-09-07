@@ -20,6 +20,22 @@
   box-shadow: var(--shadow-card);
 }
 
+/* Shown while playback is running but the media has nothing to play. Centred over
+   the frame, because a stall is the whole frame's state, not a corner of it. */
+.frame__buffering {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: center;
+  font: 700 13px/1 var(--sans);
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  z-index: 3;
+}
+
 /* The rendered visualizer. Fills the frame exactly, so the 16/9 render lands on the
    16/9 frame with nothing letterboxed and no scaling artefacts. */
 .frame__video {

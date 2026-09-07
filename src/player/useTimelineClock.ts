@@ -26,8 +26,16 @@ export interface Clock {
   cueIndex: number;
   duration: number;
   playing: boolean;
-  /** Audio metadata has loaded (always true in silent mode). */
+  /** Media metadata has loaded (always true in silent mode). */
   ready: boolean;
+  /**
+   * Playback is running but the media has nothing to play.
+   *
+   * A 3MB mp3 buffers faster than anyone notices. A 23MB render does not, and without
+   * this the frame freezes while the transport still shows a pause button — which
+   * reads as a broken player rather than a slow network.
+   */
+  stalled: boolean;
   /** No narration available: captions and scenes run on a virtual clock. */
   silent: boolean;
   /** True once the learner has started this segment. */
@@ -68,6 +76,7 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [rate, setRateState] = useState(1);
+  const [stalled, setStalled] = useState(false);
 
   const audioRef = useRef<HTMLMediaElement | null>(null);
   const loadedSrc = useRef<string | null>(null);
@@ -94,10 +103,22 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
         pendingSeek.current = null;
       }
     };
+    const onWaiting = () => setStalled(true);
+    const onRunning = () => setStalled(false);
     media.addEventListener('loadedmetadata', onMeta);
+    media.addEventListener('waiting', onWaiting);
+    media.addEventListener('stalled', onWaiting);
+    media.addEventListener('playing', onRunning);
+    media.addEventListener('canplay', onRunning);
+    media.addEventListener('seeked', onRunning);
     if (media.readyState >= 1) setReady(true);
     return () => {
       media.removeEventListener('loadedmetadata', onMeta);
+      media.removeEventListener('waiting', onWaiting);
+      media.removeEventListener('stalled', onWaiting);
+      media.removeEventListener('playing', onRunning);
+      media.removeEventListener('canplay', onRunning);
+      media.removeEventListener('seeked', onRunning);
       media.pause();
       if (owned) media.src = '';
       audioRef.current = null;
@@ -124,6 +145,7 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
     setFinished(false);
     committed.current = { t: 0, at: 0, cue: -1 };
     virtual.current = { t: 0, since: 0 };
+    setStalled(false);
     const audio = audioRef.current;
     if (audio) audio.pause();
     if (src) {
@@ -277,6 +299,7 @@ export function useTimelineClock(target: ClockTarget, onFinish?: () => void): Cl
     duration,
     playing,
     ready,
+    stalled,
     silent,
     started,
     finished,
