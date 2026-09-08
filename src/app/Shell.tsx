@@ -64,7 +64,7 @@ export function Shell({ crumb, children }: Props) {
         {/* Reference material about the tool itself, so it hangs off the shell rather
             than living inside a programme. Both roles get it. */}
         <Link className="topbar__link" to="/explainers" aria-current={onExplainers}>
-          הדרכות קלוד
+          מדריך קלוד
         </Link>
 
         {isAdmin ? (

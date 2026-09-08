@@ -80,7 +80,7 @@
   letter-spacing: -0.015em;
   color: var(--ink);
 }
-/* Two lines in the list; the whole summary is on the episode's own page. */
+/* The film's own subtitle: one line, clamped only if a future one runs long. */
 .eprow__s {
   display: -webkit-box;
   -webkit-line-clamp: 2;

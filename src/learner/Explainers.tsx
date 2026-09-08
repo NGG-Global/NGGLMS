@@ -28,7 +28,7 @@ export function Explainers() {
       <main className="page page--narrow" style={{ margin: '0 auto' }}>
         <div className="page__head">
           <div>
-            <div className="page__kicker">הדרכות קלוד</div>
+            <div className="page__kicker">סדרת וידאו</div>
             <h1>{explainerSeries.title}</h1>
             <p>{explainerSeries.lead}</p>
           </div>
@@ -52,7 +52,7 @@ export function Explainers() {
                 <span className="eprow__body">
                   <span className="eprow__k">{ep.kicker}</span>
                   <span className="eprow__t">{ep.title}</span>
-                  <span className="eprow__s">{ep.summary}</span>
+                  <span className="eprow__s">{ep.lead}</span>
                 </span>
                 <span className="eprow__meta">
                   <b>{episodeMinutes(ep)} דק׳</b>
@@ -95,6 +95,7 @@ export function ExplainerEpisodePage() {
           <div>
             <div className="page__kicker">{episode.kicker}</div>
             <h1>{episode.title}</h1>
+            <p>{episode.lead}</p>
           </div>
         </div>
 

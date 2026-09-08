@@ -20,6 +20,8 @@ export interface ExplainerEpisode {
   title: string;
   /** Short eyebrow label. */
   kicker: string;
+  /** The film's own subtitle, from its title card. */
+  lead: string;
   summary: string;
   /** The one line to leave with. */
   takeaway: string;
@@ -47,14 +49,18 @@ export interface ExplainerSeries {
 
 export const explainerSeries: ExplainerSeries = {
   id: 'claude',
-  title: 'קלוד — סדרת הדרכה',
-  lead: 'סדרת פרקים קצרים על עבודה עם קלוד: מה להעביר לו, איך לזהות משימה שמתאימה, ומה נשאר באחריות שלכם.',
+  // The films name themselves on their own title cards — series, episode number,
+  // title and subtitle — so all of that is transcribed rather than written around
+  // them. Anything here that disagrees with a title card is a mistake.
+  title: 'מדריך קלוד',
+  lead: 'סדרת פרקים קצרים על עבודה עם קלוד: מה להעביר לו, איפה הוא יושב, ואיך להגדיר אותו פעם אחת כך שיתאים לעבודה שלכם.',
   episodes: [
     {
       id: 'ep01',
       n: 1,
-      title: 'עוזר מקצועי, לא עוד כלי',
-      kicker: 'פרק 1',
+      title: 'קלוד עובד אחרת',
+      kicker: 'פרק ראשון',
+      lead: 'אתם מתארים במילים שלכם מה אתם צריכים — והוא מבצע',
       summary:
         'רוב הכלים שאנחנו עובדים איתם דורשים שנדע בדיוק מה לעשות ואיפה ללחוץ. קלוד עובד אחרת — מעבירים לו משימה שלמה והוא מבצע אותה: מסמך של 40 עמודים שהוא קורא ועונה עליו לעומק, טיוטת הצעה ללקוח, מסמך תהליך, שלד של מצגת. הפרק מציג את כלל האצבע לזיהוי משימה מתאימה, את החיבור של החשבון הארגוני למיקרוסופט 365, ואת הגבולות שנשארים אצל האדם.',
       takeaway:
@@ -63,6 +69,21 @@ export const explainerSeries: ExplainerSeries = {
       poster: 'assets/poster/claude-ep01.jpg',
       duration: 219.78,
       bytes: 24429891,
+    },
+    {
+      id: 'ep02',
+      n: 2,
+      title: 'מתחברים ומתחילים',
+      kicker: 'פרק שני',
+      lead: 'התקנה, חשבון, והמסך שממנו הכל מתחיל',
+      summary:
+        'חשבון אחד עובד בנייד, במחשב ובדפדפן, והשיחות עוברות איתכם בין המכשירים. הפרק עובר על המסך הראשי ועל שדה הטקסט היחיד שממנו הכל מתחיל, על בורר המודלים — ולמה המודל הכבד ביותר הוא לא בהכרח הנכון, כשהוא מחזיר אותה תוצאה תמורת יותר זמן ויותר מכסה — ועל ההגדרות האישיות: מגדירים פעם אחת מה התפקיד שלכם, איזה אורך תשובה אתם רוצים ואיזה סוג דוגמאות, במקום להסביר את זה מחדש בכל צ׳אט.',
+      takeaway:
+        'פתחתם את הבורר ואין לכם מושג? Sonnet הוא בדרך כלל הימור מצוין. ואת ההעדפות שלכם כדאי להגדיר פעם אחת, לא בכל שיחה.',
+      file: 'assets/video/claude-ep02.mp4',
+      poster: 'assets/poster/claude-ep02.jpg',
+      duration: 414.44,
+      bytes: 29290366,
     },
   ],
 };
