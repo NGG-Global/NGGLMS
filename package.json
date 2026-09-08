@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "NGG Learning Platform \u2014 learner and admin sides for NGG's AI-literacy curriculum.",
+  "description": "NGG Learning Platform — learner and admin sides for NGG's AI-literacy curriculum.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -11,7 +11,7 @@
     "preview": "vite preview --port 4173",
     "build:pages": "cross-env DEPLOY_TARGET=pages tsc -b && cross-env DEPLOY_TARGET=pages vite build",
     "scan:audio": "node scripts/scan-audio.mjs",
-    "prebuild": "node scripts/scan-audio.mjs",
+    "prebuild": "node scripts/scan-audio.mjs && node scripts/check-staging.mjs",
     "video": "remotion studio",
     "video:render": "remotion render u01-n01 out/u01-n01.mp4 --crf=18",
     "video:still": "remotion still u01-n01 out/still.png",
@@ -22,7 +22,8 @@
     "video:render:n05": "remotion render u01-n05 out/u01-n05.mp4 --crf=18",
     "video:render:u2n01": "remotion render u02-n01 out/u02-n01.mp4 --crf=18",
     "scan:video": "node scripts/scan-video.mjs",
-    "upload:video": "node scripts/upload-video.mjs"
+    "upload:video": "node scripts/upload-video.mjs",
+    "check:staging": "node scripts/check-staging.mjs"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -37,6 +38,7 @@
     "@types/node": "^22.10.2",
     "@types/react": "^18.3.17",
     "@types/react-dom": "^18.3.5",
+    "@vercel/blob": "^2.8.0",
     "@vitejs/plugin-react": "^4.3.4",
     "cross-env": "^7.0.3",
     "remotion": "^4.0.520",
