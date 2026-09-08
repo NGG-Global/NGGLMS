@@ -18,7 +18,15 @@
  * committed artifact: run this while the renders are still in public/assets/video,
  * commit the result, then upload and remove the files.
  *
- * As a second guard, it refuses to overwrite a populated manifest with an empty one.
+ * Which is why the scan MERGES into the committed manifest rather than replacing it.
+ * The blob store holds the renders; this directory is a staging area that holds
+ * whichever nugget was produced most recently. A replacing scan would list that one
+ * file and drop every nugget already shipped — the same accident the prebuild wiring
+ * would have caused, one file at a time instead of all at once. A scanned track
+ * replaces the entry for its own unit and nugget and leaves the rest alone.
+ *
+ * Pass `--prune` to write only what is on disk, for the case where a nugget is being
+ * withdrawn on purpose. That is the only way an entry leaves the manifest.
  *
  * Run via `npm run scan:video`.
  */
@@ -78,16 +86,56 @@ if (existsSync(DIR)) {
   }
 }
 
-// Never let an empty scan clobber a manifest that lists real renders: that is the
-// exact shape of the accident this script must not enable.
-if (tracks.length === 0 && existsSync(OUT)) {
+const prune = process.argv.includes('--prune');
+
+/**
+ * The tracks the committed manifest already lists.
+ *
+ * The generated file holds the array as plain JSON, so it is read back rather than
+ * re-derived. A file that does not parse is a hand-edit or a partial write, and
+ * merging into a guess would be worse than stopping.
+ */
+function committedTracks() {
+  if (!existsSync(OUT)) return [];
   const current = readFileSync(OUT, 'utf8');
-  const populated = /"file":\s*"assets\/video\//.test(current);
-  if (populated) {
+  // Anchored on the assignment itself: searching for the next '[' would find the one
+  // in `VideoTrack[]`, two characters earlier.
+  const MARK = 'videoTracks: VideoTrack[] = ';
+  const at = current.indexOf(MARK);
+  if (at < 0) return [];
+  const open = at + MARK.length;
+  const close = current.indexOf('\n];', open);
+  if (current[open] !== '[' || close < 0) {
+    console.error(`Could not read the track list out of ${OUT}. Fix or delete it first.`);
+    process.exit(1);
+  }
+  try {
+    return JSON.parse(current.slice(open, close + 2));
+  } catch (err) {
+    console.error(`${OUT} does not parse: ${err.message}\nFix or delete it first.`);
+    process.exit(1);
+  }
+}
+
+const key = (t) => `${t.unit}/${t.n}`;
+let merged = tracks;
+if (!prune) {
+  const scanned = new Set(tracks.map(key));
+  const kept = committedTracks().filter((t) => !scanned.has(key(t)));
+  for (const t of kept) console.log(`kept ${t.file} (in the blob store, not on disk)`);
+  merged = [...kept, ...tracks];
+}
+merged.sort((a, b) => a.unit.localeCompare(b.unit) || a.n - b.n);
+
+// A scan that finds nothing and is asked to prune anyway would drop every nugget back
+// to the CSS stage. That is the accident this script must not enable.
+if (merged.length === 0 && existsSync(OUT)) {
+  const current = readFileSync(OUT, 'utf8');
+  if (/"file":\s*"assets\/video\//.test(current)) {
     console.error(
       `No files in ${DIR}, but ${OUT} lists renders already.\n` +
         'Refusing to write an empty manifest — that would drop every nugget back to the\n' +
-        'CSS stage. The renders now live in the blob store; the manifest is committed.\n' +
+        'CSS stage. The renders live in the blob store; the manifest is committed.\n' +
         'To rebuild it, restore the files to that directory first.',
     );
     process.exit(1);
@@ -109,7 +157,7 @@ export interface VideoTrack {
   duration: number;
 }
 
-export const videoTracks: VideoTrack[] = ${JSON.stringify(tracks, null, 2)};
+export const videoTracks: VideoTrack[] = ${JSON.stringify(merged, null, 2)};
 
 const byKey = new Map(videoTracks.map((v) => [\`\${v.unit}/\${v.n}\`, v]));
 
@@ -129,4 +177,4 @@ export function videoTrack(unit: string, n: number, needSeconds: number): VideoT
 `;
 
 writeFileSync(OUT, body);
-console.log(`\n${tracks.length} video track(s) -> ${OUT}`);
+console.log(`\n${merged.length} video track(s) -> ${OUT}`);
