@@ -111,7 +111,7 @@ const RULES: [RegExp, (size: number) => ReactNode][] = [
       <path d="M3.8 7.6L12 13.4l8.2-5.8" />
     </Svg>
   )],
-  [/נתונים|נתוני/, (s) => (
+  [/נתונים|נתוני|טבלה/, (s) => (
     <Svg size={s}>
       <rect x="3.5" y="4.5" width="17" height="15" rx="2" />
       <path d="M3.5 9.5h17" />

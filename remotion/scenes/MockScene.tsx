@@ -19,7 +19,7 @@
  * while the tool visibly keeps waiting reads as the point.
  */
 
-import { Img, interpolate, staticFile, useCurrentFrame } from 'remotion';
+import { Img, interpolate, interpolateColors, staticFile, useCurrentFrame } from 'remotion';
 import type { Scene } from '../../src/content/types';
 import { Reveal } from '../lib/kit';
 import { EASE_OUT, reveal, stagger } from '../lib/motion';
@@ -77,6 +77,17 @@ export const MockSceneView = ({
   const typing = typed > 0 && typed < scene.prompt.length;
 
   const lines = (scene.reply || '').split('\n');
+  // Body-line numbering for `replyCues`, which counts the reply's real lines and so has
+  // to skip the blanks that space them out.
+  let seen = -1;
+  const bodyOf = lines.map((line) => (line === '' ? -1 : ++seen));
+  // A line singled out after the fact: the answer stays exactly where it is and the
+  // line the narration has reached takes a highlight, so a shot whose panel finished
+  // early still has somewhere for its closing lines to land.
+  const markOf = bodyOf.map((body) => {
+    const at = body < 0 ? null : art.replyCues?.[body];
+    return at == null ? 0 : reveal(frame, { delay: cueFrame(cueAt, at), duration: 26, easing: EASE_OUT });
+  });
   // The turn is held until the answer is fully on screen and looking fine. Where the
   // script has a line for it, that line sets the moment; otherwise it follows the
   // answer by a beat.
@@ -175,7 +186,23 @@ export const MockSceneView = ({
                       fontSize: replySize,
                       fontWeight: i === 0 ? 700 : 400,
                       lineHeight: 1.5,
-                      color: i === 0 ? palette.ink : '#33333f',
+                      color:
+                        i === 0
+                          ? palette.ink
+                          : interpolateColors(markOf[i], [0, 1], ['#33333f', palette.accentInk]),
+                      // Horizontal only, and unconditional: a line that takes a
+                      // highlight later must not shift when it lands, and the panel
+                      // must not grow — this reply already fills the stage band.
+                      // The line box supplies the highlight's height.
+                      alignSelf: 'flex-start',
+                      padding: '0 12px',
+                      marginInlineStart: -12,
+                      borderRadius: 10,
+                      background: interpolateColors(
+                        markOf[i],
+                        [0, 1],
+                        ['rgba(253,238,246,0)', palette.accentTint],
+                      ),
                       opacity: reveal(frame, { delay: replyFrom + stagger(i, 13), duration: 22 }),
                       transform: `translateY(${
                         10 * (1 - reveal(frame, { delay: replyFrom + stagger(i, 13), duration: 22 }))

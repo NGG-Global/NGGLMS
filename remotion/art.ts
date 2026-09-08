@@ -81,9 +81,12 @@ export interface ShotArt {
    * defined information ('anchor') — and drawing that as compression would say
    * grounding is summarisation, which is the opposite of the point. Nugget 5's nodes
    * are not a pipeline at all: they are four places one output ends up ('spread'),
-   * and the reason the scene exists is that it goes to all of them.
+   * and the reason the scene exists is that it goes to all of them. Unit 02's first
+   * flow runs the other way ('gate'): three things to check — the kind of information,
+   * the environment, the organisation's policy — that all have to clear before one
+   * action. Many into one, not one into many.
    */
-  flowStyle?: 'condense' | 'anchor' | 'spread';
+  flowStyle?: 'condense' | 'anchor' | 'spread' | 'gate';
 
   /**
    * Cue index at which a `negspace`'s rows appear as empty slots, before their labels.
@@ -104,6 +107,20 @@ export interface ShotArt {
    * exists for.
    */
   verdicts?: ('warn' | 'good')[];
+
+  /**
+   * Cue index at which each body line of a `mock`'s reply is picked out, once the whole
+   * answer is already on screen. One entry per non-blank line of `reply`, `null` for a
+   * line that is never singled out.
+   *
+   * Unit 02's first mock runs twenty-six seconds. The panel is complete eight seconds
+   * in, and the narration then spends four lines on working from "the minimum
+   * information required" — which is exactly what the tool has asked for, already
+   * listed on screen. Marking each request as it is named keeps those lines attached
+   * to the picture; without it the shot holds a still frame for sixteen seconds, three
+   * times longer than any other shot in the course.
+   */
+  replyCues?: (number | null)[];
 
   /**
    * Cue index that completes a `principle`'s kept question, when the copy delivers it
@@ -204,6 +221,34 @@ const ART: Record<string, ShotArt> = {
   'unit-01/s5.i': { itemCues: [1, 2] },
   // The closing question builds in two strokes: the asking, then what it asks about.
   'unit-01/s5.j': { itemCues: [3] },
+
+  // Unit 02, nugget 1 --------------------------------------------------------
+  // Timestamped transcript, so these anchors sit on measured speech.
+  // The rejected question goes up a line before it is spoken in full, on the line that
+  // reaches for it ("before you paste something into an AI tool, it is not"). The shot
+  // spends two lines setting the question up, and holding the stage on the label alone
+  // for all of them is dead air; showing a question that is about to be struck through
+  // early costs nothing.
+  'unit-02/s1.b': { itemCues: [1, 3] },
+  // Three kinds of material on one line, two on the next.
+  'unit-02/s1.c': { headAt: 0, itemCues: [1, 1, 1, 2, 2] },
+  // Three checks that all clear before the action.
+  'unit-02/s1.d': { flowStyle: 'gate', itemCues: [1, 2, 2], payoffAt: 2 },
+  // "different organisations define it differently" — tiles that look alike and are
+  // not, differentiating on the line that says there is no universal rule.
+  'unit-02/s1.e': { motif: 'uniform-tiles', motifAt: 1, motifOutAt: 4 },
+  // Seven categories that should stop you. Nothing fills these in — the warning edge
+  // is the point, and the head calls it a lamp lighting up.
+  'unit-02/s1.f': { fill: false, headAt: 0, itemCues: [1, 2, 3, 3, 4, 5, 6], payoffAt: 8 },
+  // Same word, not the same terms: one is the sanctioned environment, one is not.
+  'unit-02/s1.g': { itemCues: [0, 1], detailCues: [3, 3], verdicts: ['good', 'warn'] },
+  // The prompt is typed on the line that quotes it and the answer follows it, as a
+  // chat panel would. The tool's three requests are then named again as the minimum
+  // the task needs, so each is picked out on the line that reaches it.
+  'unit-02/s1.h': { itemCues: [1], detailCues: [2], payoffAt: 3, replyCues: [null, 5, 6, 7] },
+  // Each task, then what it does not need.
+  'unit-02/s1.i': { headAt: 0, itemCues: [2, 4, 6], detailCues: [3, 5, 7] },
+  'unit-02/s1.j': { headAt: 0, itemCues: [1, 2, 3] },
 };
 
 /** Evenly spread `count` reveals across cue indices `[from .. last]`. */

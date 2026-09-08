@@ -17,6 +17,12 @@
  * `flowStyle: 'anchor'` draws the answer adrift and then tethers it to the source. The
  * foot on that shot is "instead of letting the model act in empty space", and the
  * untethered state is that space.
+ *
+ * Unit 02's first flow runs the other way ('gate'): the kind of information, the
+ * environment and the organisation's policy are three checks that all have to clear
+ * before one action, so they converge rather than fan out. Each check marks itself off
+ * on the line that names it, and the action only lights once all three are in — which
+ * is the sequence the shot's foot describes.
  */
 
 import { interpolate, random, useCurrentFrame } from 'remotion';
@@ -25,6 +31,7 @@ import { Micro, Reveal } from '../lib/kit';
 import { EASE_IN_OUT, EASE_OUT, drift, reveal } from '../lib/motion';
 import { SceneBody, SceneHead, cueFrame, type SceneProps } from '../lib/scene';
 import type { Tone } from '../theme';
+import { Check } from './glyphs';
 import { type as typeScale } from '../theme';
 
 type FlowScene = Extract<Scene, { kind: 'flow' }>;
@@ -69,6 +76,135 @@ const SourceLines = ({ t, sweep }: { t: Tone; sweep: number }) => {
 
 export const FlowSceneView = ({ scene, cueAt, t, art }: SceneProps<FlowScene>) => {
   const frame = useCurrentFrame();
+
+  if (art.flowStyle === 'gate') {
+    const checkW = 560;
+    const checkH = 104;
+    const actionW = 300;
+    const boardH = 420;
+    const cy = boardH / 2;
+    const rows = scene.nodes.map((_, i) =>
+      scene.nodes.length === 1
+        ? cy
+        : cy + (i - (scene.nodes.length - 1) / 2) * ((boardH - checkH - 16) / (scene.nodes.length - 1)),
+    );
+    const cleared = scene.nodes.map((_, i) =>
+      reveal(frame, { delay: cueFrame(cueAt, art.itemCues[i]), duration: 30 }),
+    );
+    // The action only lights once every check is in — that is what a gate is.
+    const open = Math.min(...cleared);
+
+    return (
+      <SceneBody justify="center" gap={48}>
+        <Reveal at={cueFrame(cueAt, art.headAt)} dy={18}>
+          <SceneHead t={t}>{scene.head}</SceneHead>
+        </Reveal>
+
+        <div style={{ position: 'relative', width: BOARD, height: boardH, direction: 'ltr' }}>
+          <svg
+            viewBox={`0 0 ${BOARD} ${boardH}`}
+            style={{ position: 'absolute', inset: 0, width: BOARD, height: boardH }}
+          >
+            {scene.nodes.map((node, i) => {
+              const from = BOARD - checkW;
+              const to = actionW;
+              const mid = (from + to) / 2;
+              return (
+                <path
+                  key={node}
+                  d={`M ${from} ${rows[i]} C ${mid} ${rows[i]}, ${mid} ${cy}, ${to} ${cy}`}
+                  fill="none"
+                  stroke={t.accent}
+                  strokeWidth={2.4}
+                  strokeLinecap="round"
+                  pathLength={1}
+                  strokeDasharray={1}
+                  strokeDashoffset={1 - cleared[i]}
+                  opacity={0.6 * cleared[i]}
+                />
+              );
+            })}
+          </svg>
+
+          {scene.nodes.map((node, i) => (
+            <div
+              key={node}
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: rows[i],
+                width: checkW,
+                minHeight: checkH,
+                borderRadius: 18,
+                padding: '20px 26px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 18,
+                background: t.panel,
+                border: `1px solid ${cleared[i] > 0.6 ? t.accent : t.edge}`,
+                direction: 'rtl',
+                fontSize: 32,
+                fontWeight: 700,
+                letterSpacing: '-0.015em',
+                color: t.fg,
+                opacity: cleared[i],
+                transform: `translateY(calc(-50% + ${
+                  14 * (1 - cleared[i]) + drift(frame, 2, 640, i)
+                }px))`,
+              }}
+            >
+              <span style={{ color: t.accent, flex: 'none', opacity: cleared[i] }}>
+                <Check color="currentColor" size={28} />
+              </span>
+              {node}
+            </div>
+          ))}
+
+          {/* The action. Unlabelled: the foot names it, and the scene is about what has
+              to be true before it, not what it is. */}
+          <div
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: cy,
+              width: actionW,
+              borderRadius: 22,
+              padding: '26px 24px',
+              background: t.dark ? 'rgba(255,255,255,0.07)' : '#fff',
+              border: `2px solid ${open > 0.5 ? t.accent : t.fg4}`,
+              boxShadow: `0 0 ${30 * open}px rgba(236,42,140,${0.24 * open})`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 14,
+              opacity: 0.35 + 0.65 * open,
+              transform: `translateY(calc(-50% + ${drift(frame, 3, 700)}px)) scale(${
+                0.96 + 0.04 * open
+              })`,
+            }}
+          >
+            {[1, 0.72, 0.88].map((w, i) => (
+              <span
+                key={i}
+                style={{
+                  height: 11,
+                  borderRadius: 11,
+                  width: `${w * 100}%`,
+                  background: open > 0.5 ? t.accent : t.fg4,
+                  opacity: 0.5 + 0.5 * open,
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {scene.foot ? (
+          <Reveal at={cueFrame(cueAt, art.payoffAt)} duration={28} dy={14}>
+            <div style={{ fontSize: typeScale.body, color: t.fg3 }}>{scene.foot}</div>
+          </Reveal>
+        ) : null}
+      </SceneBody>
+    );
+  }
 
   if (art.flowStyle === 'spread') {
     const sourceW = 420;
