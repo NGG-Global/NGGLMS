@@ -30,6 +30,7 @@ export function Shell({ crumb, children }: Props) {
   const [query, setQuery] = useState('');
   const isAdmin = identity?.role === 'admin';
   const onLearner = location.hash.startsWith('#/learn');
+  const onExplainers = location.hash.startsWith('#/explainers');
 
   const submitSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -59,6 +60,12 @@ export function Shell({ crumb, children }: Props) {
             aria-label="חיפוש במרחב העבודה"
           />
         </form>
+
+        {/* Reference material about the tool itself, so it hangs off the shell rather
+            than living inside a programme. Both roles get it. */}
+        <Link className="topbar__link" to="/explainers" aria-current={onExplainers}>
+          הדרכות קלוד
+        </Link>
 
         {isAdmin ? (
           <nav className="seg" aria-label="מצב תצוגה">

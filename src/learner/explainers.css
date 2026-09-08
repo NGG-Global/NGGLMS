@@ -1,0 +1,165 @@
+/* Claude instruction series: the episode list, and one episode's page. */
+
+/* --------------------------------------------------------------- the list --- */
+
+.eplist {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.eprow {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr) auto;
+  gap: 15px;
+  align-items: center;
+  width: 100%;
+  padding: 17px 19px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-row);
+  text-align: right;
+  color: inherit;
+  text-decoration: none;
+}
+.eprow:hover {
+  text-decoration: none;
+  color: inherit;
+  border-color: #e3e1e8;
+}
+
+/* Still frame, with the episode number sitting on it. */
+.eprow__thumb {
+  position: relative;
+  display: block;
+  width: 116px;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--r-well-sm);
+  overflow: hidden;
+  background: #0b0a0d;
+  flex: none;
+}
+.eprow__thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The number, weighted like the accent numerals elsewhere in the shell. */
+.eprow__n {
+  position: absolute;
+  inset-block-start: 5px;
+  inset-inline-start: 5px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-pill);
+  background: linear-gradient(145deg, var(--accent), #a3155f);
+  color: #fff;
+  font: 800 11px/1 var(--sans);
+  letter-spacing: -0.02em;
+}
+
+.eprow__body { min-width: 0; }
+.eprow__k {
+  display: block;
+  font: 700 10.5px/1.4 var(--sans);
+  letter-spacing: 0.12em;
+  color: var(--ink-5);
+}
+.eprow__t {
+  display: block;
+  margin-top: 3px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+/* Two lines in the list; the whole summary is on the episode's own page. */
+.eprow__s {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-3);
+}
+
+.eprow__meta {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: none;
+}
+.eprow__meta b {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-3);
+  white-space: nowrap;
+}
+.eprow__play {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-pill);
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-tint-edge);
+}
+/* RTL, so the triangle points left — the direction of travel. */
+.eprow__play::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-block: 5px solid transparent;
+  border-inline-end: 7px solid var(--accent-deep);
+}
+
+/* ------------------------------------------------------------ an episode --- */
+
+.epframe {
+  background: #0b0a0d;
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-hero);
+  overflow: hidden;
+  /* The films are 16:9. Reserving the box means the page does not jump when the
+     metadata arrives, and a poster-less video shows black rather than collapsing. */
+  aspect-ratio: 16 / 9;
+}
+.epframe__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The takeaway. Reads as the one line to leave with, so it gets the accent well
+   rather than another white card. */
+.epkeep {
+  margin-top: 14px;
+  padding: 17px 19px;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-tint-edge);
+  border-radius: var(--r-well);
+}
+.epkeep p {
+  margin-top: 7px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: -0.015em;
+  color: var(--accent-ink);
+}
+
+.epnav {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}

@@ -22,7 +22,12 @@ export function assetUrl(path: string): string {
  * purpose. It is a public CDN address, not a secret, and making it a required variable
  * creates a failure mode where a deploy that forgets it serves a player pointing at
  * files that are no longer in the repository. `VITE_VIDEO_BASE` overrides it — set it
- * to move to a different store, or to a local path to work offline.
+ * to move to a different store, or to `/` to serve the files from the build itself
+ * while working offline.
+ *
+ * It is a base that the manifest's `assets/video/…` paths hang off, not a directory:
+ * `/` gives `/assets/video/u01-n01.mp4`, whereas `/assets/video/` doubles the segment
+ * and 404s.
  */
 const VIDEO_BASE = 'https://9zcmfr7mcr08t2hm.public.blob.vercel-storage.com/';
 

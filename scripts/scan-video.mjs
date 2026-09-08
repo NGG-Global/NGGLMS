@@ -33,54 +33,28 @@
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { readDuration } from './lib/mp4.mjs';
 
 const DIR = 'public/assets/video';
 const OUT = 'src/content/video-manifest.ts';
-
-/** Walks the top-level boxes of an MP4 and reads the duration out of moov/mvhd. */
-function readDuration(buf) {
-  const boxes = (start, end) => {
-    const found = [];
-    let o = start;
-    while (o + 8 <= end) {
-      let size = buf.readUInt32BE(o);
-      const type = buf.toString('latin1', o + 4, o + 8);
-      let head = 8;
-      if (size === 1) {
-        size = Number(buf.readBigUInt64BE(o + 8));
-        head = 16;
-      }
-      if (size === 0) size = end - o;
-      if (size < head) break;
-      found.push({ type, start: o + head, end: o + size });
-      o += size;
-    }
-    return found;
-  };
-
-  const moov = boxes(0, buf.length).find((b) => b.type === 'moov');
-  if (!moov) return 0;
-  const mvhd = boxes(moov.start, moov.end).find((b) => b.type === 'mvhd');
-  if (!mvhd) return 0;
-  const version = buf.readUInt8(mvhd.start);
-  // v1 widens the creation/modification times, pushing timescale and duration along.
-  const at = version === 1 ? mvhd.start + 20 : mvhd.start + 12;
-  const timescale = buf.readUInt32BE(at);
-  const duration = version === 1 ? Number(buf.readBigUInt64BE(at + 4)) : buf.readUInt32BE(at + 4);
-  return timescale > 0 ? Number((duration / timescale).toFixed(2)) : 0;
-}
 
 const tracks = [];
 if (existsSync(DIR)) {
   for (const name of readdirSync(DIR).sort()) {
     const match = /^u(\d+)-n(\d+)\.mp4$/.exec(name);
     if (!match) {
-      console.warn(`skipped ${name}: expected u<unit>-n<nugget>.mp4`);
+      // Explainer episodes stage through the same directory on their way to the store,
+      // and they belong to src/content/explainers.ts, not to this manifest. Saying so
+      // keeps a routine scan from reading like something went wrong.
+      const other = /^claude-ep\d+\.mp4$/.test(name)
+        ? 'explainer episode, declared in src/content/explainers.ts'
+        : 'expected u<unit>-n<nugget>.mp4';
+      console.log(`not a nugget track: ${name} — ${other}`);
       continue;
     }
     const path = join(DIR, name);
     const bytes = statSync(path).size;
-    const duration = readDuration(readFileSync(path));
+    const duration = readDuration(path);
     tracks.push({ unit: match[1], n: Number(match[2]), file: `assets/video/${name}`, bytes, duration });
     console.log(`${name}  ${bytes} bytes  ${duration}s`);
   }
