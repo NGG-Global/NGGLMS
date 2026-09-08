@@ -12,7 +12,15 @@
  * segment, and the player refuses it instead of putting the scrub bar in the wrong
  * place. The same lesson the audio scanner learned the hard way.
  *
- * Run via `npm run scan:video` (also wired into prebuild).
+ * NOT wired into prebuild, unlike the audio scanner. Once the renders live in a blob
+ * store the local directory is empty, and a build-time scan would write an empty
+ * manifest and silently drop every nugget back to the CSS stage. So the manifest is a
+ * committed artifact: run this while the renders are still in public/assets/video,
+ * commit the result, then upload and remove the files.
+ *
+ * As a second guard, it refuses to overwrite a populated manifest with an empty one.
+ *
+ * Run via `npm run scan:video`.
  */
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { existsSync } from 'node:fs';
@@ -67,6 +75,22 @@ if (existsSync(DIR)) {
     const duration = readDuration(readFileSync(path));
     tracks.push({ unit: match[1], n: Number(match[2]), file: `assets/video/${name}`, bytes, duration });
     console.log(`${name}  ${bytes} bytes  ${duration}s`);
+  }
+}
+
+// Never let an empty scan clobber a manifest that lists real renders: that is the
+// exact shape of the accident this script must not enable.
+if (tracks.length === 0 && existsSync(OUT)) {
+  const current = readFileSync(OUT, 'utf8');
+  const populated = /"file":\s*"assets\/video\//.test(current);
+  if (populated) {
+    console.error(
+      `No files in ${DIR}, but ${OUT} lists renders already.\n` +
+        'Refusing to write an empty manifest — that would drop every nugget back to the\n' +
+        'CSS stage. The renders now live in the blob store; the manifest is committed.\n' +
+        'To rebuild it, restore the files to that directory first.',
+    );
+    process.exit(1);
   }
 }
 

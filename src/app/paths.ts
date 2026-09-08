@@ -14,18 +14,20 @@ export function assetUrl(path: string): string {
 /**
  * Where the nugget videos are served from.
  *
- * Video does not belong in the repository. A render is ~23MB, it is re-uploaded on
- * every deploy, and it stays in git history for good. Setting `VITE_VIDEO_BASE` to a
- * blob store's public base URL moves them off the deployment without touching content
- * or code — the manifest keeps its bare `assets/video/…` paths, and only the prefix
- * changes. Unset, videos are served from the site like every other asset, which is
- * what the repository does today.
+ * The renders are not in the repository. Each is ~23MB, they would be re-uploaded on
+ * every deploy, and they would stay in git history for good — so they live in a Vercel
+ * Blob store and the manifest keeps bare `assets/video/…` paths that get this prefix.
  *
- * Example: VITE_VIDEO_BASE=https://<store>.public.blob.vercel-storage.com/
+ * The store's base URL is the default rather than a required environment variable, on
+ * purpose. It is a public CDN address, not a secret, and making it a required variable
+ * creates a failure mode where a deploy that forgets it serves a player pointing at
+ * files that are no longer in the repository. `VITE_VIDEO_BASE` overrides it — set it
+ * to move to a different store, or to a local path to work offline.
  */
+const VIDEO_BASE = 'https://9zcmfr7mcr08t2hm.public.blob.vercel-storage.com/';
+
 export function videoUrl(path: string): string {
-  const base = import.meta.env.VITE_VIDEO_BASE;
-  if (!base) return assetUrl(path);
+  const base = import.meta.env.VITE_VIDEO_BASE || VIDEO_BASE;
   const clean = path.replace(/^\/+/, '');
   return base.endsWith('/') ? base + clean : `${base}/${clean}`;
 }
