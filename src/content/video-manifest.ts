@@ -48,6 +48,13 @@ export const videoTracks: VideoTrack[] = [
     "file": "assets/video/u01-n05.mp4",
     "bytes": 24459140,
     "duration": 158.12
+  },
+  {
+    "unit": "02",
+    "n": 1,
+    "file": "assets/video/u02-n01.mp4",
+    "bytes": 29079829,
+    "duration": 191.06
   }
 ];
 
