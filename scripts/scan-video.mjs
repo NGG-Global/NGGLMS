@@ -12,61 +12,107 @@
  * segment, and the player refuses it instead of putting the scrub bar in the wrong
  * place. The same lesson the audio scanner learned the hard way.
  *
- * Run via `npm run scan:video` (also wired into prebuild).
+ * NOT wired into prebuild, unlike the audio scanner. Once the renders live in a blob
+ * store the local directory is empty, and a build-time scan would write an empty
+ * manifest and silently drop every nugget back to the CSS stage. So the manifest is a
+ * committed artifact: run this while the renders are still in public/assets/video,
+ * commit the result, then upload and remove the files.
+ *
+ * Which is why the scan MERGES into the committed manifest rather than replacing it.
+ * The blob store holds the renders; this directory is a staging area that holds
+ * whichever nugget was produced most recently. A replacing scan would list that one
+ * file and drop every nugget already shipped — the same accident the prebuild wiring
+ * would have caused, one file at a time instead of all at once. A scanned track
+ * replaces the entry for its own unit and nugget and leaves the rest alone.
+ *
+ * Pass `--prune` to write only what is on disk, for the case where a nugget is being
+ * withdrawn on purpose. That is the only way an entry leaves the manifest.
+ *
+ * Run via `npm run scan:video`.
  */
 import { readdirSync, readFileSync, writeFileSync, statSync } from 'node:fs';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { readDuration } from './lib/mp4.mjs';
 
 const DIR = 'public/assets/video';
 const OUT = 'src/content/video-manifest.ts';
-
-/** Walks the top-level boxes of an MP4 and reads the duration out of moov/mvhd. */
-function readDuration(buf) {
-  const boxes = (start, end) => {
-    const found = [];
-    let o = start;
-    while (o + 8 <= end) {
-      let size = buf.readUInt32BE(o);
-      const type = buf.toString('latin1', o + 4, o + 8);
-      let head = 8;
-      if (size === 1) {
-        size = Number(buf.readBigUInt64BE(o + 8));
-        head = 16;
-      }
-      if (size === 0) size = end - o;
-      if (size < head) break;
-      found.push({ type, start: o + head, end: o + size });
-      o += size;
-    }
-    return found;
-  };
-
-  const moov = boxes(0, buf.length).find((b) => b.type === 'moov');
-  if (!moov) return 0;
-  const mvhd = boxes(moov.start, moov.end).find((b) => b.type === 'mvhd');
-  if (!mvhd) return 0;
-  const version = buf.readUInt8(mvhd.start);
-  // v1 widens the creation/modification times, pushing timescale and duration along.
-  const at = version === 1 ? mvhd.start + 20 : mvhd.start + 12;
-  const timescale = buf.readUInt32BE(at);
-  const duration = version === 1 ? Number(buf.readBigUInt64BE(at + 4)) : buf.readUInt32BE(at + 4);
-  return timescale > 0 ? Number((duration / timescale).toFixed(2)) : 0;
-}
 
 const tracks = [];
 if (existsSync(DIR)) {
   for (const name of readdirSync(DIR).sort()) {
     const match = /^u(\d+)-n(\d+)\.mp4$/.exec(name);
     if (!match) {
-      console.warn(`skipped ${name}: expected u<unit>-n<nugget>.mp4`);
+      // Explainer episodes stage through the same directory on their way to the store,
+      // and they belong to src/content/explainers.ts, not to this manifest. Saying so
+      // keeps a routine scan from reading like something went wrong.
+      const other = /^claude-ep\d+\.mp4$/.test(name)
+        ? 'explainer episode, declared in src/content/explainers.ts'
+        : 'expected u<unit>-n<nugget>.mp4';
+      console.log(`not a nugget track: ${name} — ${other}`);
       continue;
     }
     const path = join(DIR, name);
     const bytes = statSync(path).size;
-    const duration = readDuration(readFileSync(path));
+    const duration = readDuration(path);
     tracks.push({ unit: match[1], n: Number(match[2]), file: `assets/video/${name}`, bytes, duration });
     console.log(`${name}  ${bytes} bytes  ${duration}s`);
+  }
+}
+
+const prune = process.argv.includes('--prune');
+
+/**
+ * The tracks the committed manifest already lists.
+ *
+ * The generated file holds the array as plain JSON, so it is read back rather than
+ * re-derived. A file that does not parse is a hand-edit or a partial write, and
+ * merging into a guess would be worse than stopping.
+ */
+function committedTracks() {
+  if (!existsSync(OUT)) return [];
+  const current = readFileSync(OUT, 'utf8');
+  // Anchored on the assignment itself: searching for the next '[' would find the one
+  // in `VideoTrack[]`, two characters earlier.
+  const MARK = 'videoTracks: VideoTrack[] = ';
+  const at = current.indexOf(MARK);
+  if (at < 0) return [];
+  const open = at + MARK.length;
+  const close = current.indexOf('\n];', open);
+  if (current[open] !== '[' || close < 0) {
+    console.error(`Could not read the track list out of ${OUT}. Fix or delete it first.`);
+    process.exit(1);
+  }
+  try {
+    return JSON.parse(current.slice(open, close + 2));
+  } catch (err) {
+    console.error(`${OUT} does not parse: ${err.message}\nFix or delete it first.`);
+    process.exit(1);
+  }
+}
+
+const key = (t) => `${t.unit}/${t.n}`;
+let merged = tracks;
+if (!prune) {
+  const scanned = new Set(tracks.map(key));
+  const kept = committedTracks().filter((t) => !scanned.has(key(t)));
+  for (const t of kept) console.log(`kept ${t.file} (in the blob store, not on disk)`);
+  merged = [...kept, ...tracks];
+}
+merged.sort((a, b) => a.unit.localeCompare(b.unit) || a.n - b.n);
+
+// A scan that finds nothing and is asked to prune anyway would drop every nugget back
+// to the CSS stage. That is the accident this script must not enable.
+if (merged.length === 0 && existsSync(OUT)) {
+  const current = readFileSync(OUT, 'utf8');
+  if (/"file":\s*"assets\/video\//.test(current)) {
+    console.error(
+      `No files in ${DIR}, but ${OUT} lists renders already.\n` +
+        'Refusing to write an empty manifest — that would drop every nugget back to the\n' +
+        'CSS stage. The renders live in the blob store; the manifest is committed.\n' +
+        'To rebuild it, restore the files to that directory first.',
+    );
+    process.exit(1);
   }
 }
 
@@ -85,7 +131,7 @@ export interface VideoTrack {
   duration: number;
 }
 
-export const videoTracks: VideoTrack[] = ${JSON.stringify(tracks, null, 2)};
+export const videoTracks: VideoTrack[] = ${JSON.stringify(merged, null, 2)};
 
 const byKey = new Map(videoTracks.map((v) => [\`\${v.unit}/\${v.n}\`, v]));
 
@@ -105,4 +151,4 @@ export function videoTrack(unit: string, n: number, needSeconds: number): VideoT
 `;
 
 writeFileSync(OUT, body);
-console.log(`\n${tracks.length} video track(s) -> ${OUT}`);
+console.log(`\n${merged.length} video track(s) -> ${OUT}`);

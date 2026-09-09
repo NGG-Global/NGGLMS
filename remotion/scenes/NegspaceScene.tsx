@@ -23,8 +23,11 @@ import type { Scene } from '../../src/content/types';
 import { Reveal } from '../lib/kit';
 import { EASE_OUT, drift, reveal } from '../lib/motion';
 import { SceneBody, SceneHead, cueFrame, type SceneProps } from '../lib/scene';
-import { palette, type as typeScale } from '../theme';
+import { layout, palette, type as typeScale } from '../theme';
 import { Void } from './glyphs';
+
+/** Height of the drawable band, which the rows have to fit inside. */
+const BAND = layout.stageBottom - layout.headerBottom;
 
 type NegspaceScene = Extract<Scene, { kind: 'negspace' }>;
 
@@ -34,6 +37,16 @@ const FILL_STAGGER = 44;
 
 export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceScene>) => {
   const frame = useCurrentFrame();
+
+  // Unit 02 lists seven categories where unit 01 listed four, and seven rows at the
+  // four-row size overflow the stage into the caption band. Row height and type size
+  // come from the count so the block always fits the band it is given. The cap is the
+  // scene's own row height: a short list gets the look it always had rather than
+  // taller rows just because there is room for them.
+  const count = scene.items.length;
+  const gap = count > 5 ? 12 : 22;
+  const rowH = Math.min(90, Math.floor((BAND - 100 - gap * (count - 1)) / count));
+  const labelSize = rowH >= 88 ? typeScale.item : rowH >= 74 ? 32 : 29;
 
   const filling = art.fill !== false;
   const rowAt = (i: number) => cueFrame(cueAt, art.itemCues[i], 117 + i * 84);
@@ -58,7 +71,7 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
         <SceneHead t={t}>{scene.head}</SceneHead>
       </Reveal>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap }}>
         {scene.items.map((item, i) => {
           const enter = reveal(frame, { delay: slotAt(i), duration: 28 });
           const named = reveal(frame, { delay: rowAt(i), duration: 26 });
@@ -66,11 +79,13 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
             ? reveal(frame, { delay: fillFrom + i * FILL_STAGGER, duration: FILL })
             : 0;
           const running = fill > 0.004 && fill < 0.996;
-          // With no fill, the row's own edge carries the warning, a beat after it
-          // arrives, so three conditions read as three risks rather than three labels.
+          // With no fill, the row's own edge carries the warning — and it follows the
+          // row's own arrival rather than a shared payoff cue. Unit 02's head calls
+          // this a lamp lighting up, and seven lamps that all light in the last second
+          // of a 29-second shot is not that: each lights as its category is named.
           const warn = filling
             ? 0
-            : reveal(frame, { delay: Math.max(rowAt(i), alarmFrom) + 26 + i * 20, duration: 40 });
+            : reveal(frame, { delay: rowAt(i) + 30 + i * 18, duration: 40 });
           const rowEdge = filling
             ? fill > 0.35
               ? edge
@@ -82,24 +97,24 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
               key={item}
               style={{
                 position: 'relative',
-                height: 90,
-                borderRadius: 20,
+                height: rowH,
+                borderRadius: rowH >= 80 ? 20 : 16,
                 border: `2px ${fill > 0.6 ? 'solid' : 'dashed'} ${rowEdge}`,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 22,
-                padding: '0 30px',
+                gap: rowH >= 80 ? 22 : 16,
+                padding: rowH >= 80 ? '0 30px' : '0 22px',
                 overflow: 'hidden',
                 opacity: enter,
                 transform: `translateY(${(1 - enter) * 20}px)`,
               }}
             >
               <span style={{ color: filling ? (fill > 0.6 ? edge : t.fg4) : rowEdge, flex: 'none' }}>
-                <Void color="currentColor" />
+                <Void color="currentColor" size={rowH >= 80 ? 30 : 25} />
               </span>
               <span
                 style={{
-                  fontSize: typeScale.item,
+                  fontSize: labelSize,
                   fontWeight: 700,
                   letterSpacing: '-0.015em',
                   color: interpolateColors(filling ? fill : warn, [0, 1], [t.fg3, t.fg]),
@@ -129,8 +144,8 @@ export const NegspaceSceneView = ({ scene, cueAt, t, art }: SceneProps<NegspaceS
                 <span
                   style={{
                     position: 'absolute',
-                    top: 18,
-                    bottom: 18,
+                    top: Math.round(rowH * 0.2),
+                    bottom: Math.round(rowH * 0.2),
                     insetInlineStart: `${(1 - fill) * 100}%`,
                     width: 4,
                     borderRadius: 4,
