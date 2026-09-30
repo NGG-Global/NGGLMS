@@ -17,7 +17,14 @@ export interface ExplainerEpisode {
   id: string;
   /** 1-based episode number inside the series. */
   n: number;
+  /**
+   * What the episode is about, in the platform's words. This is the name learners pick
+   * an episode by, so it says the subject outright rather than repeating the film's
+   * own, more figurative title.
+   */
   title: string;
+  /** The title on the film's own title card, shown beside the player so the card is recognised. */
+  filmTitle: string;
   /** Short eyebrow label. */
   kicker: string;
   /** The film's own subtitle, from its title card. */
@@ -50,15 +57,19 @@ export interface ExplainerSeries {
 export const explainerSeries: ExplainerSeries = {
   id: 'claude',
   // The films name themselves on their own title cards — series, episode number,
-  // title and subtitle — so all of that is transcribed rather than written around
-  // them. Anything here that disagrees with a title card is a mistake.
+  // title and subtitle. The series name, `kicker`, `filmTitle` and `lead` are
+  // transcribed from those cards, and anything there that disagrees with a card is a
+  // mistake. `title` is the exception on purpose: the card titles are figurative
+  // ("פשוט לשאול"), so the platform lists each episode under a name that says what it
+  // covers, and shows the card's title next to the player.
   title: 'מדריך קלוד',
   lead: 'סדרת פרקים קצרים על עבודה עם קלוד: מה להעביר לו, איפה הוא יושב, ואיך להגדיר אותו פעם אחת כך שיתאים לעבודה שלכם.',
   episodes: [
     {
       id: 'ep01',
       n: 1,
-      title: 'קלוד עובד אחרת',
+      title: 'מה קלוד עושה ואילו משימות מתאימות לו',
+      filmTitle: 'קלוד עובד אחרת',
       kicker: 'פרק ראשון',
       lead: 'אתם מתארים במילים שלכם מה אתם צריכים — והוא מבצע',
       summary:
@@ -73,7 +84,8 @@ export const explainerSeries: ExplainerSeries = {
     {
       id: 'ep02',
       n: 2,
-      title: 'מתחברים ומתחילים',
+      title: 'התקנה, בחירת מודל והגדרות אישיות',
+      filmTitle: 'מתחברים ומתחילים',
       kicker: 'פרק שני',
       lead: 'התקנה, חשבון, והמסך שממנו הכל מתחיל',
       summary:
@@ -88,7 +100,8 @@ export const explainerSeries: ExplainerSeries = {
     {
       id: 'ep03',
       n: 3,
-      title: 'מתחברים למערכות',
+      title: 'חיבור קלוד למיקרוסופט 365 והרשאות הגישה',
+      filmTitle: 'מתחברים למערכות',
       kicker: 'פרק שלישי',
       lead: 'עכשיו קלוד מתחבר למקום שבו העבודה שלכם כבר נמצאת',
       summary:
@@ -103,7 +116,8 @@ export const explainerSeries: ExplainerSeries = {
     {
       id: 'ep04',
       n: 4,
-      title: 'לתת הקשר, ולעבוד בסבבים',
+      title: 'מתן הקשר בבקשה ושיפור התשובה באותה שיחה',
+      filmTitle: 'לתת הקשר, ולעבוד בסבבים',
       kicker: 'פרק רביעי',
       lead: 'למה התשובה הראשונה היא כמעט תמיד רק ההתחלה',
       summary:
@@ -118,7 +132,8 @@ export const explainerSeries: ExplainerSeries = {
     {
       id: 'ep05',
       n: 5,
-      title: 'לעבוד על הקבצים עצמם',
+      title: 'עבודה עם קבצים: בצ׳אט או כמשימה שלמה על המחשב',
+      filmTitle: 'לעבוד על הקבצים עצמם',
       kicker: 'פרק חמישי',
       lead: 'ומתי הצ׳אט הוא הכלי הנכון — ומתי בכלל לא',
       summary:
@@ -133,7 +148,8 @@ export const explainerSeries: ExplainerSeries = {
     {
       id: 'ep06',
       n: 6,
-      title: 'פשוט לשאול',
+      title: 'שליפת מידע ממיקרוסופט 365 בשאלה אחת',
+      filmTitle: 'פשוט לשאול',
       kicker: 'פרק שישי',
       lead: 'המידע כבר נמצא במערכות שלכם — עכשיו רק שולפים אותו',
       summary:
@@ -148,7 +164,8 @@ export const explainerSeries: ExplainerSeries = {
     {
       id: 'ep07',
       n: 7,
-      title: 'פרויקטים',
+      title: 'פרויקטים: חומרים והוראות קבועים ללקוח או לנושא',
+      filmTitle: 'פרויקטים',
       kicker: 'פרק שביעי',
       lead: 'מסבירים פעם אחת — וזה נשאר',
       summary:
