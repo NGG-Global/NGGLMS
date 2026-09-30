@@ -3,6 +3,8 @@ import { useStore } from '../state/store';
 import { programCompletion, unitCompletion, unitLocked } from '../app/progress';
 import { unitMinutes } from '../content';
 import { Shell } from '../app/Shell';
+import { accentVars } from '../app/brand';
+import { ClientLogo } from '../app/ClientLogo';
 import './learner.css';
 
 /** One programme as the learner sees it: the welcome note and the ordered unit list. */
@@ -33,17 +35,19 @@ export function ProgramView() {
 
   return (
     <Shell crumb={`${program.client} · ${program.course || program.title}`}>
-      <main className="page page--narrow">
+      <main className="page page--narrow" style={accentVars(program.accent)}>
         <p>
           <Link className="btn btn--quiet" to="/learn">
             ← למסלול הלמידה
           </Link>
         </p>
 
-        <div className="hero">
+        <div className="proghead" style={{ marginTop: 14 }}>
+          {program.client.trim() && <ClientLogo client={program.client} size={52} radius={12} />}
           <div>
+            {program.client.trim() && <div className="proghead__k">{program.client}</div>}
             <h1>{program.course || program.title}</h1>
-            <p>{program.description}</p>
+            {program.description && <p>{program.description}</p>}
           </div>
         </div>
 

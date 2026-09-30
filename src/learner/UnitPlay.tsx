@@ -5,6 +5,7 @@ import { builtUnits, libraryUnit } from '../content';
 import { unitCompletion, programCompletion } from '../app/progress';
 import { UnitPlayer, type SegmentProgress } from '../player/UnitPlayer';
 import { Shell } from '../app/Shell';
+import { accentVars } from '../app/brand';
 import './learner.css';
 
 /** The player screen. Progress is written through the store on every beat. */
@@ -95,7 +96,7 @@ export function UnitPlay() {
     const programState = programCompletion(program, progress);
     return (
       <Shell crumb={`${program.course || program.title} · ${unit.title}`}>
-        <main className="page page--narrow">
+        <main className="page page--narrow" style={accentVars(program.accent)}>
           <section className="card finish">
             <i>✓</i>
             <h1>היחידה הושלמה</h1>

@@ -15,6 +15,7 @@ import {
 } from '../app/progress';
 import { assetUrl } from '../app/paths';
 import { AdminLayout } from './AdminLayout';
+import { ClientLogo } from '../app/ClientLogo';
 import { StatTiles, type StatTileProps } from './StatTile';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -176,7 +177,7 @@ export function Dashboard() {
                   return (
                     <div key={client}>
                       <div className="clientgroup">
-                        <span className="mono-badge mono-badge--sm">{client[0]}</span>
+                        <ClientLogo client={client} size={26} radius={8} />
                         <span className="clientgroup__body">
                           <b>{client}</b>
                           <span>

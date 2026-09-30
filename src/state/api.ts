@@ -1,6 +1,8 @@
-import type { Workspace } from './types';
+import type { BrandDoc, Workspace } from './types';
 
 export type PersistenceMode = 'server' | 'server-volatile' | 'local';
+
+export type SaveResult = { ok: true } | { ok: false; reason: 'too-large' | 'quota' | 'server' };
 
 export interface PersistenceStatus {
   mode: PersistenceMode;
@@ -9,6 +11,7 @@ export interface PersistenceStatus {
 }
 
 const LOCAL_KEY = 'ngglms:workspace:v2';
+const BRAND_KEY = 'ngglms:brand:v1';
 
 /**
  * Talks to /api/store when the deployment has it, and to localStorage when it does not.
@@ -80,6 +83,59 @@ class Persistence {
       }
     }
     return this.readLocal();
+  }
+
+  /**
+   * Client branding. Read from the server when there is one, so a logo uploaded by one
+   * admin shows for the others; the local copy covers static deployments and outages.
+   */
+  async loadBrand(): Promise<BrandDoc | null> {
+    const status = await this.probe();
+    if (status.mode !== 'local') {
+      try {
+        const res = await fetch('/api/store?key=brand', { headers: { Accept: 'application/json' } });
+        if (res.ok) {
+          const body = (await res.json()) as { value: BrandDoc | null };
+          if (body.value) return body.value;
+        }
+      } catch {
+        // Fall through to the local copy.
+      }
+    }
+    try {
+      const raw = localStorage.getItem(BRAND_KEY);
+      return raw ? (JSON.parse(raw) as BrandDoc) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Unlike the workspace, a failed branding write is reported: the admin has just
+   * uploaded a file and needs to know whether it was kept.
+   */
+  async saveBrand(doc: BrandDoc): Promise<SaveResult> {
+    const body = JSON.stringify(doc);
+    // Matches MAX_BYTES in api/store.ts, less headroom for the request envelope.
+    if (body.length > 1500 * 1024) return { ok: false, reason: 'too-large' };
+    let savedLocally = true;
+    try {
+      localStorage.setItem(BRAND_KEY, body);
+    } catch {
+      savedLocally = false;
+    }
+    if (this.status.mode === 'local') return savedLocally ? { ok: true } : { ok: false, reason: 'quota' };
+    try {
+      const res = await fetch('/api/store?key=brand', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+      });
+      if (res.status === 413) return { ok: false, reason: 'too-large' };
+      return res.ok ? { ok: true } : { ok: false, reason: 'server' };
+    } catch {
+      return { ok: false, reason: 'server' };
+    }
   }
 
   /** Writes locally first so the UI is never blocked on the network, then syncs up. */

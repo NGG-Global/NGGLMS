@@ -35,6 +35,11 @@ export interface Program {
   requireAll: boolean;
   /** Every unit's exercise must be checked, not just watched. */
   requireAssessment: boolean;
+  /**
+   * Client accent colour as `#rrggbb`, applied to the learner's view of this programme.
+   * Absent means NGG pink. Older workspaces predate it, so it stays optional.
+   */
+  accent?: string;
   status: ProgramStatus;
   /** Short code appended to the learner link. */
   accessCode: string;
@@ -107,4 +112,24 @@ export interface Identity {
   email: string;
   org: string;
   role: 'admin' | 'learner';
+}
+
+/** A client's uploaded logo: a re-encoded raster data URL (see app/brand.ts). */
+export interface ClientLogo {
+  src: string;
+  /** Client name as typed when the logo was uploaded. */
+  client: string;
+  updatedAt: string;
+}
+
+/**
+ * Client branding, stored apart from the workspace document.
+ *
+ * The workspace is rewritten on every edit (debounced), so image data inside it would be
+ * re-sent with every keystroke in the builder. Logos change rarely and live here instead.
+ */
+export interface BrandDoc {
+  /** Keyed by clientKey(client). */
+  logos: Record<string, ClientLogo>;
+  updatedAt: string;
 }

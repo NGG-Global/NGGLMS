@@ -115,7 +115,7 @@ export function ExplainerEpisodePage() {
         </div>
 
         <div className="meta" style={{ marginTop: 12 }}>
-          {episodeClock(episode)} · 1080p
+          {episodeClock(episode)} · 1080p · בסרטון: ״{episode.filmTitle}״
         </div>
 
         <section className="card card--pad" style={{ marginTop: 22 }}>

@@ -52,7 +52,28 @@ await a.click('.seg--ink button:has-text("שלי")');
 await a.goto(BASE + '#/admin/programs', { waitUntil: 'networkidle' });
 await a.waitForSelector('.progcard');
 console.log('   programme cards:', (await a.$$('.progcard')).length);
+(await a.$$('.progcard .pathstrip')).length === (await a.$$('.progcard')).length ? ok('every programme card draws its path strip') : bad('programme cards without a path strip');
 await a.screenshot({ path: `${OUT}/w-programs.png`, fullPage: true });
+
+console.log('\n── library map and builder (Redesign A) ──');
+await a.goto(BASE + '#/admin/library', { waitUntil: 'networkidle' });
+await a.waitForSelector('.catgroup');
+(await a.$$('.topictile')).length === 8 ? ok('topic index: 8 topics') : bad('topic tiles: ' + (await a.$$('.topictile')).length);
+(await a.$$('.ucard')).length === 16 ? ok('16 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
+(await a.$$('.ucard .nbar[data-made="true"]')).length === 2 ? ok('two produced units drawn solid, the rest striped') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
+await a.goto(BASE + '#/admin/library/u3', { waitUntil: 'networkidle' });
+await a.waitForSelector('.uhero');
+(await a.$('.banner--warn')) ? ok('unit in production says so on its page') : bad('no in-production banner on u3');
+(await a.$$('.structbar__n')).length === 5 ? ok('structure bar: 5 nuggets') : bad('structure bar nuggets: ' + (await a.$$('.structbar__n')).length);
+await a.screenshot({ path: `${OUT}/w-unit-admin.png`, fullPage: true });
+for (let s = 0; s < 4; s++) {
+  await a.goto(`${BASE}#/admin/programs/p2/build?step=${s}`, { waitUntil: 'networkidle' });
+  await a.waitForSelector('.bstep[aria-current="step"]');
+  await a.waitForTimeout(250);
+  await a.screenshot({ path: `${OUT}/w-builder-${s + 1}.png`, fullPage: true });
+}
+(await a.$$('.bpath__strip > button')).length === 3 ? ok('builder path strip: 3 units') : bad('path strip units: ' + (await a.$$('.bpath__strip > button')).length);
+(await a.$('.readybar')) ? ok('review step shows the readiness bar') : bad('no readiness bar on the review step');
 
 await a.goto(BASE + '#/admin/analytics', { waitUntil: 'networkidle' });
 await a.waitForSelector('.engchart');
@@ -61,7 +82,7 @@ await a.waitForSelector('.engchart');
 (await a.$$('.gridtable__row')).length > 0 ? ok('at-risk table rows') : bad('no at-risk rows');
 await a.screenshot({ path: `${OUT}/w-analytics.png`, fullPage: true });
 
-for (const [r, n] of [['admin/library', 'w-library'], ['admin/learners', 'w-learners'], ['admin/settings', 'w-settings'], ['admin/programs/p1', 'w-progdash'], ['admin/programs/new', 'w-builder']]) {
+for (const [r, n] of [['admin/library', 'w-library'], ['admin/learners', 'w-learners'], ['admin/settings', 'w-settings'], ['admin/programs/p1', 'w-progdash'], ['admin/programs/new', 'w-builder-new']]) {
   await a.goto(BASE + '#/' + r, { waitUntil: 'networkidle' });
   await a.waitForTimeout(500);
   await a.screenshot({ path: `${OUT}/${n}.png`, fullPage: true });
