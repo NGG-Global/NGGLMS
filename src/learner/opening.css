@@ -30,7 +30,7 @@
   padding: 5px 12px;
   border-radius: var(--r-pill);
   background: rgba(236, 42, 140, 0.22);
-  color: #ff8ec5;
+  color: var(--accent-glow);
   font: 700 10.5px/1.5 var(--sans);
   letter-spacing: 0.1em;
 }

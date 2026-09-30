@@ -5,6 +5,7 @@ import { PROGRAM_STATUS_LABEL } from '../state/types';
 import { programCompletion, programUnits, unitCompletion } from '../app/progress';
 import { isPlayable, unitMinutes } from '../content';
 import { AdminLayout } from './AdminLayout';
+import { ClientLogo } from '../app/ClientLogo';
 
 /** A published programme: who is on it, where they are, and where they stall. */
 export function ProgramDashboard() {
@@ -56,6 +57,7 @@ export function ProgramDashboard() {
     <AdminLayout crumb={`${program.client} · ${program.title}`}>
       <main className="page">
         <div className="page__head">
+          <ClientLogo client={program.client} size={52} radius={12} />
           <div>
             <span className={`pill${program.status === 'published' ? ' pill--ok' : ''}`}>
               {PROGRAM_STATUS_LABEL[program.status]}

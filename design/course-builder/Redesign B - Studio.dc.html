@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="./ngg-data.js"></script>
+<script src="./image-slot.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{direction:rtl;margin:0}
+body{background:#e9e8ec;color:#3a3a40;font:400 14.5px/1.65 'Heebo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;text-wrap:pretty}
+h1,h2,h3,h4,p,ul,ol,blockquote{margin:0}
+ul,ol{padding:0}li{list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:right}
+select,input,textarea{font:inherit;color:inherit}
+textarea{resize:vertical}
+::placeholder{color:#a8a6b0}
+input:focus,textarea:focus{outline:none;border-color:#f8cfe4 !important}
+a{color:#d11e78;text-decoration:none}a:hover{color:#b01a65;text-decoration:underline}
+</style>
+</helmet>
+
+<div style="padding:18px 24px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b6a73;direction:ltr">
+  <span style="font-weight:500;color:#15151f">REDESIGN B · Topic × role matrix + single-canvas builder studio</span>
+  <a href="Current%20UI.dc.html" style="color:#6b6a73;text-decoration:underline">compare: current UI</a>
+  <a href="Redesign%20A%20-%20Curriculum%20Map.dc.html" style="color:#6b6a73;text-decoration:underline">direction A</a>
+  <span style="flex:1"></span>
+  <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+    <button onClick="{{ t.go }}" style="padding:6px 12px;border-radius:99px;border:1px solid #d9d7de;background:{{ t.bg }};color:{{ t.fg }};font-family:'IBM Plex Mono',monospace;font-size:12px">{{ t.label }}</button>
+  </sc-for>
+</div>
+
+<div style="margin:0 24px 40px;width:1440px;min-height:1000px;background:#fbfafc;display:flex;flex-direction:column;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px -30px rgba(0,0,0,.35)" data-screen-label="Redesign B">
+  <header style="flex:none;height:68px;display:flex;align-items:center;gap:16px;padding:0 24px;background:#ffffff;border-bottom:1px solid #f0eff2">
+    <div style="display:flex;align-items:center;gap:10px;flex:none">
+      <img src="public/assets/ngg-mark.png" alt="NGG" style="height:26px;width:auto;display:block">
+      <b style="font-size:15px;font-weight:700;letter-spacing:-0.01em;white-space:nowrap;color:#15151f">פלטפורמת הלמידה</b>
+    </div>
+    <span style="width:1px;height:20px;background:#f0eff2;flex:none"></span>
+    <span style="font-size:12.5px;color:#8e8d95;white-space:nowrap;max-width:26ch;overflow:hidden;text-overflow:ellipsis;flex:none">{{ crumb }}</span>
+    <div style="flex:1;max-width:420px;margin:0 auto;display:flex;align-items:center;gap:9px;background:#f7f6f9;border:1px solid #f0eff2;border-radius:99px;padding:9px 15px">
+      <span style="flex:none;position:relative;width:15px;height:15px"><span style="position:absolute;inset:0 2px 2px 0;border:1.5px solid #c9c7d0;border-radius:99px"></span><span style="position:absolute;bottom:0;left:0;width:6px;height:1.5px;background:#c9c7d0;transform:rotate(45deg)"></span></span>
+      <span style="font-size:13px;color:#a8a6b0">חיפוש תוכניות, לקוחות, יחידות…</span>
+    </div>
+    <span style="flex:none;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:700;color:#4a4952">מדריך קלוד</span>
+    <nav style="display:inline-flex;gap:3px;padding:3px;background:#f7f6f9;border-radius:99px;flex:none">
+      <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;background:#ffffff;color:#15151f;box-shadow:0 1px 2px rgba(0,0,0,.07)">ניהול</span>
+      <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;color:#6b6a73">לומד</span>
+    </nav>
+    <span style="position:relative;flex:none;width:34px;height:34px;border-radius:99px;background:#f7f6f9;color:#6b6a73;font-size:14px;text-align:center;line-height:34px">●<i style="position:absolute;top:6px;left:7px;width:7px;height:7px;border-radius:99px;background:#ec2a8c;border:1.5px solid #fff"></i></span>
+    <div style="display:flex;align-items:center;gap:9px;flex:none">
+      <b style="font-size:12.5px;font-weight:600;color:#3a3a40">מאיה כהן</b>
+      <span style="display:grid;place-items:center;width:30px;height:30px;border-radius:99px;background:linear-gradient(145deg,#ec2a8c,#8e1050);color:#fff;font:700 11px/1 'Heebo',sans-serif">מכ</span>
+    </div>
+  </header>
+
+  <div style="display:flex;align-items:stretch;flex:1">
+    <sc-if value="{{ fullNav }}" hint-placeholder-val="{{ true }}">
+      <nav style="flex:none;width:244px;background:#ffffff;padding:20px 14px;display:flex;flex-direction:column">
+        <span style="display:block;padding:0 8px 12px;font:700 10px/1.4 'Heebo',sans-serif;letter-spacing:0.14em;color:#a8a6b0">NGG CONSULTING</span>
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <sc-if value="{{ n.active }}">
+            <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;font-size:14px;font-weight:700;color:#fff;background:#ec2a8c;box-shadow:0 10px 20px -12px rgba(236,42,140,.75);margin-bottom:3px">
+              <span style="flex:none;width:15px;height:15px;border:2px solid rgba(255,255,255,.9);background:rgba(255,255,255,.28);border-radius:4px"></span><span>{{ n.label }}</span>
+              <sc-if value="{{ n.count }}"><span style="margin-inline-start:auto;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;font:700 10.5px/1.5 'Heebo',sans-serif">{{ n.count }}</span></sc-if>
+            </button>
+          </sc-if>
+          <sc-if value="{{ n.idle }}">
+            <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;font-size:14px;font-weight:500;color:#4a4952;margin-bottom:3px" style-hover="background:#f7f6f9;color:#15151f">
+              <span style="flex:none;width:15px;height:15px;border:2px solid #c9c7d0;border-radius:4px"></span><span>{{ n.label }}</span>
+              <sc-if value="{{ n.count }}"><span style="margin-inline-start:auto;padding:2px 8px;border-radius:99px;background:#f2f1f5;color:#8e8d95;font:700 10.5px/1.5 'Heebo',sans-serif">{{ n.count }}</span></sc-if>
+            </button>
+          </sc-if>
+        </sc-for>
+        <span style="flex:1"></span>
+        <div style="margin-top:18px;background:linear-gradient(160deg,#fdeef6,#f7f0fb);border-radius:14px;padding:14px">
+          <div style="font:700 10px/1.4 'Heebo',sans-serif;letter-spacing:0.1em;color:#b0508a">טיוטה בעבודה</div>
+          <div style="margin-top:5px;font-size:13.5px;font-weight:700;color:#15151f;line-height:1.35">הטמעת AI בצוות משאבי אנוש</div>
+          <div style="font-size:12px;color:#7a5c6d">פבריקם · 3 יחידות</div>
+          <button onClick="{{ goBuilder }}" style="margin-top:11px;width:100%;display:flex;justify-content:center;padding:8px 15px;border-radius:99px;font-size:13px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">להמשיך בבנייה</button>
+        </div>
+      </nav>
+    </sc-if>
+    <sc-if value="{{ railNav }}">
+      <nav style="flex:none;width:64px;background:#ffffff;padding:20px 12px;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+          <button onClick="{{ n.go }}" title="{{ n.label }}" style="display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:{{ n.railBg }};box-shadow:{{ n.railSh }}"><span style="width:15px;height:15px;border:2px solid {{ n.railGlyph }};border-radius:4px"></span></button>
+        </sc-for>
+      </nav>
+    </sc-if>
+
+    <div style="flex:1;min-width:0;background:#fbfafc;border-top-right-radius:22px;border-right:1px solid #f4f3f6;position:relative;overflow:hidden">
+
+      <!-- ============ CATALOG · MATRIX ============ -->
+      <sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ true }}">
+        <main style="padding:24px 28px 80px">
+          <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:18px">
+            <div>
+              <h1 style="font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;color:#15151f">ספריית התוכן של NGG</h1>
+              <p style="margin-top:4px;font-size:14.5px;color:#6b6a73">מפת הקטלוג: נושא בשורות, קהל בעמודות. כל יחידה יושבת בקהל העיקרי שלה.</p>
+            </div>
+            <span style="flex:1"></span>
+            <button onClick="{{ toggleProduced }}" style="padding:7px 14px;border-radius:99px;border:1px solid {{ prodBd }};background:{{ prodBg }};font-size:12.5px;font-weight:600;color:{{ prodFg }}">הדגשת מופק בלבד</button>
+          </div>
+
+          <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);overflow:hidden">
+            <div style="display:grid;grid-template-columns:176px 2.2fr repeat(6,minmax(0,1fr));background:#fcfbfd;border-bottom:1px solid #f0eff2">
+              <div style="padding:12px 14px;font:700 11px/1.4 'Heebo',sans-serif;letter-spacing:.06em;color:#a8a6b0">נושא ↓ · קהל ←</div>
+              <sc-for list="{{ roleCols }}" as="r" hint-placeholder-count="7">
+                <div style="padding:12px 10px;border-right:1px solid #f4f3f6"><b style="display:block;font-size:12.5px;font-weight:700;color:#15151f">{{ r.label }}</b><span style="font-size:11px;color:#8e8d95">{{ r.count }}</span></div>
+              </sc-for>
+            </div>
+            <sc-for list="{{ matrix }}" as="row" hint-placeholder-count="8">
+              <div style="display:grid;grid-template-columns:176px 2.2fr repeat(6,minmax(0,1fr));border-bottom:1px solid #f4f3f6">
+                <div style="padding:14px;display:flex;flex-direction:column;gap:4px;border-right:3px solid {{ row.mid }};background:{{ row.tint }}">
+                  <span style="font:500 10.5px/1 'IBM Plex Mono',monospace;color:{{ row.ink }}">{{ row.code }}</span>
+                  <b style="font-size:13.5px;font-weight:800;line-height:1.3;color:#15151f">{{ row.name }}</b>
+                  <span style="font-size:11px;color:{{ row.ink }}">{{ row.countLabel }}</span>
+                </div>
+                <sc-for list="{{ row.cells }}" as="c" hint-placeholder-count="7">
+                  <div style="padding:8px;border-right:1px solid #f4f3f6;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;min-height:96px">
+                    <sc-for list="{{ c.units }}" as="u" hint-placeholder-count="1">
+                      <button onClick="{{ u.open }}" style="flex:1 1 120px;max-width:{{ c.maxW }};display:flex;flex-direction:column;border-radius:11px;overflow:hidden;background:#fff;border:1px solid {{ u.edge }};opacity:{{ u.op }};text-align:right" style-hover="box-shadow:0 10px 24px -14px rgba(21,21,31,.35)">
+                        <div style="position:relative;height:54px;background:{{ u.tint }}">
+                          <image-slot id="{{ u.imgId }}" shape="rect" placeholder=" " style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></image-slot>
+                          <span style="position:absolute;bottom:6px;left:6px;width:9px;height:9px;border-radius:99px;background:{{ u.dot }};box-shadow:0 0 0 2px #fff"></span>
+                        </div>
+                        <div style="padding:7px 9px 9px;display:flex;flex-direction:column;gap:2px">
+                          <span style="font:500 9.5px/1.2 'IBM Plex Mono',monospace;color:{{ u.ink }}">{{ u.code }}</span>
+                          <b style="font-size:12.5px;font-weight:700;line-height:1.3;color:#15151f">{{ u.title }}</b>
+                          <span style="font-size:11px;color:#8e8d95">{{ u.minLabel }}</span>
+                          <sc-if value="{{ u.alsoFor }}"><span style="font-size:10.5px;font-weight:600;color:#6b6a73">+ {{ u.alsoFor }}</span></sc-if>
+                        </div>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:12px;font-size:12px;color:#6b6a73">
+            <span style="display:flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:99px;background:#1f8a5b"></i>מופק</span>
+            <span style="display:flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:99px;background:#e0a020"></i>בהפקה</span>
+            <span>לחיצה על יחידה פותחת את הפרטים בצד.</span>
+          </div>
+        </main>
+
+        <sc-if value="{{ hasDrawer }}">
+          <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(21,21,31,.18)"></div>
+          <aside style="position:absolute;top:0;bottom:0;left:0;width:500px;background:#fff;box-shadow:30px 0 60px -30px rgba(21,21,31,.35);overflow-y:auto;display:flex;flex-direction:column">
+            <div style="position:relative;height:220px;flex:none;background:{{ D.tint }}">
+              <image-slot id="{{ D.imgId }}" shape="rect" placeholder="תמונת יחידה" style="position:absolute;inset:0;width:100%;height:100%"></image-slot>
+              <button onClick="{{ closeDrawer }}" style="position:absolute;top:12px;left:12px;width:34px;height:34px;border-radius:99px;background:rgba(255,255,255,.95);display:grid;place-items:center;font-size:15px;color:#15151f">✕</button>
+            </div>
+            <div style="padding:22px 24px 28px;display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+                <span style="padding:3px 11px;border-radius:99px;background:{{ D.tint }};color:{{ D.ink }};font-size:11.5px;font-weight:700">{{ D.topic }}</span>
+                <span style="font:500 11px/1 'IBM Plex Mono',monospace;color:{{ D.ink }}">{{ D.code }}</span>
+                <span style="padding:3px 11px;border-radius:99px;background:{{ D.stBg }};color:{{ D.stFg }};font-size:11.5px;font-weight:700">{{ D.stLabel }}</span>
+              </div>
+              <h2 style="font-size:24px;font-weight:800;letter-spacing:-0.03em;line-height:1.2;color:#15151f">{{ D.title }}</h2>
+              <p style="font-size:14px;line-height:1.6">{{ D.summary }}</p>
+              <div style="display:flex;gap:18px;font-size:12.5px;color:#6b6a73">
+                <span><b style="display:block;font-size:16px;color:#15151f">{{ D.minLabel }}</b>משך</span>
+                <span><b style="display:block;font-size:16px;color:#15151f">{{ D.nugCount }}</b>נאגטים</span>
+                <span><b style="display:block;font-size:16px;color:#15151f">{{ D.assessment }}</b>הערכה</span>
+                <span><b style="display:block;font-size:16px;color:#15151f">{{ D.used }}</b>תוכניות</span>
+              </div>
+              <div>
+                <div style="font:700 11px/1.4 'Heebo',sans-serif;letter-spacing:.12em;color:#a8a6b0;margin-bottom:8px">מבנה</div>
+                <ol style="display:flex;flex-direction:column;gap:5px">
+                  <sc-for list="{{ D.nuggets }}" as="n" hint-placeholder-count="5">
+                    <li style="display:grid;grid-template-columns:28px minmax(0,1fr) 110px;gap:10px;align-items:center;font-size:13px">
+                      <span style="font:500 11px/1 'IBM Plex Mono',monospace;color:{{ D.ink }}">{{ n.n }}</span>
+                      <span style="font-weight:600;color:#15151f">{{ n.title }}</span>
+                      <span style="display:flex;align-items:center;gap:6px"><i style="height:6px;border-radius:99px;background:{{ n.bg }};width:{{ n.w }}"></i><span style="font-size:11px;color:#8e8d95">{{ n.min }}′</span></span>
+                    </li>
+                  </sc-for>
+                  <li style="display:grid;grid-template-columns:28px minmax(0,1fr) 110px;gap:10px;align-items:center;font-size:13px;margin-top:3px;padding-top:8px;border-top:1px dashed #f0eff2"><span style="color:#ec2a8c">◆</span><span style="font-weight:600;color:#8e1050">{{ D.assessment }}</span><span></span></li>
+                </ol>
+              </div>
+              <div style="padding:14px;border-radius:13px;background:#fcfbfd;border:1px solid #f0eff2">
+                <div style="font:700 11px/1.4 'Heebo',sans-serif;letter-spacing:.12em;color:#a8a6b0">בסיום הלומד יוכל</div>
+                <ul style="margin-top:6px;display:flex;flex-direction:column;gap:4px">
+                  <sc-for list="{{ D.outcomes }}" as="o" hint-placeholder-count="4"><li style="display:flex;gap:8px;font-size:13px"><span style="color:#ec2a8c;font-weight:700">✓</span>{{ o.o }}</li></sc-for>
+                </ul>
+              </div>
+              <p style="font-size:13px;color:#6b6a73;line-height:1.6"><b style="color:#15151f">מיועדת ל: </b>{{ D.recommendedFor }}</p>
+              <div style="display:flex;gap:9px;margin-top:4px">
+                <button onClick="{{ addFromDrawer }}" style="padding:11px 19px;border-radius:99px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">+ הוספה לטיוטה של פבריקם</button>
+                <span style="padding:11px 19px;border-radius:99px;border:1px solid #f0eff2;color:#6b6a73;font-weight:600">דף היחידה המלא</span>
+              </div>
+            </div>
+          </aside>
+        </sc-if>
+      </sc-if>
+
+      <!-- ============ PROGRAMS · BY CLIENT ============ -->
+      <sc-if value="{{ isPrograms }}">
+        <main style="padding:24px 28px 80px;max-width:1320px">
+          <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+            <div>
+              <h1 style="font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;color:#15151f">תוכניות לפי לקוח</h1>
+              <p style="margin-top:4px;font-size:14.5px;color:#6b6a73">5 לקוחות, 7 תוכניות. כל שורה מציגה את המסלול: צבע לפי נושא, רוחב לפי משך.</p>
+            </div>
+            <span style="flex:1"></span>
+            <button onClick="{{ goBuilder }}" style="padding:11px 19px;border-radius:99px;font-size:14.5px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">+ תוכנית חדשה</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ clients }}" as="c" hint-placeholder-count="4">
+              <section style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 18px;background:#fcfbfd">
+                  <image-slot id="{{ c.logoId }}" shape="rounded" radius="10" placeholder="לוגו" style="width:38px;height:38px;flex:none"></image-slot>
+                  <span><b style="display:block;font-size:14.5px;font-weight:800;color:#15151f">{{ c.client }}</b><span style="font-size:12px;color:#8e8d95">{{ c.meta }}</span></span>
+                  <span style="flex:1"></span>
+                  <button style="color:#d11e78;font-weight:700;font-size:12.5px">+ תוכנית ל{{ c.client }}</button>
+                </div>
+                <sc-for list="{{ c.rows }}" as="p" hint-placeholder-count="2">
+                  <button onClick="{{ p.go }}" style="width:100%;display:grid;grid-template-columns:minmax(200px,1.5fr) minmax(260px,2.4fr) 110px 90px 130px 80px;gap:16px;align-items:center;padding:13px 18px;border-top:1px solid #f4f3f6;text-align:right" style-hover="background:#fcfbfd">
+                    <span style="min-width:0"><b style="display:block;font-size:14px;font-weight:700;color:#15151f">{{ p.title }}</b><span style="display:block;font-size:12px;color:#8e8d95">{{ p.audience }} · {{ p.cohort }}</span></span>
+                    <span style="display:flex;gap:3px;height:26px">
+                      <sc-for list="{{ p.strip }}" as="s" hint-placeholder-count="5"><i title="{{ s.title }}" style="flex:{{ s.flex }};display:grid;place-items:center;border-radius:6px;background:{{ s.bg }};font:500 10px/1 'IBM Plex Mono',monospace;font-style:normal;color:{{ s.fg }}">{{ s.n }}</i></sc-for>
+                    </span>
+                    <span><span style="padding:3px 11px;border-radius:99px;background:{{ p.chipBg }};color:{{ p.chipFg }};font-size:11.5px;font-weight:700;white-space:nowrap">{{ p.status }}</span></span>
+                    <span style="font-size:12.5px;color:#6b6a73">{{ p.learners }}</span>
+                    <span style="display:flex;align-items:center;gap:8px"><span style="flex:1;height:6px;border-radius:99px;background:#f2f1f5;overflow:hidden"><i style="display:block;height:100%;background:linear-gradient(90deg,#f871b5,#ec2a8c);width:{{ p.pctW }}"></i></span><b style="font-size:11.5px;color:#15151f">{{ p.pct }}</b></span>
+                    <span style="font-size:11.5px;color:#a8a6b0">{{ p.owner }}</span>
+                  </button>
+                </sc-for>
+              </section>
+            </sc-for>
+          </div>
+        </main>
+      </sc-if>
+
+      <!-- ============ BUILDER · STUDIO ============ -->
+      <sc-if value="{{ isBuilder }}">
+        <div style="display:flex;align-items:center;gap:14px;padding:14px 20px;background:#fff;border-bottom:1px solid #f0eff2">
+          <image-slot id="logo-פבריקם" shape="rounded" radius="10" placeholder="לוגו" style="width:40px;height:40px;flex:none"></image-slot>
+          <div style="min-width:0">
+            <div style="font-size:12px;color:#8e8d95">{{ d.client }} · {{ d.audience }}</div>
+            <b style="font-size:17px;font-weight:800;letter-spacing:-0.02em;color:#15151f">{{ d.title }}</b>
+          </div>
+          <span style="flex:1"></span>
+          <div style="display:flex;flex-direction:column;gap:5px;width:190px">
+            <span style="font-size:11.5px;color:#6b6a73">{{ readyLabel }}</span>
+            <span style="display:flex;gap:3px;height:6px"><sc-for list="{{ readyBar }}" as="b" hint-placeholder-count="7"><i style="flex:1;border-radius:99px;background:{{ b.bg }}"></i></sc-for></span>
+          </div>
+          <span style="padding:9px 16px;border-radius:99px;border:1px solid #f0eff2;color:#6b6a73;font-weight:600;font-size:13px">צפייה כלומד</span>
+          <button onClick="{{ openPublish }}" style="padding:9px 18px;border-radius:99px;font-weight:700;font-size:13px;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">פרסום…</button>
+        </div>
+
+        <div style="display:grid;grid-template-columns:300px minmax(0,1fr) 350px;gap:0;align-items:stretch;min-height:900px">
+          <!-- library (right) -->
+          <aside style="background:#fff;border-left:1px solid #f0eff2;padding:16px 14px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:baseline;gap:8px"><b style="font-size:14px;font-weight:700;color:#15151f">ספריית התוכן</b><span style="font-size:11.5px;color:#8e8d95">16 יחידות</span></div>
+            <input type="search" value="{{ libQ }}" onChange="{{ setLibQ }}" placeholder="חיפוש…" style="padding:8px 13px;border:1px solid #f0eff2;border-radius:99px;background:#fbfafc;font-size:13px">
+            <sc-if value="{{ hasInsert }}"><div style="padding:8px 11px;border-radius:10px;background:#fdeef6;color:#8e1050;font-size:12px;font-weight:600">יחידה שתתווסף תיכנס במקום {{ insertLabel }} במסלול</div></sc-if>
+            <sc-for list="{{ libGroups }}" as="g" hint-placeholder-count="9">
+              <div style="border:1px solid #f0eff2;border-radius:13px;overflow:hidden">
+                <button onClick="{{ g.toggle }}" style="width:100%;display:flex;align-items:center;gap:9px;padding:9px 11px;background:{{ g.headBg }}">
+                  <i style="width:10px;height:10px;border-radius:3px;background:{{ g.dot }}"></i>
+                  <b style="flex:1;font-size:12.5px;font-weight:700;color:#15151f">{{ g.label }}</b>
+                  <span style="font-size:11px;color:#8e8d95">{{ g.count }}</span>
+                  <span style="font-size:10px;color:#8e8d95">{{ g.caret }}</span>
+                </button>
+                <sc-if value="{{ g.open }}">
+                  <sc-for list="{{ g.units }}" as="u" hint-placeholder-count="2">
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 11px;border-top:1px solid #f4f3f6;opacity:{{ u.op }}">
+                      <span style="min-width:0">
+                        <b style="display:block;font-size:12.5px;font-weight:700;color:#15151f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.title }}</b>
+                        <span style="display:flex;gap:6px;align-items:center;font-size:11px;color:#8e8d95"><i style="width:7px;height:7px;border-radius:99px;background:{{ u.dot }}"></i>{{ u.minLabel }} · {{ u.rolesText }}</span>
+                      </span>
+                      <sc-if value="{{ u.inPath }}"><span style="font-size:11px;font-weight:700;color:#1f8a5b">✓</span></sc-if>
+                      <sc-if value="{{ u.notInPath }}"><button onClick="{{ u.add }}" style="width:28px;height:28px;border-radius:99px;background:#fdeef6;color:#8e1050;font-weight:700;display:grid;place-items:center">+</button></sc-if>
+                    </div>
+                  </sc-for>
+                </sc-if>
+              </div>
+            </sc-for>
+          </aside>
+
+          <!-- path (center) -->
+          <section style="padding:20px 26px 60px">
+            <div style="display:flex;align-items:baseline;gap:10px">
+              <h2 style="font-size:17px;font-weight:800;letter-spacing:-0.02em;color:#15151f">מסלול הלמידה</h2>
+              <span style="font-size:12.5px;color:#8e8d95">{{ totalLabel }}</span>
+              <span style="flex:1"></span>
+              <span style="font-size:12px;color:#6b6a73">{{ orderLabel }}</span>
+            </div>
+            <div style="display:flex;gap:3px;height:10px;margin:10px 0 18px">
+              <sc-for list="{{ path }}" as="u" hint-placeholder-count="3"><i style="flex:{{ u.min }};border-radius:99px;background:{{ u.stripBg }}"></i></sc-for>
+            </div>
+
+            <div style="display:flex;flex-direction:column">
+              <sc-for list="{{ path }}" as="u" hint-placeholder-count="3">
+                <div>
+                  <button onClick="{{ u.insertHere }}" style="width:100%;display:flex;align-items:center;gap:8px;height:26px;padding-right:13px;opacity:{{ u.insOp }}" style-hover="opacity:1">
+                    <span style="width:2px;height:26px;background:#f0eff2;margin-right:4px"></span>
+                    <span style="flex:1;height:0;border-top:1.5px dashed {{ u.insColor }}"></span>
+                    <span style="font-size:11px;font-weight:700;color:{{ u.insColor }}">+ הוספה כאן</span>
+                  </button>
+                  <div style="display:grid;grid-template-columns:32px minmax(0,1fr);gap:12px;align-items:start">
+                    <span style="display:grid;place-items:center;width:32px;height:32px;border-radius:99px;background:{{ u.mid }};color:#fff;font:700 11px/1 'IBM Plex Mono',monospace">{{ u.n }}</span>
+                    <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);overflow:hidden">
+                      <div style="display:grid;grid-template-columns:112px minmax(0,1fr) auto;gap:14px;padding:12px">
+                        <div style="position:relative;height:76px;border-radius:10px;overflow:hidden;background:{{ u.tint }}"><image-slot id="{{ u.imgId }}" shape="rect" placeholder="תמונה" style="position:absolute;inset:0;width:100%;height:100%"></image-slot></div>
+                        <div style="min-width:0;display:flex;flex-direction:column;gap:4px">
+                          <span style="display:flex;gap:8px;align-items:center"><span style="font:500 10.5px/1 'IBM Plex Mono',monospace;color:{{ u.ink }}">{{ u.code }}</span><span style="font-size:11px;color:{{ u.ink }}">{{ u.topic }}</span><span style="padding:1px 8px;border-radius:99px;background:{{ u.stBg }};color:{{ u.stFg }};font-size:10.5px;font-weight:700">{{ u.stLabel }}</span></span>
+                          <b style="font-size:15px;font-weight:700;letter-spacing:-0.01em;color:#15151f">{{ u.title }}</b>
+                          <span style="font-size:12px;color:#8e8d95">{{ u.minLabel }} · {{ u.nugLabel }} · {{ u.assessment }}</span>
+                          <span style="display:flex;gap:3px;height:5px;margin-top:auto"><sc-for list="{{ u.bar }}" as="b" hint-placeholder-count="5"><i style="flex:{{ b.flex }};border-radius:99px;background:{{ b.bg }}"></i></sc-for></span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:2px;font-size:12px;color:#6b6a73">
+                          <button onClick="{{ u.up }}" style="padding:3px 8px;border-radius:6px" style-hover="background:#f7f6f9">↑</button>
+                          <button onClick="{{ u.down }}" style="padding:3px 8px;border-radius:6px" style-hover="background:#f7f6f9">↓</button>
+                          <button onClick="{{ u.remove }}" style="padding:3px 8px;border-radius:6px;color:#b0162f" style-hover="background:#fcebee">✕</button>
+                        </div>
+                      </div>
+                      <sc-if value="{{ u.editing }}">
+                        <div style="padding:12px;border-top:1px solid #f4f3f6;background:#fffafd">
+                          <span style="font-size:12px;font-weight:700;color:#8e1050">פתיח מותאם ל{{ d.client }}</span>
+                          <textarea rows="3" value="{{ u.note }}" onChange="{{ u.setNote }}" placeholder="משפט או שניים שמחברים את היחידה לעולם של הלקוח…" style="margin-top:6px;width:100%;padding:10px 12px;border:1px solid #f8cfe4;border-radius:12px;background:#fff;font-size:13.5px;line-height:1.6"></textarea>
+                          <div style="display:flex;justify-content:flex-end;margin-top:6px"><button onClick="{{ doneNote }}" style="padding:6px 14px;border-radius:99px;background:#15151f;color:#fff;font-size:12px;font-weight:700">סיום</button></div>
+                        </div>
+                      </sc-if>
+                      <sc-if value="{{ u.showNote }}">
+                        <button onClick="{{ u.editNote }}" style="width:100%;display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-top:1px solid #f4f3f6;background:linear-gradient(160deg,#fdeef6,#f7f0fb);text-align:right">
+                          <span style="font-size:11px;font-weight:700;color:#8e1050;white-space:nowrap">פתיח ללקוח</span>
+                          <span style="flex:1;font-size:13px;color:#4a2036;line-height:1.5">{{ u.note }}</span>
+                          <span style="font-size:11.5px;font-weight:700;color:#d11e78">עריכה</span>
+                        </button>
+                      </sc-if>
+                      <sc-if value="{{ u.addNote }}">
+                        <button onClick="{{ u.editNote }}" style="width:100%;padding:8px 12px;border-top:1px solid #f4f3f6;font-size:12px;font-weight:600;color:#8e8d95;text-align:right" style-hover="color:#d11e78;background:#fcfbfd">+ פתיח מותאם ללקוח</button>
+                      </sc-if>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+              <button onClick="{{ insertEnd }}" style="margin-top:10px;margin-right:44px;padding:14px;border-radius:16px;border:1.5px dashed {{ endColor }};color:{{ endColor }};font-size:13px;font-weight:700;text-align:center">+ יחידה בסוף המסלול</button>
+            </div>
+          </section>
+
+          <!-- inspector (left) -->
+          <aside style="background:#fff;border-right:1px solid #f0eff2;display:flex;flex-direction:column">
+            <div style="display:flex;gap:3px;padding:10px;border-bottom:1px solid #f0eff2">
+              <sc-for list="{{ panels }}" as="p" hint-placeholder-count="3">
+                <button onClick="{{ p.go }}" style="flex:1;display:flex;justify-content:center;gap:6px;padding:8px 10px;border-radius:10px;font-size:12.5px;font-weight:700;background:{{ p.bg }};color:{{ p.fg }}">{{ p.label }}<sc-if value="{{ p.badge }}"><span style="padding:0 6px;border-radius:99px;background:#fdf3e5;color:#8a5f08;font-size:10.5px">{{ p.badge }}</span></sc-if></button>
+              </sc-for>
+            </div>
+            <div style="padding:16px 16px 24px;display:flex;flex-direction:column;gap:14px">
+              <sc-if value="{{ pClient }}">
+                <div style="display:flex;gap:12px;align-items:center">
+                  <image-slot id="logo-פבריקם" shape="rounded" radius="12" placeholder="גררו לוגו" style="width:72px;height:72px;flex:none"></image-slot>
+                  <label style="flex:1;display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600;color:#6b6a73">לקוח</span><input value="{{ d.client }}" onChange="{{ set.client }}" style="padding:9px 12px;border:1px solid #f0eff2;border-radius:12px;font-size:14px;font-weight:600"></label>
+                </div>
+                <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600;color:#6b6a73">שם התוכנית · בניהול</span><input value="{{ d.title }}" onChange="{{ set.title }}" style="padding:9px 12px;border:1px solid #f0eff2;border-radius:12px;font-size:13.5px"></label>
+                <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600;color:#6b6a73">שם הקורס שהלומדים יראו</span><input value="{{ d.course }}" onChange="{{ set.course }}" style="padding:9px 12px;border:1px solid #f8cfe4;border-radius:12px;font-size:13.5px;font-weight:600"></label>
+                <div>
+                  <span style="font-size:12px;font-weight:600;color:#6b6a73">קהל יעד · משפיע על ההמלצות בספרייה</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">
+                    <sc-for list="{{ roleSeg }}" as="r" hint-placeholder-count="7"><button onClick="{{ r.go }}" style="padding:5px 11px;border-radius:99px;border:1px solid {{ r.bd }};background:{{ r.bg }};font-size:12px;font-weight:600;color:{{ r.fg }}">{{ r.label }}</button></sc-for>
+                  </div>
+                </div>
+                <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600;color:#6b6a73">תיאור הקהל</span><input value="{{ d.audience }}" onChange="{{ set.audience }}" style="padding:9px 12px;border:1px solid #f0eff2;border-radius:12px;font-size:13.5px"></label>
+              </sc-if>
+              <sc-if value="{{ pExp }}">
+                <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600;color:#6b6a73">מסר פתיחה</span><textarea rows="3" value="{{ d.welcome }}" onChange="{{ set.welcome }}" style="padding:9px 12px;border:1px solid #f0eff2;border-radius:12px;font-size:13.5px;line-height:1.6"></textarea></label>
+                <label style="display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;font-weight:600;color:#6b6a73">מסר סיום</span><textarea rows="2" value="{{ d.closing }}" onChange="{{ set.closing }}" style="padding:9px 12px;border:1px solid #f0eff2;border-radius:12px;font-size:13.5px;line-height:1.6"></textarea></label>
+                <div style="display:flex;flex-direction:column;gap:2px">
+                  <span style="font-size:12px;font-weight:600;color:#6b6a73;margin-bottom:4px">תנאי השלמה</span>
+                  <sc-for list="{{ rules }}" as="r" hint-placeholder-count="3">
+                    <button onClick="{{ r.toggle }}" style="display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid #f4f3f6">
+                      <span style="flex:1"><b style="display:block;font-size:13px;font-weight:700;color:#15151f">{{ r.label }}</b><span style="font-size:11.5px;color:#8e8d95">{{ r.hint }}</span></span>
+                      <span style="display:flex;width:34px;height:20px;border-radius:99px;padding:2px;background:{{ r.track }};justify-content:{{ r.just }}"><i style="width:16px;height:16px;border-radius:99px;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)"></i></span>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ pPub }}">
+                <ul style="display:flex;flex-direction:column;gap:10px">
+                  <sc-for list="{{ checks }}" as="c" hint-placeholder-count="7">
+                    <li style="display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.5">
+                      <i style="flex:none;width:18px;height:18px;border-radius:99px;font:700 10px/18px 'Heebo',sans-serif;font-style:normal;text-align:center;background:{{ c.bg }};color:{{ c.fg }}">{{ c.icon }}</i>
+                      <span>{{ c.label }}<em style="display:block;font-style:normal;font-size:11.5px;color:#8e8d95">{{ c.hint }}</em></span>
+                    </li>
+                  </sc-for>
+                </ul>
+                <button style="width:100%;display:flex;justify-content:center;padding:11px;border-radius:99px;font-weight:700;background:{{ pubBg }};color:{{ pubFg }}">פרסום התוכנית</button>
+              </sc-if>
+
+              <div style="margin-top:6px;padding-top:14px;border-top:1px solid #f0eff2">
+                <div style="font:700 10.5px/1.4 'Heebo',sans-serif;letter-spacing:.12em;color:#a8a6b0;margin-bottom:8px">תצוגה חיה · מה הלומד רואה</div>
+                <div style="border-radius:18px;overflow:hidden;border:1px solid #f0eff2;background:#fbfafc">
+                  <div style="background:linear-gradient(155deg,#15151f 0%,#1b0f1c 55%,#33112b 100%);color:#fff;padding:16px">
+                    <div style="display:flex;align-items:center;gap:8px"><image-slot id="logo-פבריקם" shape="rounded" radius="6" placeholder=" " style="width:24px;height:24px;flex:none"></image-slot><span style="font:700 10px/1 'Heebo',sans-serif;letter-spacing:.1em;color:#ff8ec5">{{ d.client }}</span></div>
+                    <div style="margin-top:8px;font-size:17px;font-weight:800;letter-spacing:-0.02em;line-height:1.2">{{ d.course }}</div>
+                    <div style="margin-top:4px;font-size:11.5px;color:rgba(255,255,255,.7)">{{ totalLabel }}</div>
+                  </div>
+                  <div style="padding:10px;display:flex;flex-direction:column;gap:6px">
+                    <div style="padding:9px 11px;border-radius:11px;background:#fdeef6;color:#4a2036;font-size:12px;line-height:1.5">{{ d.welcome }}</div>
+                    <sc-for list="{{ preview }}" as="u" hint-placeholder-count="3">
+                      <div style="display:flex;gap:9px;align-items:center;padding:8px 10px;border-radius:11px;background:#fff;border:1px solid #f0eff2;opacity:{{ u.op }}">
+                        <span style="display:grid;place-items:center;width:24px;height:24px;border-radius:99px;background:{{ u.sBg }};color:{{ u.sFg }};font-size:10px;font-weight:700">{{ u.sMark }}</span>
+                        <span style="min-width:0;flex:1"><b style="display:block;font-size:12.5px;color:#15151f">{{ u.title }}</b><span style="display:block;font-size:11px;color:#8e8d95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ u.sub }}</span></span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = {
+    screen: 'catalog', drawer: null, onlyProduced: false, panel: 'client', libQ: '', open: { rec: true, resp: true }, insertAt: null, editing: null,
+    draft: {
+      client: 'פבריקם', title: 'הטמעת AI בצוות משאבי אנוש', course: 'AI בעבודת משאבי אנוש',
+      audience: 'שותפי HR', role: 'משאבי אנוש', units: ['u1', 'u2', 'u12'],
+      notes: { u12: 'ביחידה הזו נחבר את העקרונות לנוהל הגיוס הפנימי של פבריקם.' },
+      welcome: 'ברוכים הבאים. עשו יחידה אחת בכל פעם.', closing: 'סיימתם את התוכנית. אישור ההשתתפות יישלח אליכם במייל.',
+      sequential: true, requireAll: true, requireAssessment: true,
+    },
+  };
+  componentDidMount() {
+    if (!window.NGG) this._t = setInterval(() => { if (window.NGG) { clearInterval(this._t); this.forceUpdate(); } }, 50);
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+  upd(patch) { this.setState((s) => ({ draft: { ...s.draft, ...patch } })); }
+  addUnit(id) {
+    const d = this.state.draft; if (d.units.includes(id)) return;
+    const a = [...d.units]; const at = this.state.insertAt == null ? a.length : this.state.insertAt;
+    a.splice(at, 0, id); this.upd({ units: a }); this.setState({ insertAt: null });
+  }
+
+  renderVals() {
+    const N = window.NGG;
+    const st = this.state, d = st.draft, s = st.screen;
+    const go = (screen, extra) => () => this.setState({ screen, drawer: null, ...(extra || {}) });
+    const tabs = [['catalog', 'Catalog + unit drawer'], ['programs', 'Programs'], ['builder', 'Builder studio']].map(([k, label]) => ({
+      label, go: go(k), bg: s === k ? '#15151f' : '#fff', fg: s === k ? '#fff' : '#3a3a40' }));
+    const nav = [['דשבורד', null, null], ['תוכניות', 7, 'programs'], ['ספריית תוכן', 16, 'catalog'], ['לומדים ומשתתפים', 449, null], ['אנליטיקה', null, null], ['הגדרות', null, null]]
+      .map(([label, count, screen]) => {
+        const active = screen === 'programs' ? (s === 'programs' || s === 'builder') : screen === s;
+        return { label, count, active, idle: !active, go: screen ? go(screen) : () => {},
+          railBg: active ? '#ec2a8c' : 'transparent', railSh: active ? '0 10px 20px -12px rgba(236,42,140,.75)' : 'none', railGlyph: active ? 'rgba(255,255,255,.9)' : '#c9c7d0' };
+      });
+    const base = { tabs, nav, fullNav: s !== 'builder', railNav: s === 'builder', isCatalog: s === 'catalog', isPrograms: s === 'programs', isBuilder: s === 'builder',
+      goBuilder: go('builder'), d, libQ: st.libQ, crumb: { catalog: 'ספריית התוכן', programs: 'תוכניות', builder: `עריכת ${d.title}` }[s] };
+    if (!N) return { ...base, matrix: [], roleCols: [], clients: [], path: [], libGroups: [], panels: [], D: {} };
+
+    const hatch = (t) => `repeating-linear-gradient(135deg, oklch(0.85 0.06 ${t.hue}) 0 3px, transparent 3px 6px)`;
+    const sumMin = (l) => l.reduce((a, u) => a + u.min, 0);
+    const deco = (u) => ({
+      ...u, tint: u.t.tint, ink: u.t.ink, edge: u.t.edge, mid: u.t.mid, imgId: `unit-${u.id}`,
+      minLabel: `${u.min} דק׳`, nugLabel: `${u.nuggets.length} נאגטים`, nugCount: String(u.nuggets.length),
+      stLabel: u.playable ? 'מופק' : 'בהפקה', stBg: u.playable ? '#e9f6ef' : '#fbf2e0', stFg: u.playable ? '#167349' : '#a66f08', dot: u.playable ? '#1f8a5b' : '#e0a020',
+      bar: u.nuggets.map((g) => ({ flex: g.min, bg: u.playable ? u.t.mid : hatch(u.t) })), rolesText: u.roles.join(', '),
+    });
+
+    // matrix
+    const roleCols = N.roles.map((r) => ({ label: r, count: `${N.units.filter((u) => u.roles[0] === r).length} יחידות` }));
+    const matrix = N.topics.map((t) => { const list = N.units.filter((u) => u.t.id === t.id);
+      return { ...t, countLabel: `${list.length} · ${sumMin(list)} דק׳`,
+        cells: N.roles.map((r, ci) => ({ maxW: ci === 0 ? '48%' : '100%', units: list.filter((u) => u.roles[0] === r).map((u) => ({ ...deco(u),
+          alsoFor: u.roles.slice(1).join(', '), op: st.onlyProduced && !u.playable ? 0.3 : 1, open: () => this.setState({ drawer: u.id }) })) })) }; });
+    let D = {};
+    if (st.drawer) { const u = N.unit(st.drawer); const mx = Math.max(...u.nuggets.map((g) => g.min));
+      D = { ...deco(u), used: String(u.used), nuggets: u.nuggets.map((g) => ({ ...g, bg: u.playable ? u.t.mid : hatch(u.t), w: `${Math.round((g.min / mx) * 80)}px` })), outcomes: u.outcomes.map((o) => ({ o })) }; }
+
+    // programs by client
+    const chip = { 'פורסם': ['#e9f6ef', '#167349'], 'טיוטה': ['#f2f2f4', '#3a3a40'], 'מוכן לפרסום': ['#fbf2e0', '#a66f08'], 'בארכיון': ['#f7f6f9', '#949494'] };
+    const byClient = {}; N.programs.forEach((p) => { (byClient[p.client] = byClient[p.client] || []).push(p); });
+    const clients = Object.entries(byClient).map(([client, list]) => ({ client, logoId: `logo-${client}`,
+      meta: `${list.length} ${list.length === 1 ? 'תוכנית' : 'תוכניות'} · ${list.reduce((a, p) => a + p.learners, 0)} לומדים`,
+      rows: list.map((p) => ({ ...p, chipBg: chip[p.status][0], chipFg: chip[p.status][1],
+        strip: p.units.map(N.unit).map((u, i) => ({ flex: u.min, title: u.title, n: String(i + 1).padStart(2, '0'), bg: u.playable ? u.t.mid : hatch(u.t), fg: u.playable ? '#fff' : u.t.ink })),
+        learners: p.learners ? `${p.learners} לומדים` : 'טרם פורסם', pct: p.learners ? `${p.pct}%` : '—', pctW: `${p.pct}%`,
+        go: p.id === 'p2' ? go('builder') : () => {} })) }));
+
+    // builder
+    const pathU = d.units.map(N.unit);
+    const totalLabel = `${pathU.length} יחידות · ${sumMin(pathU)} דק׳`;
+    const move = (i, dir) => () => { const a = [...d.units]; const j = i + dir; if (j < 0 || j >= a.length) return; [a[i], a[j]] = [a[j], a[i]]; this.upd({ units: a }); };
+    const path = pathU.map((u, i) => { const note = d.notes[u.id] || ''; const editing = st.editing === u.id;
+      return { ...deco(u), n: String(i + 1).padStart(2, '0'), note, editing, showNote: !editing && !!note, addNote: !editing && !note,
+        stripBg: u.playable ? u.t.mid : hatch(u.t), up: move(i, -1), down: move(i, 1),
+        remove: () => this.upd({ units: d.units.filter((x) => x !== u.id) }),
+        editNote: () => this.setState({ editing: u.id }), setNote: (e) => this.upd({ notes: { ...d.notes, [u.id]: e.target.value } }),
+        insertHere: () => this.setState({ insertAt: st.insertAt === i ? null : i }), insOp: st.insertAt === i ? 1 : 0.35, insColor: st.insertAt === i ? '#ec2a8c' : '#c9c7d0' }; });
+    const q = st.libQ.trim();
+    const match = (u) => !q || (u.title + u.summary + u.topic).includes(q);
+    const unitRow = (u) => { const inPath = d.units.includes(u.id); return { ...deco(u), inPath, notInPath: !inPath, op: inPath ? 0.55 : 1, add: () => this.addUnit(u.id) }; };
+    const rec = N.units.filter((u) => (u.roles.includes(d.role) || u.used >= 14) && match(u));
+    const libGroups = [{ key: 'rec', label: `מומלץ ל${d.audience}`, dot: '#ec2a8c', list: rec }, ...N.topics.map((t) => ({ key: t.id, label: t.name, dot: t.mid, list: N.units.filter((u) => u.t.id === t.id && match(u)) }))]
+      .filter((g) => g.list.length)
+      .map((g) => { const open = q ? true : !!st.open[g.key]; return { ...g, open, count: g.list.length, caret: open ? '▾' : '◂', headBg: open ? '#fcfbfd' : '#fff', units: g.list.map(unitRow),
+        toggle: () => this.setState({ open: { ...st.open, [g.key]: !st.open[g.key] } }) }; });
+
+    const set = {}; ['client', 'title', 'course', 'audience', 'welcome', 'closing'].forEach((k) => { set[k] = (e) => this.upd({ [k]: e.target.value }); });
+    const roleSeg = N.roles.map((r) => ({ label: r, go: () => this.upd({ role: r }), bg: d.role === r ? '#fdeef6' : '#fff', bd: d.role === r ? '#f8cfe4' : '#f0eff2', fg: d.role === r ? '#8e1050' : '#6b6a73' }));
+    const rules = [['sequential', 'לפי הסדר', 'יחידה נפתחת אחרי שהקודמת הושלמה.'], ['requireAll', 'כל היחידות', 'רק יחידות מופקות נספרות.'], ['requireAssessment', 'תרגיל בכל מקטע', 'צפייה לבדה אינה מספיקה.']]
+      .map(([k, label, hint]) => { const on = d[k]; return { label, hint, toggle: () => this.upd({ [k]: !on }), track: on ? '#ec2a8c' : '#e5e4e7', just: on ? 'flex-start' : 'flex-end' }; });
+    const pending = pathU.filter((u) => !u.playable);
+    const C = (ok, label, hint, warn) => ({ ok, label, hint, icon: ok ? '✓' : '!', bg: ok ? '#eaf6f0' : (warn ? '#f1eefc' : '#fdf3e5'), fg: ok ? '#12603f' : (warn ? '#4a2fa8' : '#8a5f08'), blocking: !ok && !warn });
+    const checks = [C(!!d.client.trim(), 'הוגדר לקוח', d.client), C(!!d.title.trim(), 'הוגדר שם תוכנית', d.title), C(!!d.course.trim(), 'הוגדר שם קורס ללומד', d.course),
+      C(!!d.audience.trim(), 'הוגדר קהל יעד', `${d.audience} · ${d.role}`), C(pathU.length >= 2, 'לפחות שתי יחידות', `כרגע ${pathU.length}.`),
+      C(!pending.length, 'כל היחידות מופקות', pending.length ? `${pending.map((u) => u.title).join(', ')} בהפקה. לא חוסם.` : 'כל היחידות ניתנות להשמעה.', true), C(!!d.welcome.trim(), 'נכתב מסר פתיחה', d.welcome)];
+    const blocking = checks.filter((c) => c.blocking).length;
+    const panels = [['client', 'לקוח וקהל'], ['exp', 'חוויה'], ['pub', 'פרסום']].map(([k, label]) => ({ label, go: () => this.setState({ panel: k }),
+      bg: st.panel === k ? '#15151f' : 'transparent', fg: st.panel === k ? '#fff' : '#6b6a73', badge: k === 'pub' && pending.length ? String(pending.length) : '' }));
+    const preview = path.slice(0, 4).map((u, i) => ({ title: u.title, sub: u.note || `${u.minLabel}${u.playable ? '' : ' · בהכנה'}`, op: d.sequential && i > 0 ? 0.55 : 1,
+      sBg: i === 0 ? '#ec2a8c' : '#f2f1f5', sFg: i === 0 ? '#fff' : '#a8a6b0', sMark: i === 0 ? '▶' : (d.sequential ? '—' : String(i + 1)) }));
+
+    return {
+      ...base, roleCols, matrix, D, hasDrawer: !!st.drawer, closeDrawer: () => this.setState({ drawer: null }),
+      addFromDrawer: () => { this.addUnit(st.drawer); this.setState({ screen: 'builder', drawer: null }); },
+      toggleProduced: () => this.setState({ onlyProduced: !st.onlyProduced }),
+      prodBg: st.onlyProduced ? '#fdeef6' : '#fff', prodBd: st.onlyProduced ? '#f8cfe4' : '#f0eff2', prodFg: st.onlyProduced ? '#8e1050' : '#6b6a73',
+      clients, path, totalLabel, orderLabel: d.sequential ? 'נפתח לפי הסדר' : 'סדר חופשי',
+      libGroups, setLibQ: (e) => this.setState({ libQ: e.target.value }),
+      hasInsert: st.insertAt != null, insertLabel: st.insertAt != null ? String(st.insertAt + 1).padStart(2, '0') : '',
+      insertEnd: () => this.setState({ insertAt: null }), endColor: st.insertAt == null ? '#ec2a8c' : '#e3e1e8', doneNote: () => this.setState({ editing: null }),
+      set, roleSeg, rules, checks, panels, preview, pClient: st.panel === 'client', pExp: st.panel === 'exp', pPub: st.panel === 'pub',
+      openPublish: () => this.setState({ panel: 'pub' }),
+      readyLabel: blocking ? `${blocking} סעיפים חוסמים` : `מוכן לפרסום${pending.length ? ` · ${pending.length} בהפקה` : ''}`,
+      readyBar: checks.map((c) => ({ bg: c.ok ? '#1f8a5b' : (c.blocking ? '#e0a020' : '#dcd4f5') })),
+      pubBg: blocking ? '#f7f6f9' : '#ec2a8c', pubFg: blocking ? '#a8a6b0' : '#fff',
+    };
+  }
+}
+</script>
+</body>
+</html>

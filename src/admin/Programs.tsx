@@ -2,8 +2,11 @@ import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { PROGRAM_STATUS_LABEL, type ProgramStatus } from '../state/types';
-import { programStats, programsByScope, type ProgramScope } from '../app/progress';
+import { programStats, programsByScope, programUnits, type ProgramScope } from '../app/progress';
+import { isPlayable } from '../content';
+import { ClientLogo } from '../app/ClientLogo';
 import { AdminLayout } from './AdminLayout';
+import { PathStrip, minutesLabel, programHref, totalMinutes } from './catalog';
 
 const STATUS_CHIP: Record<ProgramStatus, string> = {
   published: 'chip chip--green',
@@ -52,7 +55,9 @@ export function Programs() {
         <div className="page__head">
           <div>
             <h1>תוכניות</h1>
-            <p>{SCOPE_NOTE[scope]}</p>
+            <p>
+              {SCOPE_NOTE[scope]}. הפס מראה את המסלול: צבע לפי נושא, רוחב לפי משך.
+            </p>
           </div>
           <span className="spacer" />
           <Link className="btn btn--primary" to="/admin/programs/new">
@@ -89,32 +94,43 @@ export function Programs() {
           <div className="progcards">
             {rows.map((program) => {
               const s = stats.get(program.id);
-              const to =
-                program.status === 'draft' || program.status === 'ready'
-                  ? `/admin/programs/${program.id}/build`
-                  : `/admin/programs/${program.id}`;
+              const units = programUnits(program);
+              const pending = units.filter((u) => !isPlayable(u)).length;
               return (
-                <Link key={program.id} className="card progcard" to={to}>
+                <Link key={program.id} className="card progcard" to={programHref(program)}>
                   <div className="progcard__top">
-                    <span className="mono-badge">{program.client[0]}</span>
+                    <ClientLogo client={program.client} size={40} radius={10} />
                     <span className="progcard__client">
-                      <b>{program.client}</b>
+                      <b>{program.client || 'לקוח לא הוגדר'}</b>
                       <span>{program.cohort}</span>
                     </span>
                     <span className={STATUS_CHIP[program.status]}>{PROGRAM_STATUS_LABEL[program.status]}</span>
                   </div>
 
-                  <div className="progcard__name">{program.title}</div>
-                  <div className="progcard__aud">{program.audience}</div>
+                  <div>
+                    <div className="progcard__name">{program.title || 'תוכנית ללא שם'}</div>
+                    <div className="progcard__aud">
+                      {program.audience || 'קהל לא הוגדר'}
+                      {program.course && program.course !== program.title ? ` · ללומד: ״${program.course}״` : ''}
+                    </div>
+                  </div>
 
-                  <span className="meter">
-                    <i style={{ width: `${s?.avgPct ?? 0}%` }} data-empty={!s?.started} />
-                  </span>
+                  <div>
+                    <PathStrip units={units} />
+                    <div className="progcard__strip">
+                      <span>
+                        {units.length} יחידות{pending ? ` · ${pending} בהפקה` : ''}
+                      </span>
+                      <span>{minutesLabel(totalMinutes(units))}</span>
+                    </div>
+                  </div>
 
                   <div className="progcard__foot">
-                    <span>{program.units.length} יחידות</span>
-                    <span>{s?.learners ? `${s.learners} לומדים` : 'טרם פורסם'}</span>
+                    <span className="meter meter--thin">
+                      <i style={{ width: `${s?.avgPct ?? 0}%` }} data-empty={!s?.started} />
+                    </span>
                     <b>{s?.started ? `${s.avgPct}%` : '—'}</b>
+                    <span>{s?.learners ? `${s.learners} לומדים` : 'טרם פורסם'}</span>
                     <em>{program.owner}</em>
                   </div>
                 </Link>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{direction:rtl;margin:0}
+body{background:#e9e8ec;color:#3a3a40;font:400 14.5px/1.65 'Heebo',system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;text-wrap:pretty}
+h1,h2,h3,h4,p,ul,ol,blockquote{margin:0}
+ul,ol{padding:0}li{list-style:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:right}
+select,input{font:inherit;color:inherit}
+::placeholder{color:#a8a6b0}
+a{color:#d11e78;text-decoration:none}a:hover{color:#b01a65;text-decoration:underline}
+</style>
+</helmet>
+
+<div style="padding:18px 24px 10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#6b6a73;direction:ltr">
+  <span style="font-weight:500;color:#15151f">CURRENT UI · recreated from NGG-Global/NGGLMS@main</span>
+  <span style="flex:1"></span>
+  <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+    <button onClick="{{ t.go }}" style="padding:6px 12px;border-radius:99px;border:1px solid #d9d7de;background:{{ t.bg }};color:{{ t.fg }};font-family:'IBM Plex Mono',monospace;font-size:12px">{{ t.label }}</button>
+  </sc-for>
+</div>
+
+<div style="margin:0 24px 40px;width:1440px;min-height:1000px;background:#fbfafc;display:flex;flex-direction:column;border-radius:10px;overflow:hidden;box-shadow:0 20px 60px -30px rgba(0,0,0,.35)" data-screen-label="Current UI">
+  <header style="flex:none;height:68px;display:flex;align-items:center;gap:16px;padding:0 24px;background:#ffffff;border-bottom:1px solid #f0eff2">
+    <div style="display:flex;align-items:center;gap:10px;flex:none">
+      <img src="public/assets/ngg-mark.png" alt="NGG" style="height:26px;width:auto;display:block">
+      <b style="font-size:15px;font-weight:700;letter-spacing:-0.01em;white-space:nowrap;color:#15151f">פלטפורמת הלמידה</b>
+    </div>
+    <span style="width:1px;height:20px;background:#f0eff2;flex:none"></span>
+    <span style="font-size:12.5px;color:#8e8d95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:26ch;flex:none">{{ crumb }}</span>
+    <div style="flex:1;max-width:420px;margin:0 auto;display:flex;align-items:center;gap:9px;background:#f7f6f9;border:1px solid #f0eff2;border-radius:99px;padding:9px 15px">
+      <span style="flex:none;position:relative;width:15px;height:15px"><span style="position:absolute;inset:0 2px 2px 0;border:1.5px solid #c9c7d0;border-radius:99px"></span><span style="position:absolute;bottom:0;left:0;width:6px;height:1.5px;background:#c9c7d0;transform:rotate(45deg)"></span></span>
+      <span style="font-size:13px;color:#a8a6b0">חיפוש תוכניות, לקוחות, יחידות…</span>
+    </div>
+    <span style="flex:none;padding:7px 12px;border-radius:99px;font-size:12.5px;font-weight:700;letter-spacing:-0.01em;color:#4a4952">מדריך קלוד</span>
+    <nav style="display:inline-flex;gap:3px;padding:3px;background:#f7f6f9;border-radius:99px;flex:none">
+      <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;background:#ffffff;color:#15151f;box-shadow:0 1px 2px rgba(0,0,0,.07)">ניהול</span>
+      <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;color:#6b6a73">לומד</span>
+    </nav>
+    <span style="position:relative;flex:none;width:34px;height:34px;border-radius:99px;background:#f7f6f9;color:#6b6a73;font-size:14px;text-align:center;line-height:34px">●<i style="position:absolute;top:6px;left:7px;width:7px;height:7px;border-radius:99px;background:#ec2a8c;border:1.5px solid #fff"></i></span>
+    <div style="display:flex;align-items:center;gap:9px;flex:none">
+      <b style="font-size:12.5px;font-weight:600;color:#3a3a40;white-space:nowrap">מאיה כהן</b>
+      <span style="display:grid;place-items:center;width:30px;height:30px;border-radius:99px;background:linear-gradient(145deg,#ec2a8c,#8e1050);color:#fff;font:700 11px/1 'Heebo',sans-serif">מכ</span>
+    </div>
+  </header>
+
+  <div style="display:flex;align-items:stretch;flex:1">
+    <nav style="flex:none;width:244px;background:#ffffff;padding:20px 14px;display:flex;flex-direction:column">
+      <span style="display:block;padding:0 8px 12px;font:700 10px/1.4 'Heebo',sans-serif;letter-spacing:0.14em;color:#a8a6b0">NGG CONSULTING</span>
+      <sc-for list="{{ nav }}" as="n" hint-placeholder-count="6">
+        <sc-if value="{{ n.active }}">
+          <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;font-size:14px;font-weight:700;color:#fff;background:#ec2a8c;box-shadow:0 10px 20px -12px rgba(236,42,140,.75);margin-bottom:3px">
+            <span style="flex:none;width:15px;height:15px;border:2px solid rgba(255,255,255,.9);background:rgba(255,255,255,.28);border-radius:4px"></span>
+            <span>{{ n.label }}</span>
+            <sc-if value="{{ n.count }}"><span style="margin-inline-start:auto;padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.22);color:#fff;font:700 10.5px/1.5 'Heebo',sans-serif">{{ n.count }}</span></sc-if>
+          </button>
+        </sc-if>
+        <sc-if value="{{ n.idle }}">
+          <button onClick="{{ n.go }}" style="display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:12px;font-size:14px;font-weight:500;color:#4a4952;margin-bottom:3px" style-hover="background:#f7f6f9;color:#15151f">
+            <span style="flex:none;width:15px;height:15px;border:2px solid #c9c7d0;border-radius:4px"></span>
+            <span>{{ n.label }}</span>
+            <sc-if value="{{ n.count }}"><span style="margin-inline-start:auto;padding:2px 8px;border-radius:99px;background:#f2f1f5;color:#8e8d95;font:700 10.5px/1.5 'Heebo',sans-serif">{{ n.count }}</span></sc-if>
+          </button>
+        </sc-if>
+      </sc-for>
+      <span style="flex:1"></span>
+      <div style="margin-top:18px;background:linear-gradient(160deg,#fdeef6,#f7f0fb);border-radius:14px;padding:14px">
+        <div style="font:700 10px/1.4 'Heebo',sans-serif;letter-spacing:0.1em;color:#b0508a">טיוטה בעבודה</div>
+        <div style="margin-top:5px;font-size:13.5px;font-weight:700;color:#15151f;line-height:1.35">הטמעת AI בצוות משאבי אנוש</div>
+        <div style="font-size:12px;color:#7a5c6d">פבריקם · 3 יחידות</div>
+        <button onClick="{{ goBuilder }}" style="margin-top:11px;width:100%;display:flex;justify-content:center;padding:8px 15px;border-radius:99px;font-size:13px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">להמשיך בבנייה</button>
+      </div>
+    </nav>
+
+    <div style="flex:1;min-width:0;background:#fbfafc;border-top-right-radius:22px;border-right:1px solid #f4f3f6">
+
+      <sc-if value="{{ isLibrary }}" hint-placeholder-val="{{ true }}">
+        <main style="padding:24px 28px 80px;max-width:1320px">
+          <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+            <div>
+              <h1 style="font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;color:#15151f">ספריית התוכן של NGG</h1>
+              <p style="margin-top:4px;font-size:14.5px;color:#6b6a73">16 יחידות בקטלוג, 2 מהן מופקות ומוכנות לשילוב בתוכנית.</p>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:16px">
+            <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הכול</option></select>
+            <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הכול</option></select>
+            <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הכול</option></select>
+            <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הנפוץ ביותר</option></select>
+            <input type="search" placeholder="חיפוש ביחידות" style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px;min-width:200px;flex:1;max-width:320px">
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px">
+            <sc-for list="{{ libRows }}" as="u" hint-placeholder-count="8">
+              <article style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:16px 17px;display:flex;flex-direction:column;gap:9px">
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                  <h3 style="font-size:14.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:#15151f">{{ u.title }}</h3>
+                  <span style="flex:1;min-width:8px"></span>
+                  <span>{{ u.status }}</span>
+                </div>
+                <p style="font-size:12.5px;line-height:1.55;color:#6b6a73">{{ u.summary }}</p>
+                <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:auto">
+                  <span>{{ u.topic }}</span><span>{{ u.minLabel }}</span><span>{{ u.type }}</span><span>{{ u.usedLabel }}</span>
+                  <sc-if value="{{ u.video }}"><span>{{ u.videoLabel }}</span></sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;padding-top:4px">
+                  <button onClick="{{ goUnit }}" style="color:#d11e78;font-weight:700;font-size:13px;padding:2px 0">פרטי היחידה ←</button>
+                </div>
+              </article>
+            </sc-for>
+          </div>
+        </main>
+      </sc-if>
+
+      <sc-if value="{{ isUnit }}">
+        <main style="padding:24px 28px 80px;max-width:1020px">
+          <p><button onClick="{{ goLibrary }}" style="color:#d11e78;font-weight:700;font-size:13px;padding:2px 0">← לספריית התוכן</button></p>
+          <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+            <div>
+              <span>פתרון בעיות</span>
+              <h1 style="margin-top:6px;font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;color:#15151f">להגדיר את הבעיה</h1>
+              <p style="margin-top:4px;font-size:14.5px;color:#6b6a73">איך מגדירים את הבעיה לפני שמבקשים מ-AI לפתור אותה.</p>
+            </div>
+            <span style="flex:1"></span>
+            <span>בהפקה</span>
+          </div>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:22px;align-items:start">
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <section style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>מטרת הלמידה</div>
+                <p style="margin-top:6px;font-size:14px;line-height:1.6">בסיום היחידה תוכלו להגדיר את הבעיה, את התוצאה הרצויה ואת ההקשר הרלוונטי לפני שאתם מבקשים מ-AI פתרון.</p>
+              </section>
+              <section style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>מבנה היחידה · יחידה → נאגטים → הערכה</div>
+                <ul style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+                  <sc-for list="{{ u3Nuggets }}" as="g" hint-placeholder-count="5">
+                    <li style="display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:11px;align-items:baseline;padding:12px 15px;border:1px solid #f0eff2;border-radius:13px;background:#fcfbfd">
+                      <i style="font:700 11px/1 'IBM Plex Mono',monospace;font-style:normal;color:#8e8d95">{{ g.n }}</i>
+                      <span><b style="font-size:13.5px;font-weight:700;color:#15151f">{{ g.title }}</b><em style="display:block;margin-top:2px;font-size:12.5px;font-style:normal;color:#6b6a73;line-height:1.5">{{ g.summary }}</em></span>
+                      <span style="font-size:11.5px;color:#8e8d95;white-space:nowrap">{{ g.min }}</span>
+                    </li>
+                  </sc-for>
+                </ul>
+              </section>
+              <section style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>תורכם</div>
+                <p style="margin-top:6px;font-size:13.5px;line-height:1.6">קחו את הבקשה המעורפלת הזו:</p>
+                <blockquote style="margin-top:10px;padding:10px 13px;border-radius:13px;background:#fdeef6;font-size:13.5px;font-weight:600">“תעזור לי להתכונן לישיבת ההנהלה של מחר.”</blockquote>
+                <ul style="display:flex;flex-direction:column;gap:6px;margin-top:10px">
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55;color:#3a3a40"><span style="color:#ec2a8c;font-weight:700">✓</span>מטרה</li>
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55;color:#3a3a40"><span style="color:#ec2a8c;font-weight:700">✓</span>הקשר</li>
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55;color:#3a3a40"><span style="color:#ec2a8c;font-weight:700">✓</span>מקורות רלוונטיים</li>
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55;color:#3a3a40"><span style="color:#ec2a8c;font-weight:700">✓</span>התוצר המצופה</li>
+                </ul>
+              </section>
+            </div>
+            <aside style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>למי היחידה מיועדת</div>
+                <p style="margin-top:6px;font-size:13px;line-height:1.6;color:#3a3a40">כל העובדים. מתאים במיוחד למנהלים ומנהלי פרויקטים שמתדרכים אחרים בשגרה.</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px"><span>כללי</span></div>
+              </div>
+              <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>בסיום היחידה הלומד יוכל</div>
+                <ul style="display:flex;flex-direction:column;gap:6px;margin-top:8px">
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55"><span style="color:#ec2a8c;font-weight:700">✓</span>להפריד בין המשימה לתוצאה</li>
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55"><span style="color:#ec2a8c;font-weight:700">✓</span>לזהות איזה הקשר חסר ל-AI</li>
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55"><span style="color:#ec2a8c;font-weight:700">✓</span>להגדיר איך נראית תוצאה טובה</li>
+                  <li style="display:flex;gap:8px;font-size:13.5px;line-height:1.55"><span style="color:#ec2a8c;font-weight:700">✓</span>להחליט מתי לא להשתמש ב-AI</li>
+                </ul>
+              </div>
+              <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px;display:flex;flex-direction:column;gap:7px;font-size:13px">
+                <div>נתוני היחידה</div>
+                <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:70px">משך</span><span style="font-weight:500">22 דק׳</span></span>
+                <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:70px">נאגטים</span><span style="font-weight:500">5</span></span>
+                <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:70px">הערכה</span><span style="font-weight:500">תרגיל מעשי</span></span>
+                <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:70px">סוג תוכן</span><span style="font-weight:500">וידאו + תרגיל</span></span>
+                <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:70px">בשימוש</span><span style="font-weight:500">18 תוכניות</span></span>
+              </div>
+            </aside>
+          </div>
+        </main>
+      </sc-if>
+
+      <sc-if value="{{ isPrograms }}">
+        <main style="padding:24px 28px 80px;max-width:1320px">
+          <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+            <div>
+              <h1 style="font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;color:#15151f">תוכניות</h1>
+              <p style="margin-top:4px;font-size:14.5px;color:#6b6a73">תוכניות שאת יצרת ומנהלת</p>
+            </div>
+            <span style="flex:1"></span>
+            <button style="display:inline-flex;padding:11px 19px;border-radius:99px;font-size:14.5px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">+ תוכנית חדשה</button>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:16px">
+            <div style="display:inline-flex;gap:3px;padding:3px;background:#f7f6f9;border-radius:99px">
+              <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;background:#15151f;color:#fff">שלי · 4</span>
+              <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;color:#6b6a73">של הצוות · 3</span>
+              <span style="padding:6px 15px;border-radius:99px;font-size:12.5px;font-weight:600;color:#6b6a73">הכול · 7</span>
+            </div>
+            <span style="flex:1"></span>
+            <input type="search" placeholder="חיפוש לפי שם, לקוח, קהל או מחזור" style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px;min-width:200px;flex:1;max-width:320px">
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+            <sc-for list="{{ programs }}" as="p" hint-placeholder-count="4">
+              <button onClick="{{ p.go }}" style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px;display:flex;flex-direction:column;gap:11px;text-align:right" style-hover="border-color:#e8cfdd;box-shadow:0 16px 34px -20px rgba(236,42,140,.3)">
+                <div style="display:flex;align-items:flex-start;gap:11px;width:100%">
+                  <span style="flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#fdeef6;color:#c0508f;font:700 13px/1 'Heebo',sans-serif">{{ p.mono }}</span>
+                  <span style="min-width:0;flex:1"><b style="display:block;font-size:13px;font-weight:700;color:#15151f">{{ p.client }}</b><span style="display:block;font-size:11.5px;color:#a8a6b0">{{ p.cohort }}</span></span>
+                  <span style="display:inline-flex;padding:3px 11px;border-radius:99px;background:{{ p.chipBg }};color:{{ p.chipFg }};font-size:11.5px;font-weight:700;white-space:nowrap">{{ p.status }}</span>
+                </div>
+                <div style="font-size:17px;font-weight:700;letter-spacing:-0.015em;color:#15151f;line-height:1.3">{{ p.title }}</div>
+                <div style="font-size:13px;color:#6b6a73">{{ p.audience }}</div>
+                <span style="display:block;width:100%;height:7px;border-radius:99px;background:#f2f1f5;overflow:hidden"><i style="display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#f871b5,#ec2a8c);width:{{ p.pctW }}"></i></span>
+                <div style="display:flex;align-items:center;gap:12px;width:100%;margin-top:auto;padding-top:12px;border-top:1px solid #f4f3f6;font-size:12.5px;color:#6b6a73">
+                  <span>{{ p.units }}</span><span>{{ p.learners }}</span><b style="font-weight:700;color:#15151f">{{ p.pct }}</b>
+                  <em style="margin-inline-start:auto;font-style:normal;font-size:11.5px;color:#a8a6b0;white-space:nowrap">מאיה כהן</em>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+          <p style="margin-top:14px;font-size:12px;color:#8e8d95">תוכניות מועברות לארכיון ולא נמחקות, כדי לשמור על היסטוריית הלמידה של הלומדים.</p>
+        </main>
+      </sc-if>
+
+      <sc-if value="{{ isBuilder }}">
+        <main style="padding:24px 28px 80px;max-width:1320px">
+          <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+            <div>
+              <h1 style="font-size:25px;font-weight:800;letter-spacing:-0.025em;line-height:1.2;color:#15151f">עריכת תוכנית</h1>
+              <p style="margin-top:4px;font-size:14.5px;color:#6b6a73">ארבעה שלבים: פרטים, מסלול הלמידה, הגדרות חוויית הלומד, ואז סקירה ופרסום.</p>
+            </div>
+            <span style="flex:1"></span>
+            <button style="padding:11px 19px;border-radius:99px;border:1px solid #f0eff2;background:#fff;color:#6b6a73;font-weight:600">שמירה כטיוטה</button>
+          </div>
+          <nav style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px">
+            <span style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:12.5px;font-weight:600;background:#fdeef6;color:#8e1050"><i style="font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10.5px">01</i>פרטי התוכנית</span>
+            <span style="color:#a8a6b0;font-size:12px">←</span>
+            <span style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:12.5px;font-weight:600;background:#15151f;color:#fff"><i style="font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10.5px">02</i>מסלול הלמידה</span>
+            <span style="color:#a8a6b0;font-size:12px">←</span>
+            <span style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:12.5px;font-weight:600;background:#f7f6f9;color:#8e8d95"><i style="font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10.5px">03</i>הגדרות</span>
+            <span style="color:#a8a6b0;font-size:12px">←</span>
+            <span style="display:flex;align-items:center;gap:7px;padding:7px 13px;border-radius:99px;font-size:12.5px;font-weight:600;background:#f7f6f9;color:#8e8d95"><i style="font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:10.5px">04</i>סקירה ופרסום</span>
+          </nav>
+          <div style="display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:20px;align-items:start">
+            <div>
+              <section style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px;margin-bottom:14px">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                  <h2 style="font-size:15px;font-weight:600;color:#15151f">מסלול הלמידה</h2>
+                  <span>3 יחידות</span>
+                  <span style="flex:1"></span>
+                  <button style="color:#d11e78;font-weight:700;font-size:13px;padding:2px 0">+ הוספת מקבץ הליבה המומלץ</button>
+                </div>
+                <ol style="display:flex;flex-direction:column;gap:7px">
+                  <sc-for list="{{ path }}" as="j" hint-placeholder-count="3">
+                    <li style="display:grid;grid-template-columns:auto 26px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 13px;border:1px solid #f0eff2;border-radius:13px;background:#fff">
+                      <span style="cursor:grab;color:#a8a6b0;font-size:13px;line-height:1">⠿</span>
+                      <span style="font:700 11px/26px 'IBM Plex Mono',monospace;text-align:center;background:#f7f6f9;border-radius:8px;color:#6b6a73">{{ j.n }}</span>
+                      <span><b style="display:block;font-size:13.5px;font-weight:700;color:#15151f">{{ j.title }}</b><span style="display:block;font-size:11.5px;color:#8e8d95">{{ j.meta }}</span></span>
+                      <span style="display:flex;gap:3px;font-size:11.5px"><span style="padding:5px 8px;color:{{ j.upC }}">↑</span><span style="padding:5px 8px;color:{{ j.downC }}">↓</span><span style="padding:5px 8px;color:#6b6a73">הסרה</span></span>
+                    </li>
+                  </sc-for>
+                </ol>
+              </section>
+              <section style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <h2 style="font-size:15px;font-weight:600;margin-bottom:12px;color:#15151f">ספריית התוכן של NGG</h2>
+                <div style="display:flex;flex-wrap:wrap;gap:9px;align-items:center;margin-bottom:16px">
+                  <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הכול</option></select>
+                  <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הכול</option></select>
+                  <select style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px"><option>הכול</option></select>
+                  <span style="padding:7px 14px;border-radius:99px;border:1px solid #f0eff2;background:#fff;font-size:12.5px;font-weight:600;color:#6b6a73">מופק בלבד</span>
+                  <input type="search" placeholder="חיפוש ביחידות" style="padding:8px 14px;border:1px solid #f0eff2;border-radius:99px;background:#fff;font-size:13px;min-width:200px;flex:1;max-width:320px">
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:14px">
+                  <sc-for list="{{ candidates }}" as="u" hint-placeholder-count="6">
+                    <article style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:16px 17px;display:flex;flex-direction:column;gap:9px">
+                      <div style="display:flex;align-items:flex-start;gap:8px">
+                        <h3 style="font-size:14.5px;font-weight:700;letter-spacing:-0.015em;line-height:1.35;color:#15151f">{{ u.title }}</h3>
+                        <span style="flex:1;min-width:8px"></span>
+                        <span>{{ u.status }}</span>
+                      </div>
+                      <p style="font-size:12.5px;line-height:1.55;color:#6b6a73">{{ u.summary }}</p>
+                      <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:auto"><span>{{ u.topic }}</span><span>{{ u.minLabel }}</span><span>{{ u.assessment }}</span></div>
+                      <div style="display:flex;align-items:center;gap:10px;padding-top:4px">
+                        <span style="display:inline-flex;padding:8px 15px;border-radius:99px;font-size:13px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">למסלול ←</span>
+                        <span style="color:#d11e78;font-weight:700;font-size:13px">פרטים</span>
+                      </div>
+                    </article>
+                  </sc-for>
+                </div>
+              </section>
+              <div style="display:flex;gap:9px;margin-top:18px">
+                <span style="padding:11px 19px;border-radius:99px;border:1px solid #f0eff2;background:#fff;color:#6b6a73;font-weight:600">→ חזרה</span>
+                <span style="padding:11px 19px;border-radius:99px;font-weight:700;background:#ec2a8c;color:#fff;box-shadow:0 10px 22px -10px rgba(236,42,140,.6)">הגדרות ←</span>
+              </div>
+            </div>
+            <aside style="display:flex;flex-direction:column;gap:14px">
+              <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>סיכום התוכנית</div>
+                <p style="margin-top:7px;font-size:15px;font-weight:700;letter-spacing:-0.02em">AI בעבודת משאבי אנוש</p>
+                <p style="font-size:12.5px;color:#8e8d95">פבריקם</p>
+                <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:13px">
+                  <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:74px">קהל יעד</span><span style="font-weight:500">שותפי HR</span></span>
+                  <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:74px">תפקיד</span><span style="font-weight:500">משאבי אנוש</span></span>
+                  <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:74px">שפה</span><span style="font-weight:500">עברית</span></span>
+                  <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:74px">יחידות</span><span style="font-weight:500">3</span></span>
+                  <span style="display:flex;gap:8px"><span style="color:#8e8d95;min-width:74px">משך משוער</span><span style="font-weight:500">50 דק׳</span></span>
+                </div>
+              </div>
+              <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>מסלול הלמידה</div>
+                <ol style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+                  <li style="display:flex;gap:8px;font-size:13px"><span style="color:#8e8d95;font-size:11px">01</span><span style="flex:1">לעבוד עם AI</span></li>
+                  <li style="display:flex;gap:8px;font-size:13px"><span style="color:#8e8d95;font-size:11px">02</span><span style="flex:1">AI בטוח ואחראי</span></li>
+                  <li style="display:flex;gap:8px;font-size:13px"><span style="color:#8e8d95;font-size:11px">03</span><span style="flex:1">AI בתהליכי גיוס</span><span>בהכנה</span></li>
+                </ol>
+              </div>
+              <div style="background:#fff;border:1px solid #f0eff2;border-radius:16px;box-shadow:0 1px 2px rgba(21,21,31,.04),0 12px 30px -22px rgba(21,21,31,.18);padding:18px">
+                <div>תצוגת חוויית הלומד</div>
+                <p style="margin-top:6px;font-size:12.5px;color:#6b6a73;line-height:1.6">אפשר לצפות במסלול בדיוק כפי שהלומד יראה אותו, כולל הנגן והתרגילים.</p>
+                <span style="display:inline-flex;margin-top:10px;padding:11px 19px;border-radius:99px;border:1px solid #f0eff2;background:#fff;color:#6b6a73;font-weight:600">צפייה כלומד ←</span>
+              </div>
+            </aside>
+          </div>
+        </main>
+      </sc-if>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { screen: 'library' };
+  renderVals() {
+    const s = this.state.screen;
+    const go = (screen) => () => this.setState({ screen });
+    const U = window.NGG_UNITS || [
+      ['u1','לעבוד עם AI','מה AI באמת עושה, איפה הוא עוזר, ולמה לכל תוצר יש עדיין בעל בית אנושי.','מיומנויות AI ליבה',12,'וידאו + בוחן','בוחן',24,true,5],
+      ['u2','AI בטוח ואחראי','איפה עובר הגבול במידע רגיש, בהטיה ובהסלמה — בכלל שאפשר לזכור.','AI אחראי',16,'תרחיש','תרחיש',22,true,0],
+      ['u3','להגדיר את הבעיה','איך מגדירים את הבעיה לפני שמבקשים מ-AI לפתור אותה.','פתרון בעיות',22,'וידאו + תרגיל','תרגיל מעשי',18],
+      ['u4','לנסח בקשה עם כוונה','לנסח בקשות שמחזירות תוצר שימושי כבר בפעם הראשונה: מטרה, הקשר, אילוצים, פורמט.','ניסוח בקשות',28,'מטלה מעשית','מטלה מעשית',17],
+      ['u6','לבדוק לפני שסומכים','שגרה מהירה לבדיקת טענות, מספרים ומקורות לפני שהם נושאים את שמכם.','אימות ובדיקה',24,'וידאו + בוחן','בוחן',14],
+      ['u5','לתקן ולשפר','מה עושים כשהתשובה מפספסת — תיקון ספציפי במקום "נסה שוב".','ניסוח בקשות',22,'וידאו + תרגיל','תרגיל מעשי',12],
+      ['u9','Copilot בעבודה היומיומית','איפה Copilot יושב ב-Microsoft 365 ואת אילו משימות הוא עושה טוב.','יסודות Copilot',23,'וידאו + בוחן','בוחן',11],
+      ['u7','אדם + AI','איפה האדם נשאר במשוואה: שיקול דעת, אחריות ועבודה בשקיפות.','שיטות עבודה מומלצות',24,'וידאו + תרגיל','רפלקציה',9],
+      ['u11','להוביל צוות בעידן ה-AI','להגדיר ציפיות, לבקר עבודה בסיוע AI ולשמור על הוגנות גלויה.','תכנון תהליכים',26,'תרחיש','תרחיש',8],
+      ['u8','לתכנן מחדש את התהליך','מפרומפטים בודדים לתכנון מחדש של תהליך שבועי מקצה לקצה.','תכנון תהליכים',36,'מטלה מעשית','מטלה מעשית',7],
+      ['u10','Copilot בפגישות','סיכומים, משימות ואחראים שעמיתים באמת סומכים עליהם.','יסודות Copilot',18,'תרחיש','תרחיש',6],
+      ['u13','הכנת פייפליין עם AI','מחקר לקוח, התאמה אישית בנפח ותרגול התנגדויות.','תכנון תהליכים',19,'מטלה מעשית','מטלה מעשית',5],
+      ['u16','אפיון ודיווח סטטוס עם AI','מסיכום קיקאוף לטיוטת אפיון, ועדכוני סטטוס בחמש דקות.','תכנון תהליכים',21,'מטלה מעשית','מטלה מעשית',5],
+      ['u12','AI בתהליכי גיוס','איפה AI עוזר בגיוס ואיפה הוא חייב להישאר בחוץ.','AI אחראי',22,'תרחיש','תרחיש',4],
+      ['u14','כתיבת קמפיין עם AI','תדריכים, וריאציות ושמירה על שפת המותג עם טענות שאפשר להגן עליהן.','תכנון תהליכים',21,'מטלה מעשית','מטלה מעשית',3],
+      ['u15','בדיקות היגיון בתחזית','מה AI לא צריך לחשב בכלל, ואיך מסבירים סטייה.','אימות ובדיקה',16,'וידאו + בוחן','בוחן',3],
+    ];
+    const rows = U.map(([id,title,summary,topic,min,type,assessment,used,playable,video]) => ({
+      id,title,summary,topic,type,assessment,
+      status: playable ? 'מופק' : 'בהפקה',
+      minLabel: `${min} דק׳`, usedLabel: `ב־${used} תוכניות`,
+      video: video > 0, videoLabel: `${video} עם סרטון`,
+    }));
+    const byId = Object.fromEntries(rows.map(r => [r.id, r]));
+    const chosen = ['u1','u2','u12'];
+    const path = chosen.map((id, i) => { const r = byId[id]; return {
+      n: String(i+1).padStart(2,'0'), title: r.title,
+      meta: `${r.topic} · ${r.minLabel} · ${r.assessment}${r.status==='בהפקה' ? ' · בהפקה' : ''}`,
+      upC: i===0 ? '#a8a6b0' : '#6b6a73', downC: i===chosen.length-1 ? '#a8a6b0' : '#6b6a73' }; });
+    const nav = [
+      ['דשבורד',null,null],['תוכניות',7,'programs'],['ספריית תוכן',16,'library'],['לומדים ומשתתפים',449,null],['אנליטיקה',null,null],['הגדרות',null,null],
+    ].map(([label,count,screen]) => {
+      const active = screen === 'programs' ? (s==='programs'||s==='builder') : screen === 'library' ? (s==='library'||s==='unit') : false;
+      return { label, count, active, idle: !active, go: screen ? go(screen) : () => {} };
+    });
+    const chip = { 'פורסם':['#e9f6ef','#167349'], 'טיוטה':['#f2f2f4','#3a3a40'], 'מוכן לפרסום':['#fbf2e0','#a66f08'] };
+    const programs = [
+      ['נ','נורת׳ווינד','מחזור 2 · ספטמבר','פורסם','יסודות AI לכל העובדים','כל העובדים',6,320,54],
+      ['פ','פבריקם','מחזור טרם נקבע','טיוטה','הטמעת AI בצוות משאבי אנוש','שותפי HR',3,0,0],
+      ['א','אדוונצ׳ר וורקס','קיקאוף 8 בספטמבר','מוכן לפרסום','ספרינט AI למכירות','מנהלי לקוחות',5,0,0],
+      ['ק','קונטוסו','דדליין 14 בספטמבר','פורסם','יסודות למנהלים — מחזור 2','מנהלים בדרג ראשון',7,88,91],
+    ].map(([mono,client,cohort,status,title,audience,units,learners,pct]) => ({
+      mono,client,cohort,status,title,audience,chipBg:chip[status][0],chipFg:chip[status][1],
+      units:`${units} יחידות`, learners: learners ? `${learners} לומדים` : 'טרם פורסם', pct: learners ? `${pct}%` : '—', pctW:`${pct}%`,
+      go: status==='טיוטה' ? go('builder') : () => {},
+    }));
+    const tabs = [['library','Library'],['unit','Unit detail'],['programs','Programs'],['builder','Builder · path']].map(([k,label]) => ({
+      label, go: go(k), bg: s===k ? '#15151f' : '#fff', fg: s===k ? '#fff' : '#3a3a40' }));
+    const crumbs = { library:'ספריית התוכן', unit:'ספריית התוכן · להגדיר את הבעיה', programs:'תוכניות', builder:'עריכת הטמעת AI בצוות משאבי אנוש' };
+    return {
+      tabs, nav, crumb: crumbs[s], programs, path,
+      libRows: rows,
+      candidates: rows.filter(r => !chosen.includes(r.id)),
+      u3Nuggets: [
+        ['איזו בעיה אתם בעצם פותרים?','רוב התשובות החלשות נובעות משאלה חלשה. הגדירו את הבעיה האמיתית לפני שאתם שואלים.',4],
+        ['משימה מול תוצאה','בקשה למשימה מחזירה מסמך. בקשה לתוצאה מחזירה משהו שימושי.',4],
+        ['איזה הקשר חסר?','קהל, אילוצים, החלטות קודמות, חומרי מקור. המודל לא יכול לנחש אף אחד מהם.',5],
+        ['איך נראית תוצאה טובה?','הגדירו את הפורמט, האורך, הטון והמבחן שהתוצר צריך לעבור.',5],
+        ['האם AI מתאים למשימה הזו?','יש עבודה שדורשת יחסים, סמכות או אחריות. העבודה הזו שלכם.',4],
+      ].map(([title,summary,m],i) => ({ n:String(i+1).padStart(2,'0'), title, summary, min:`${m} דק׳` })),
+      isLibrary: s==='library', isUnit: s==='unit', isPrograms: s==='programs', isBuilder: s==='builder',
+      goUnit: go('unit'), goLibrary: go('library'), goBuilder: go('builder'),
+    };
+  }
+}
+</script>
+</body>
+</html>

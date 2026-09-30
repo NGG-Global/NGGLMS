@@ -7,6 +7,7 @@ import { videoTrack } from './video-manifest';
 
 export * from './types';
 export * from './library';
+export * from './topics';
 export { hasNarration, narrationTrack, narrationTracks } from './narration-manifest';
 
 /** Playable units, keyed by the `contentId` referenced from the library. */
@@ -109,6 +110,17 @@ export function unitNuggets(unit: LibraryUnit): { title: string; type: string; m
     minutes: Math.max(1, Math.round((s.end - s.start) / 60)),
     summary: s.think,
   }));
+}
+
+/**
+ * Relative length of each nugget, for bars drawn to scale. Produced units use the
+ * measured segment lengths in seconds; catalogue units use their planned minutes.
+ * Only the ratios within one unit matter, so the two scales never need to agree.
+ */
+export function nuggetWeights(unit: LibraryUnit): number[] {
+  const content = unit.contentId ? builtUnits[unit.contentId] : undefined;
+  if (content) return content.segments.map((s) => Math.max(1, s.end - s.start));
+  return unit.nuggets.map((n) => Math.max(1, n.minutes));
 }
 
 export const playableLibrary: LibraryUnit[] = library.filter(isPlayable);

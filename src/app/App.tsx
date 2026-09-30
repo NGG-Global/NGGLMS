@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { SignIn } from './SignIn';
 import { LearnerHome } from '../learner/LearnerHome';
@@ -24,6 +24,15 @@ function Gate({ children, adminOnly = false }: { children: React.ReactNode; admi
   if (!identity) return <Navigate to="/signin" replace state={{ from: location.pathname }} />;
   if (adminOnly && identity.role !== 'admin') return <Navigate to="/learn" replace />;
   return <>{children}</>;
+}
+
+/**
+ * One builder instance per programme. Without the key, moving from one builder URL to
+ * another (or to /new) reuses the mounted component and carries the previous draft over.
+ */
+function BuilderRoute() {
+  const { programId } = useParams();
+  return <ProgramBuilder key={programId ?? 'new'} />;
 }
 
 export function App() {
@@ -120,7 +129,7 @@ export function App() {
         path="/admin/programs/new"
         element={
           <Gate adminOnly>
-            <ProgramBuilder />
+            <BuilderRoute />
           </Gate>
         }
       />
@@ -136,7 +145,7 @@ export function App() {
         path="/admin/programs/:programId/build"
         element={
           <Gate adminOnly>
-            <ProgramBuilder />
+            <BuilderRoute />
           </Gate>
         }
       />

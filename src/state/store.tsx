@@ -8,9 +8,20 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { persistence, type PersistenceStatus } from './api';
+import { persistence, type PersistenceStatus, type SaveResult } from './api';
 import { SEED_MILESTONES, SEED_OWNER, seedWorkspace } from './seed';
-import type { Identity, IntroHeard, Learner, LearnerProgress, Program, SegmentRecord, Workspace } from './types';
+import { clientKey, isLogoDataUrl } from '../app/brand';
+import type {
+  BrandDoc,
+  ClientLogo,
+  Identity,
+  IntroHeard,
+  Learner,
+  LearnerProgress,
+  Program,
+  SegmentRecord,
+  Workspace,
+} from './types';
 
 const IDENTITY_KEY = 'ngglms:identity:v1';
 
@@ -37,6 +48,11 @@ interface StoreValue {
   introHeardFor: (learnerId: string) => IntroHeard;
   markIntroHeard: (learnerId: string, contentId: string) => void;
 
+  /** The client's uploaded logo, if there is one. */
+  logoFor: (client: string) => ClientLogo | undefined;
+  /** Stores (or, with null, removes) a client's logo. Resolves once the write is known. */
+  setClientLogo: (client: string, src: string | null) => Promise<SaveResult>;
+
   /**
    * Restores the demo seed. Only exposed when persistence is browser-local, so it can
    * never clear a server-backed workspace that has real learner records in it.
@@ -54,6 +70,18 @@ function accessCode(): string {
   return Math.random().toString(36).slice(2, 8).toUpperCase();
 }
 
+/** Drops anything that is not a logo this app encoded, so a tampered store renders nothing. */
+function cleanBrand(doc: BrandDoc | null | undefined): Record<string, ClientLogo> {
+  const out: Record<string, ClientLogo> = {};
+  if (!doc || typeof doc !== 'object' || !doc.logos || typeof doc.logos !== 'object') return out;
+  for (const [key, logo] of Object.entries(doc.logos)) {
+    if (logo && isLogoDataUrl(logo.src)) {
+      out[key] = { src: logo.src, client: String(logo.client ?? ''), updatedAt: String(logo.updatedAt ?? '') };
+    }
+  }
+  return out;
+}
+
 function readIdentity(): Identity | null {
   try {
     const raw = localStorage.getItem(IDENTITY_KEY);
@@ -66,6 +94,7 @@ function readIdentity(): Identity | null {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [workspace, setWorkspace] = useState<Workspace>(() => seedWorkspace());
+  const [logos, setLogos] = useState<Record<string, ClientLogo>>({});
   const [identity, setIdentity] = useState<Identity | null>(() => readIdentity());
   const [persistenceStatus, setPersistenceStatus] = useState<PersistenceStatus>(() =>
     persistence.currentStatus(),
@@ -77,9 +106,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       const status = await persistence.probe();
-      const loaded = await persistence.load();
+      const [loaded, brand] = await Promise.all([persistence.load(), persistence.loadBrand()]);
       if (cancelled) return;
       setPersistenceStatus(status);
+      setLogos(cleanBrand(brand));
       if (loaded && Array.isArray(loaded.programs)) {
         setWorkspace({
           programs: loaded.programs,
@@ -306,6 +336,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [mutate],
   );
 
+  const logoFor = useCallback(
+    (client: string): ClientLogo | undefined => (client.trim() ? logos[clientKey(client)] : undefined),
+    [logos],
+  );
+
+  const setClientLogo = useCallback(async (client: string, src: string | null): Promise<SaveResult> => {
+    const key = clientKey(client);
+    if (!key) return { ok: false, reason: 'server' };
+    // Re-read before writing: the document is shared, and another admin may have
+    // uploaded a different client's logo since this tab loaded it.
+    const latest = cleanBrand(await persistence.loadBrand());
+    const next = { ...latest };
+    if (src === null) delete next[key];
+    else next[key] = { src, client: client.trim(), updatedAt: new Date().toISOString() };
+    const result = await persistence.saveBrand({ logos: next, updatedAt: new Date().toISOString() });
+    if (result.ok) setLogos(next);
+    return result;
+  }, []);
+
   const resetToDemoSeed = useCallback(() => {
     if (persistenceStatus.mode !== 'local') return;
     dirty.current = true;
@@ -329,6 +378,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       recordSegment,
       introHeardFor,
       markIntroHeard,
+      logoFor,
+      setClientLogo,
       resetToDemoSeed,
     }),
     [
@@ -347,6 +398,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       recordSegment,
       introHeardFor,
       markIntroHeard,
+      logoFor,
+      setClientLogo,
       resetToDemoSeed,
     ],
   );

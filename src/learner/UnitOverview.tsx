@@ -4,6 +4,7 @@ import { unitCompletion, unitLocked } from '../app/progress';
 import { builtUnits, hasNarration, libraryUnit, unitHealth, unitMinutes, unitNuggets } from '../content';
 import { formatTime } from '../player/timeline';
 import { Shell } from '../app/Shell';
+import { accentVars } from '../app/brand';
 import './learner.css';
 
 /** Unit landing page: what it is for, what is inside, and one button into the player. */
@@ -45,7 +46,7 @@ export function UnitOverview() {
 
   return (
     <Shell crumb={`${program.course || program.title} · ${unit.title}`}>
-      <main className="page page--narrow">
+      <main className="page page--narrow" style={accentVars(program.accent)}>
         <p>
           <Link className="btn btn--quiet" to={`/learn/${program.id}`}>
             ← למסלול הלמידה

@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../state/store';
-import { programCompletion, programUnits, unitCompletion, unitLocked } from '../app/progress';
+import {
+  programCompletion,
+  programUnits,
+  unitCompletion,
+  unitLocked,
+  type ProgramCompletion,
+} from '../app/progress';
 import { unitMinutes } from '../content';
-import { assetUrl } from '../app/paths';
+import { accentVars } from '../app/brand';
 import { Shell } from '../app/Shell';
+import type { LearnerProgress, Program } from '../state/types';
+import { ProgramHero } from './ProgramHero';
 import './learner.css';
 
 function greeting(): string {
@@ -57,108 +65,18 @@ export function LearnerHome() {
         </div>
 
         {current && (
-          <section className="lhero">
-            <img className="lhero__mark" src={assetUrl('assets/ngg-mark-white.png')} alt="" />
-            <div className="lhero__body">
-              <div>
-                <div className="lhero__k">
-                  {current.completion.pct === 0 ? 'התוכנית שלך' : 'להמשיך מאיפה שעצרת'}
-                </div>
-                <div className="lhero__t">{current.program.course || current.program.title}</div>
-                <div className="lhero__s">
-                  {current.program.client} · {current.completion.done} מתוך {current.completion.playable.length} יחידות הושלמו
-                </div>
-                <div className="lhero__meter">
-                  <span className="meter">
-                    <i style={{ width: `${current.completion.pct}%` }} />
-                  </span>
-                  <span>{current.completion.pct}%</span>
-                </div>
+          <div style={accentVars(current.program.accent)}>
+            <ProgramHero
+              program={current.program}
+              completion={{ ...current.completion, playableCount: current.completion.playable.length }}
+            />
+            {current.program.welcome && (
+              <div className="softnote" style={{ marginTop: 16 }}>
+                {current.program.welcome}
               </div>
-              {current.completion.nextUnitId && (
-                <Link className="btn btn--primary" to={`/learn/${current.program.id}/${current.completion.nextUnitId}`}>
-                  {current.completion.pct === 0
-                    ? 'להתחיל ללמוד ←'
-                    : current.completion.complete
-                      ? 'לצפייה חוזרת ←'
-                      : 'להמשיך בלמידה ←'}
-                </Link>
-              )}
-            </div>
-          </section>
-        )}
-
-        {current?.program.welcome && (
-          <div className="softnote" style={{ marginTop: 16 }}>
-            {current.program.welcome}
+            )}
+            <CurrentJourney current={current} progress={progress} flash={flash} />
           </div>
-        )}
-
-        {current && (
-          <section className="section">
-            <div className="section__head" style={{ marginBottom: 12 }}>
-              <h2>מסלול הלמידה שלי</h2>
-              <span className="spacer" />
-              <Link className="btn btn--quiet" to={`/learn/${current.program.id}`}>
-                לתוכנית המלאה ←
-              </Link>
-            </div>
-
-            <div className="journeylist">
-              {[...current.completion.playable, ...current.completion.pending].map((unit, i) => {
-                const completion = unitCompletion(progress, unit.contentId);
-                const inProduction = !unit.contentId;
-                const locked = inProduction || unitLocked(current.program, unit, progress);
-                const state = completion.complete
-                  ? 'done'
-                  : locked
-                    ? 'locked'
-                    : completion.practised > 0 || i === current.completion.playable.findIndex((u) => u.id === current.completion.nextUnitId)
-                      ? 'current'
-                      : 'todo';
-
-                const body = (
-                  <>
-                    <span className="jrow2__state" data-state={state}>
-                      {state === 'done' ? '✓' : state === 'current' ? '▶' : state === 'locked' ? '🔒' : i + 1}
-                    </span>
-                    <span className="jrow2__b">
-                      <b>{unit.title}</b>
-                      <span>{unit.summary}</span>
-                    </span>
-                    <span className="jrow2__meta">
-                      {inProduction ? (
-                        <span className="chip chip--amber">בהכנה</span>
-                      ) : completion.practised > 0 && !completion.complete ? (
-                        <span className="chip chip--pink">
-                          {completion.practised}/{completion.total}
-                        </span>
-                      ) : null}
-                      <span className="chip">{unitMinutes(unit)} דק׳</span>
-                    </span>
-                  </>
-                );
-
-                return locked ? (
-                  <button
-                    key={unit.id}
-                    type="button"
-                    className="jrow2"
-                    data-state="locked"
-                    onClick={() =>
-                      flash(inProduction ? 'היחידה נמצאת בהפקה' : 'היחידה תיפתח לאחר השלמת היחידה הקודמת')
-                    }
-                  >
-                    {body}
-                  </button>
-                ) : (
-                  <Link key={unit.id} className="jrow2" data-state={state} to={`/learn/${current.program.id}/${unit.id}`}>
-                    {body}
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
         )}
 
         {active.length > 1 && (
@@ -200,5 +118,83 @@ export function LearnerHome() {
         {toast && <div className="toast">{toast}</div>}
       </main>
     </Shell>
+  );
+}
+
+/** The current programme's units, in order, with each one's state. */
+function CurrentJourney({
+  current,
+  progress,
+  flash,
+}: {
+  current: { program: Program; completion: ProgramCompletion };
+  progress: LearnerProgress;
+  flash: (message: string) => void;
+}) {
+  return (
+    <section className="section">
+      <div className="section__head" style={{ marginBottom: 12 }}>
+        <h2>מסלול הלמידה שלי</h2>
+        <span className="spacer" />
+        <Link className="btn btn--quiet" to={`/learn/${current.program.id}`}>
+          לתוכנית המלאה ←
+        </Link>
+      </div>
+
+      <div className="journeylist">
+        {[...current.completion.playable, ...current.completion.pending].map((unit, i) => {
+          const completion = unitCompletion(progress, unit.contentId);
+          const inProduction = !unit.contentId;
+          const locked = inProduction || unitLocked(current.program, unit, progress);
+          const state = completion.complete
+            ? 'done'
+            : locked
+              ? 'locked'
+              : completion.practised > 0 || i === current.completion.playable.findIndex((u) => u.id === current.completion.nextUnitId)
+                ? 'current'
+                : 'todo';
+
+          const body = (
+            <>
+              <span className="jrow2__state" data-state={state}>
+                {state === 'done' ? '✓' : state === 'current' ? '▶' : state === 'locked' ? '🔒' : i + 1}
+              </span>
+              <span className="jrow2__b">
+                <b>{unit.title}</b>
+                <span>{unit.summary}</span>
+              </span>
+              <span className="jrow2__meta">
+                {inProduction ? (
+                  <span className="chip chip--amber">בהכנה</span>
+                ) : completion.practised > 0 && !completion.complete ? (
+                  <span className="chip chip--pink">
+                    {completion.practised}/{completion.total}
+                  </span>
+                ) : null}
+                <span className="chip">{unitMinutes(unit)} דק׳</span>
+              </span>
+            </>
+          );
+
+          return locked ? (
+            <button
+              key={unit.id}
+              type="button"
+              className="jrow2"
+              data-state="locked"
+              onClick={() =>
+                flash(inProduction ? 'היחידה נמצאת בהפקה' : 'היחידה תיפתח לאחר השלמת היחידה הקודמת')
+              }
+            >
+              {body}
+            </button>
+          ) : (
+            <Link key={unit.id} className="jrow2" data-state={state} to={`/learn/${current.program.id}/${unit.id}`}>
+              {body}
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

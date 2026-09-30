@@ -10,6 +10,15 @@
   --accent-ink: #8e1050;
   --accent-tint: #fdeef6;
   --accent-tint-edge: #f8cfe4;
+  /* Derived accent tones. A branded programme overrides all of these together
+     (app/brand.ts → accentVars); the values here are NGG pink's. */
+  --accent-rgb: 236, 42, 140;
+  --accent-light: #f871b5;
+  --accent-glow: #ff8ec5;
+  --accent-grad: #a3155f;
+  --on-accent: #fff;
+  --hero-mid: #1b0f1c;
+  --hero-end: #33112b;
 
   --ink: #15151f;
   --ink-2: #3a3a40;
@@ -211,7 +220,7 @@ img { max-width: 100%; }
   font-weight: 700;
   white-space: nowrap;
 }
-.btn--primary { background: var(--accent); color: #fff; box-shadow: var(--shadow-primary); }
+.btn--primary { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-primary); }
 .btn--primary:hover:not(:disabled) { background: var(--accent-deep); }
 .btn--ghost { border: 1px solid var(--hairline); background: var(--surface); color: var(--ink-3); font-weight: 600; }
 .btn--ghost:hover:not(:disabled) { border-color: #e3e1e8; color: var(--ink); }
@@ -273,6 +282,30 @@ img { max-width: 100%; }
 }
 .chipset button[aria-pressed='true'] { border-color: var(--accent-tint-edge); background: var(--accent-tint); color: var(--accent-ink); }
 
+/* Pills: the status and metadata labels on library, builder and learner pages. They
+   were dropped from the stylesheet in the v2 restyle while the markup kept using them. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  background: var(--well);
+  color: var(--ink-3);
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pill--pink { background: var(--accent-tint); color: var(--accent-ink); }
+.pill--ok { background: #e9f6ef; color: #167349; }
+.pill--warn { background: #fbf2e0; color: #a66f08; }
+.pill--bad { background: var(--danger-tint); color: var(--danger); }
+.pill--outline { background: var(--surface); color: var(--ink-3); border: 1px solid #e5e4e7; font-weight: 600; }
+
+.eyebrow { font: 700 11px/1.4 var(--sans); letter-spacing: 0.12em; color: var(--ink-5); }
+.eyebrow--pink { color: #c0508f; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
 /* ------------------------------------------------------------- monograms --- */
 
 .mono-badge {
@@ -287,6 +320,17 @@ img { max-width: 100%; }
   font: 700 13px/1 var(--sans);
 }
 .mono-badge--sm { width: 26px; height: 26px; border-radius: 8px; font-size: 11.5px; }
+.mono-badge[data-tone='dark'] { background: rgba(255, 255, 255, 0.14); color: #fff; }
+
+/* An uploaded client logo: contained on white, since logos arrive with any background. */
+.clientlogo {
+  flex: none;
+  display: block;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--hairline);
+  padding: 3px;
+}
 
 .initials {
   flex: none;
@@ -303,10 +347,11 @@ img { max-width: 100%; }
 /* --------------------------------------------------------------- meters --- */
 
 .meter { display: block; height: 7px; border-radius: var(--r-pill); background: #f2f1f5; overflow: hidden; }
-.meter > i { display: block; height: 100%; border-radius: var(--r-pill); background: linear-gradient(90deg, #f871b5, var(--accent)); transition: width 0.3s ease; }
+.meter > i { display: block; height: 100%; border-radius: var(--r-pill); background: linear-gradient(90deg, var(--accent-light), var(--accent)); transition: width 0.3s ease; }
 .meter > i[data-empty='true'] { background: #e5e4e7; }
 .meter > i[data-tone='amber'] { background: linear-gradient(90deg, #f6d99a, var(--amber)); }
 .meter--thin { height: 6px; }
+.meter--tall { height: 8px; }
 
 /* Pastel status tile with an SVG donut. */
 .tile { border-radius: var(--r-card); padding: 16px 17px; }

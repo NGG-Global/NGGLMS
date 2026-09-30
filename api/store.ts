@@ -7,9 +7,10 @@ import { getRaw, isAllowedKey, setRaw, storeMode } from './_kv.js';
  * Minimal document store for the platform.
  *
  *   GET  /api/store?key=workspace           → { mode, value }
+ *   PUT  /api/store?key=brand               → { mode, ok: true }   (client logos)
  *   PUT  /api/store?key=progress:<learner>  → { mode, ok: true }
  *
- * Only two key shapes are accepted (see isAllowedKey), so this is not a general KV proxy.
+ * Only three key shapes are accepted (see isAllowedKey), so this is not a general KV proxy.
  *
  * Note for whoever operates this: there is no authentication here. Protect the
  * deployment itself (Vercel Deployment Protection / SSO, or an org-only domain) before

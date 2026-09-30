@@ -6,6 +6,7 @@ import { unitCompletion } from '../app/progress';
 import { formatTime } from '../player/timeline';
 import { assetUrl } from '../app/paths';
 import { Shell } from '../app/Shell';
+import { accentVars } from '../app/brand';
 import './learner.css';
 import './opening.css';
 
@@ -147,7 +148,7 @@ export function UnitOpening() {
 
   return (
     <Shell crumb={`${program.course || program.title} · פתיח היחידה`}>
-      <main className="page">
+      <main className="page" style={accentVars(program.accent)}>
         <div className="opening">
           <div className="opening__top">
             <Link className="btn btn--quiet" to={`/learn/${program.id}/${unit.id}`}>

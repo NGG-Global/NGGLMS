@@ -56,7 +56,7 @@ export async function delRaw(key: string): Promise<void> {
 }
 
 /** Keys the API will serve. Anything else is rejected, so the endpoint is not a generic KV proxy. */
-const KEY_PATTERN = /^(workspace|progress:[A-Za-z0-9._@%+-]{1,120})$/;
+const KEY_PATTERN = /^(workspace|brand|progress:[A-Za-z0-9._@%+-]{1,120})$/;
 
 export function isAllowedKey(key: unknown): key is string {
   return typeof key === 'string' && KEY_PATTERN.test(key);
