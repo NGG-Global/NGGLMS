@@ -114,6 +114,17 @@
   .topbar { gap: 10px; padding: 0 14px; }
   .topbar__search, .topbar__crumb, .topbar__sep, .topbar__me b { display: none; }
 }
+/* On a phone the brand label, the guide link, the mode switch and the account
+   controls together run wider than the viewport, which forced the whole canvas
+   into a sideways scroll. The mark alone identifies the platform at this size. */
+@media (max-width: 480px) {
+  .topbar { gap: 6px; padding: 0 12px; }
+  .topbar__brand b { display: none; }
+  .topbar__brand img { height: 22px; }
+  .topbar__link { padding: 7px 9px; }
+  .topbar .seg > * { padding: 6px 10px; }
+  .topbar__bell { width: 30px; height: 30px; line-height: 30px; }
+}
 
 /* --------------------------------------------------------------- sidebar --- */
 
