@@ -3,7 +3,8 @@ import { unit01 } from './unit-01';
 import { unit02 } from './unit-02';
 import { library, libraryUnit, type LibraryUnit } from './library';
 import { hasNarration } from './narration-manifest';
-import { videoTrack } from './video-manifest';
+import { videoTrack, videoTracks } from './video-manifest';
+import { explainerSeries } from './explainers';
 
 export * from './types';
 export * from './library';
@@ -51,13 +52,47 @@ export interface UnitHealth {
   introHasAudio: boolean;
 }
 
+/** A film the player can stream: its store path and measured length. */
+export interface FilmTrack {
+  file: string;
+  duration: number;
+}
+
+/**
+ * Every film in the blob store whose length is known, by store path: the nugget renders
+ * in the video manifest, and the Claude episodes declared in explainers.ts (which the
+ * video scan deliberately leaves to that file).
+ */
+const filmsByFile = new Map<string, FilmTrack>([
+  ...videoTracks.map((t) => [t.file, { file: t.file, duration: t.duration }] as const),
+  ...explainerSeries.episodes.map((e) => [e.file, { file: e.file, duration: e.duration }] as const),
+]);
+
+/**
+ * The film a nugget plays, if any.
+ *
+ * A nugget produced as a finished film names that film in `src`, and is matched by it.
+ * That keeps courses apart: two units can both be numbered "01" without one picking up
+ * the other's videos. Only a narrated nugget (an audio `src`) falls back to the older
+ * match by unit and nugget number, for a render made to play over its narration.
+ * Either way a film shorter than the nugget is refused, as in `videoTrack`.
+ */
+export function segmentVideo(unitN: string, s: Segment): FilmTrack | undefined {
+  const need = s.end - s.start;
+  if (s.src.startsWith('assets/video/')) {
+    const film = filmsByFile.get(s.src);
+    return film && film.duration > 0 && film.duration >= need - 0.5 ? film : undefined;
+  }
+  return videoTrack(unitN, s.n, need);
+}
+
 /**
  * True when a learner will hear this nugget: its narration file is delivered, or a
- * rendered video covers it. A video carries its own voice track, so a nugget produced
- * as a finished film needs no separate narration file.
+ * film covers it. A film carries its own voice track, so a nugget produced as a
+ * finished film needs no separate narration file.
  */
 export function segmentHasVoice(unitN: string, s: Segment): boolean {
-  return hasNarration(s.src, s.end) || Boolean(videoTrack(unitN, s.n, s.end - s.start));
+  return hasNarration(s.src, s.end) || Boolean(segmentVideo(unitN, s));
 }
 
 function cueCount(s: Segment): number {
@@ -78,7 +113,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     cueCount: cueCount(s),
     sceneCount: Object.keys(s.scenes).length,
     hasAudio: segmentHasVoice(content.unit.n, s),
-    hasVideo: Boolean(videoTrack(content.unit.n, s.n, s.end - s.start)),
+    hasVideo: Boolean(segmentVideo(content.unit.n, s)),
   }));
   return {
     contentId,
