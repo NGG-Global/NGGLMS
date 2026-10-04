@@ -1,6 +1,7 @@
 import type { Segment, UnitContent } from './types';
 import { unit01 } from './unit-01';
 import { unit02 } from './unit-02';
+import { claude01 } from './claude-01';
 import { library, libraryUnit, type LibraryUnit } from './library';
 import { hasNarration } from './narration-manifest';
 import { videoTrack, videoTracks } from './video-manifest';
@@ -21,6 +22,7 @@ export { hasNarration, narrationTrack, narrationTracks } from './narration-manif
 export const builtUnits: Record<string, UnitContent> = {
   'copilot-01': unit01,
   'copilot-02': unit02,
+  'claude-01': claude01,
 };
 
 export interface SegmentHealth {

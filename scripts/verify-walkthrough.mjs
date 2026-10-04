@@ -58,10 +58,10 @@ await a.screenshot({ path: `${OUT}/w-programs.png`, fullPage: true });
 console.log('\n── library map and builder (Redesign A) ──');
 await a.goto(BASE + '#/admin/library', { waitUntil: 'networkidle' });
 await a.waitForSelector('.catgroup');
-(await a.$$('.topictile')).length === 1 ? ok('topic index: Copilot fundamentals only') : bad('topic tiles: ' + (await a.$$('.topictile')).length);
+(await a.$$('.topictile')).length === 2 ? ok('topic index: the Copilot and Claude courses') : bad('topic tiles: ' + (await a.$$('.topictile')).length);
 // The library lists only produced units; the planned u3–u16 entries were removed.
-(await a.$$('.ucard')).length === 2 ? ok('2 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
-(await a.$$('.ucard .nbar[data-made="true"]')).length === 2 ? ok('every unit is produced and drawn solid') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
+(await a.$$('.ucard')).length === 3 ? ok('3 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
+(await a.$$('.ucard .nbar[data-made="true"]')).length === 3 ? ok('every unit is produced and drawn solid') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
 (await a.$$('.topictile:disabled')).length === 0 ? ok('no empty topics') : bad('disabled topic tiles: ' + (await a.$$('.topictile:disabled')).length);
 (await a.$('.topbar__link')) ? bad('the withdrawn Claude guide is still linked') : ok('no Claude guide link in the top bar');
 await a.goto(BASE + '#/admin/library/u1', { waitUntil: 'networkidle' });

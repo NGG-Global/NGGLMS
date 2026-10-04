@@ -24,12 +24,14 @@ export interface TopicStyle {
 /**
  * Curriculum order — the order the catalogue map reads in, not the filter order.
  *
- * One topic for now: the library holds only the Copilot Essentials films. The design's
- * other seven topics (CORE, PROB, PRMT, VRFY, RESP, PRAC, PROC) were removed with the
- * units that filled them; add a topic back here when a unit for it is produced.
+ * Each topic is a course of its own: the Copilot Essentials films, and the Claude guide
+ * episodes. The design's other seven topics (CORE, PROB, PRMT, VRFY, RESP, PRAC, PROC)
+ * were removed with the units that filled them; add a topic here when a unit for it is
+ * produced.
  */
 const TOPICS: [name: string, code: string, hue: number][] = [
   ['יסודות Copilot', 'COPL', 200],
+  ['יסודות קלוד', 'CLDE', 40],
 ];
 
 export const topicStyles: TopicStyle[] = TOPICS.map(([name, code, hue]) => ({
