@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Scene, UnitContent } from '../content/types';
 import { hasNarration } from '../content/narration-manifest';
-import { segmentHasVoice } from '../content';
-import { videoTrack } from '../content/video-manifest';
+import { segmentHasVoice, segmentVideo } from '../content';
 import { assetUrl, videoUrl } from '../app/paths';
 import { buildTimeline, formatTime, type Timeline } from './timeline';
 import { useTimelineClock } from './useTimelineClock';
@@ -73,7 +72,7 @@ export function UnitPlayer({
   const timeline = timelines[index];
 
   const audioAvailable = hasNarration(segment.src, segment.end);
-  const video = videoTrack(content.unit.n, segment.n, segment.end - segment.start);
+  const video = segmentVideo(content.unit.n, segment);
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
 
   const clockTarget = useMemo(

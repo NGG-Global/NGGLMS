@@ -124,7 +124,7 @@ await l.click('.btn--primary');
 await l.waitForSelector('.frame', { timeout: 8000 });
 ok('advanced into the player');
 console.log('   landed on:', (await l.textContent('.rail__item[aria-current="true"] .rail__body b')).trim());
-(await l.$$('.rail__item')).length === 2 ? ok('rail: 2 nuggets') : bad('rail items: ' + (await l.$$('.rail__item')).length);
+(await l.$$('.rail__item')).length === 4 ? ok('rail: 4 nuggets') : bad('rail items: ' + (await l.$$('.rail__item')).length);
 (await l.$('video.frame__video')) ? ok('nugget plays its film') : bad('no video element for the nugget');
 await l.screenshot({ path: `${OUT}/w-player.png`, fullPage: true });
 
