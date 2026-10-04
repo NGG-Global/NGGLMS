@@ -26,7 +26,15 @@
  * replaces the entry for its own unit and nugget and leaves the rest alone.
  *
  * Pass `--prune` to write only what is on disk, for the case where a nugget is being
- * withdrawn on purpose. That is the only way an entry leaves the manifest.
+ * withdrawn on purpose. To withdraw particular nuggets without touching the rest, pass
+ * `--withdraw=u01-n04,u01-n05`: those entries leave the manifest and the nuggets drop
+ * back to whatever the unit content gives them. Neither option deletes anything from
+ * the blob store; a withdrawn render simply stops being referenced.
+ *
+ * A replacement render takes a version suffix, `u01-n01-v2.mp4`, rather than reusing
+ * the old name. The store serves /assets/video with an immutable one-year cache header,
+ * so a file overwritten in place can keep playing the old cut from browser and CDN
+ * caches long after the upload.
  *
  * Run via `npm run scan:video`.
  */
@@ -41,14 +49,14 @@ const OUT = 'src/content/video-manifest.ts';
 const tracks = [];
 if (existsSync(DIR)) {
   for (const name of readdirSync(DIR).sort()) {
-    const match = /^u(\d+)-n(\d+)\.mp4$/.exec(name);
+    const match = /^u(\d+)-n(\d+)(?:-v\d+)?\.mp4$/.exec(name);
     if (!match) {
       // Explainer episodes stage through the same directory on their way to the store,
       // and they belong to src/content/explainers.ts, not to this manifest. Saying so
       // keeps a routine scan from reading like something went wrong.
       const other = /^claude-ep\d+\.mp4$/.test(name)
         ? 'explainer episode, declared in src/content/explainers.ts'
-        : 'expected u<unit>-n<nugget>.mp4';
+        : 'expected u<unit>-n<nugget>.mp4 or u<unit>-n<nugget>-v<k>.mp4';
       console.log(`not a nugget track: ${name} — ${other}`);
       continue;
     }
@@ -61,6 +69,22 @@ if (existsSync(DIR)) {
 }
 
 const prune = process.argv.includes('--prune');
+
+/** Nuggets named by `--withdraw=u01-n04,u01-n05`, as manifest keys ("01/4"). */
+const withdraw = new Set(
+  (process.argv.find((a) => a.startsWith('--withdraw='))?.slice('--withdraw='.length) ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean)
+    .map((id) => {
+      const m = /^u(\d+)-n(\d+)$/.exec(id);
+      if (!m) {
+        console.error(`--withdraw expects ids like u01-n04, got "${id}".`);
+        process.exit(1);
+      }
+      return `${m[1]}/${Number(m[2])}`;
+    }),
+);
 
 /**
  * The tracks the committed manifest already lists.
@@ -98,6 +122,10 @@ if (!prune) {
   const kept = committedTracks().filter((t) => !scanned.has(key(t)));
   for (const t of kept) console.log(`kept ${t.file} (in the blob store, not on disk)`);
   merged = [...kept, ...tracks];
+}
+if (withdraw.size) {
+  for (const t of merged) if (withdraw.has(key(t))) console.log(`withdrawn ${t.file} (left in the blob store)`);
+  merged = merged.filter((t) => !withdraw.has(key(t)));
 }
 merged.sort((a, b) => a.unit.localeCompare(b.unit) || a.n - b.n);
 

@@ -45,6 +45,15 @@ export interface UnitHealth {
   introHasAudio: boolean;
 }
 
+/**
+ * True when a learner will hear this nugget: its narration file is delivered, or a
+ * rendered video covers it. A video carries its own voice track, so a nugget produced
+ * as a finished film needs no separate narration file.
+ */
+export function segmentHasVoice(unitN: string, s: Segment): boolean {
+  return hasNarration(s.src, s.end) || Boolean(videoTrack(unitN, s.n, s.end - s.start));
+}
+
 function cueCount(s: Segment): number {
   if (s.timed) return s.timed.reduce((sum, block) => sum + block[2].length, 0);
   return s.cues?.length ?? 0;
@@ -62,7 +71,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     durationSec: s.end - s.start,
     cueCount: cueCount(s),
     sceneCount: Object.keys(s.scenes).length,
-    hasAudio: hasNarration(s.src, s.end),
+    hasAudio: segmentHasVoice(content.unit.n, s),
     hasVideo: Boolean(videoTrack(content.unit.n, s.n, s.end - s.start)),
   }));
   return {
