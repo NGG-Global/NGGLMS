@@ -25,7 +25,7 @@ export function Explainers() {
 
   return (
     <Shell crumb={explainerSeries.title}>
-      <main className="page page--narrow" style={{ margin: '0 auto' }}>
+      <main className="page page--narrow epage" style={{ margin: '0 auto' }}>
         <div className="page__head">
           <div>
             <div className="page__kicker">סדרת וידאו</div>
@@ -77,7 +77,7 @@ export function ExplainerEpisodePage() {
   if (!episode) {
     return (
       <Shell crumb={explainerSeries.title}>
-        <main className="page page--narrow" style={{ margin: '0 auto' }}>
+        <main className="page page--narrow epage" style={{ margin: '0 auto' }}>
           <div className="empty">
             הפרק לא נמצא. <Link to="/explainers">חזרה לסדרה</Link>
           </div>
@@ -90,7 +90,7 @@ export function ExplainerEpisodePage() {
 
   return (
     <Shell crumb={`${explainerSeries.title} · ${episode.kicker}`}>
-      <main className="page page--narrow" style={{ margin: '0 auto' }}>
+      <main className="page page--narrow epage" style={{ margin: '0 auto' }}>
         <div className="page__head">
           <div>
             <div className="page__kicker">{episode.kicker}</div>

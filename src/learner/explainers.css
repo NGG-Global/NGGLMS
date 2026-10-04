@@ -165,3 +165,60 @@
 }
 /* Episode names say what the episode covers, so the "next" label can run long. */
 .epnav .btn { white-space: normal; text-align: center; max-width: 100%; }
+
+/* ------------------------------------------------------------ small screens --- */
+
+/* Both guide pages share the narrow page, but on a phone the 28px gutters the desktop
+   canvas uses are a fifth of the width. Tighten them here rather than on `.page`, so
+   the rest of the platform keeps the handoff's dimensions. */
+@media (max-width: 640px) {
+  .epage { padding: 18px 16px 56px; }
+  .epage .page__head { margin-bottom: 16px; }
+  .epage .page__head h1 { font-size: 22px; }
+  .epage .page__head p { font-size: 14px; }
+
+  /* The row loses its third column: the still shrinks, and the length moves under
+     the subtitle, so the title gets the width it needs instead of wrapping a word
+     per line beside a 116px thumbnail. */
+  .eprow {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 13px;
+    padding: 13px 14px;
+    align-items: start;
+  }
+  .eprow__thumb { width: 96px; }
+  .eprow__t { font-size: 14.5px; line-height: 1.35; }
+  .eprow__s { font-size: 12px; }
+  .eprow__meta {
+    grid-column: 2;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .eprow__meta b { font-size: 12px; }
+  .eprow__play { width: 24px; height: 24px; }
+  .eprow__play::before { border-block-width: 4px; border-inline-end-width: 6px; }
+
+  .epframe { border-radius: var(--r-card); }
+  .epkeep { padding: 15px 16px; }
+  .epkeep p { font-size: 14.5px; }
+
+  /* One button per line, the next episode first: on a phone that is the action, and
+     the way back to the list is a secondary tap below it. */
+  .epnav { flex-direction: column; gap: 8px; margin-top: 20px; }
+  .epnav .btn { width: 100%; }
+  .epnav .btn--primary { order: -1; }
+}
+
+@media (max-width: 420px) {
+  .eprow { grid-template-columns: 84px minmax(0, 1fr); gap: 11px; }
+  .eprow__thumb { width: 84px; }
+  .eprow__n { width: 20px; height: 20px; font-size: 10px; }
+
+  /* The film runs edge to edge: at this width the frame's own border and radius cost
+     more picture than they are worth. */
+  .epframe {
+    margin-inline: -16px;
+    border-radius: 0;
+    border-inline: 0;
+  }
+}
