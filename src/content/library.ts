@@ -1,8 +1,9 @@
 // NGG content library.
 //
-// Only units that exist. The library holds the Copilot Essentials films and nothing
-// else: every unit sits under the "יסודות Copilot" topic, and each carries a `contentId`
-// pointing at a produced unit module whose nuggets are those films.
+// Only units that exist. The library holds two courses, each a topic of its own: the
+// Copilot Essentials films under "יסודות Copilot", and the Claude guide episodes under
+// "יסודות קלוד". Each unit carries a `contentId` pointing at a produced unit module whose
+// nuggets are those films.
 //
 // Retired ids — do not reuse them for a new unit. Programmes saved before a unit was
 // retired may still reference its id, and the screens ignore ids the library does not
@@ -110,10 +111,36 @@ export const library: LibraryUnit[] = [
         { title: "Copilot ב-Word: מהמסמך להבנה ולטיוטה", type: "וידאו", minutes: 2, summary: "שואלים על מסמך ארוך ב-Chat only בלי לשנות אותו, ובודקים את התשובה מול ההפניות למסמך.", takeaway: "מספרים, שמות, תאריכים וציטוטים בודקים מול המקור." },
         { title: "Copilot ב-PowerPoint: מתחילים במסר", type: "וידאו", minutes: 2, summary: "מצגת מקובץ קיים היא טיוטה. קודם מנסחים את המסר, אחר כך מחדדים שקף אחד בכל פעם.", takeaway: "האחריות למה שעולה על המסך נשארת שלנו." }
       ]
+    },
+    {
+      id: "u18",
+      title: "מדריך קלוד",
+      summary: "מה קלוד עושה ולאילו משימות הוא מתאים, איך מתקינים ומגדירים אותו, איך מחברים אותו למיקרוסופט 365, ואיך עובדים איתו עם הקשר, קבצים, פרויקטים ומצגות.",
+      topic: "יסודות קלוד",
+      roles: ["כללי"],
+      minutes: 38,
+      contentType: "וידאו + תרגיל",
+      assessment: "תרגיל",
+      tags: ["יסודות קלוד", "ליבה"],
+      recencyRank: 15,
+      objective: "לעבוד עם קלוד כעוזר מקצועי: לבחור משימות שמתאימות לו ומודל שמתאים למשימה, לחבר אותו למידע הארגוני בתוך ההרשאות, לתת לו הקשר ולשפר בסבבים, ולארגן עבודה חוזרת בפרויקטים.",
+      recommendedFor: "כל העובדים שעובדים עם קלוד בחשבון הארגוני.",
+      contentId: "claude-01",
+      outcomes: ["לזהות משימה שמתאימה לקלוד ומשימה שעדיף לעשות לבד", "לבחור מודל לפי המשימה ולהגדיר העדפות אישיות פעם אחת", "לשלוף מידע ממיקרוסופט 365 בתוך ההרשאות הקיימות", "לתת הקשר, לעבוד עם קבצים ולשפר תשובה באותה שיחה", "לארגן עבודה חוזרת על לקוח או נושא בפרויקט"],
+      nuggets: [
+        { title: "מה קלוד עושה ואילו משימות מתאימות לו", type: "וידאו", minutes: 4, takeaway: "אם המשימה מתחילה מטקסט, מנתונים או מרעיון — היא כנראה מתאימה. שיקול הדעת המקצועי נשאר אצלכם." },
+        { title: "התקנה, בחירת מודל והגדרות אישיות", type: "וידאו", minutes: 7, takeaway: "פתחתם את הבורר ואין לכם מושג? Sonnet הוא בדרך כלל הימור מצוין. ואת ההעדפות שלכם כדאי להגדיר פעם אחת, לא בכל שיחה." },
+        { title: "חיבור קלוד למיקרוסופט 365 והרשאות הגישה", type: "וידאו", minutes: 5, takeaway: "קלוד רואה רק את מה שאתם מורשים לראות — אותם כללי הרשאות בדיוק. וכדאי לזכור את ההבדל בין לקרוא לבין לעשות." },
+        { title: "מתן הקשר בבקשה ושיפור התשובה באותה שיחה", type: "וידאו", minutes: 5, takeaway: "התשובה הראשונה היא נקודת פתיחה, לא תוצר. אל תפתחו צ׳אט חדש — תקנו באותה שיחה, ותנו את האילוצים מראש." },
+        { title: "עבודה עם קבצים: בצ׳אט או כמשימה שלמה על המחשב", type: "וידאו", minutes: 4, takeaway: "הצ׳אט מתאים כשאתם רוצים להיות בפנים בכל צעד. משימה שלמה על הקבצים עצמם מתאימה כשאתם רוצים לחזור לתוצאה — עם תיעוד ואפשרות לעצור." },
+        { title: "שליפת מידע ממיקרוסופט 365 בשאלה אחת", type: "וידאו", minutes: 3, takeaway: "אל תחפשו — תשאלו. המידע כבר נמצא במערכות שלכם, וצריך רק לבקש שיאסוף אותו לתמונה אחת." },
+        { title: "פרויקטים: חומרים והוראות קבועים ללקוח או לנושא", type: "וידאו", minutes: 4, takeaway: "פרויקט אחד ללקוח — לא פרויקט אחד לכל שיחה איתו. מה שצריך לחזור על עצמו שייך לתיק החומרים, לא לצ׳אט." },
+        { title: "בניית מצגת ב-Claude Design: מהבריף ועד הייצוא", type: "וידאו", minutes: 6, takeaway: "קודם סטורי־ליין, אחר כך עיצוב: לשנות שורה ברשימה לוקח כמה שניות, לפרק מבנה של מצגת שכבר עוצבה — הרבה פחות. ויש תבנית טובה שעובדת? משתמשים בה." }
+      ]
     }
 ];
 
-export const topics: string[] = ["יסודות Copilot"];
+export const topics: string[] = ["יסודות Copilot", "יסודות קלוד"];
 
 export const roles: string[] = ["כללי", "מנהלים", "ניהול פרויקטים", "משאבי אנוש", "מכירות", "שיווק", "כספים"];
 
