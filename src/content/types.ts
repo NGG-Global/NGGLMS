@@ -121,7 +121,11 @@ export interface UnitHeader {
   n: string;
   title: string;
   lead: string;
-  intro: UnitIntro;
+  /**
+   * A read-aloud opening heard before the first nugget. Optional: a unit without one
+   * starts straight at nugget 1, and the learner flow skips the opening step.
+   */
+  intro?: UnitIntro;
 }
 
 export interface UnitContent {

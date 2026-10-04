@@ -82,7 +82,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     silentSegments: segments.filter((s) => !s.hasAudio),
     videoSegments: segments.filter((s) => s.hasVideo),
     totalSec: segments.reduce((sum, s) => sum + s.durationSec, 0),
-    introHasAudio: hasNarration(content.unit.intro.src, content.unit.intro.end),
+    introHasAudio: content.unit.intro ? hasNarration(content.unit.intro.src, content.unit.intro.end) : false,
   };
 }
 

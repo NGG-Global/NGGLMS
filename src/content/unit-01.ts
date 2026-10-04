@@ -10,6 +10,10 @@
 // and sentences the transcription split rejoined. Block times are the transcription's.
 // Scenes hold a single title card, used only if the film cannot be reached.
 //
+// The unit has no read-aloud opening: it starts at the first film. The earlier opening
+// (the first 34s of assets/audio/u1-n1.mp3) was dropped along with the narration it
+// belonged to.
+//
 // The first three films arrived on 4 October 2026. The earlier five-nugget version of
 // this unit (narration in assets/audio/u1-n*.mp3 and CSS-stage scenes) was retired in
 // the same change and remains in git history. Segment ids are new (c1–c3) so progress
@@ -21,8 +25,7 @@ export const unit01: UnitContent = {
   "unit": {
     "n": "01",
     "title": "לעבוד עם AI, לא רק להשתמש בכלי",
-    "lead": "ביחידה הראשונה נבנה את מודל החשיבה הבסיסי שלנו לעבודה עם קופיילוט ועם כלי בינה מלאכותית בכלל.",
-    "intro": { "src": "assets/audio/u1-n1.mp3", "start": 0, "end": 34.32 }
+    "lead": "ביחידה הראשונה נבנה את מודל החשיבה הבסיסי שלנו לעבודה עם קופיילוט ועם כלי בינה מלאכותית בכלל."
   },
   "segments": [
     {
