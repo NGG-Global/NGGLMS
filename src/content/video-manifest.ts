@@ -17,37 +17,23 @@ export const videoTracks: VideoTrack[] = [
   {
     "unit": "01",
     "n": 1,
-    "file": "assets/video/u01-n01.mp4",
-    "bytes": 25081263,
-    "duration": 157.38
+    "file": "assets/video/u01-n01-v2.mp4",
+    "bytes": 12733018,
+    "duration": 159.53
   },
   {
     "unit": "01",
     "n": 2,
-    "file": "assets/video/u01-n02.mp4",
-    "bytes": 23709007,
-    "duration": 154.03
+    "file": "assets/video/u01-n02-v2.mp4",
+    "bytes": 12595863,
+    "duration": 140.33
   },
   {
     "unit": "01",
     "n": 3,
-    "file": "assets/video/u01-n03.mp4",
-    "bytes": 21526924,
-    "duration": 151.3
-  },
-  {
-    "unit": "01",
-    "n": 4,
-    "file": "assets/video/u01-n04.mp4",
-    "bytes": 22483791,
-    "duration": 140.82
-  },
-  {
-    "unit": "01",
-    "n": 5,
-    "file": "assets/video/u01-n05.mp4",
-    "bytes": 24479411,
-    "duration": 158.12
+    "file": "assets/video/u01-n03-v2.mp4",
+    "bytes": 13539678,
+    "duration": 174.55
   },
   {
     "unit": "02",

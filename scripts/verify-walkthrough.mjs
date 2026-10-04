@@ -66,7 +66,7 @@ await a.waitForSelector('.catgroup');
 await a.goto(BASE + '#/admin/library/u1', { waitUntil: 'networkidle' });
 await a.waitForSelector('.uhero');
 !(await a.$('.banner--warn')) ? ok('produced unit carries no in-production banner') : bad('in-production banner on u1');
-(await a.$$('.structbar__n')).length === 5 ? ok('structure bar: 5 nuggets') : bad('structure bar nuggets: ' + (await a.$$('.structbar__n')).length);
+(await a.$$('.structbar__n')).length === 3 ? ok('structure bar: 3 nuggets') : bad('structure bar nuggets: ' + (await a.$$('.structbar__n')).length);
 await a.screenshot({ path: `${OUT}/w-unit-admin.png`, fullPage: true });
 await a.goto(BASE + '#/admin/library/u3', { waitUntil: 'networkidle' });
 (await a.$('.uhero')) ? bad('retired unit u3 still has a page') : ok('retired unit u3 is gone from the library');
