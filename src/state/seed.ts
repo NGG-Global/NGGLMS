@@ -14,7 +14,8 @@ const STATUS: Record<string, ProgramStatus> = {
 
 /**
  * The seven programmes from the approved design, with the owner and cohort the redesign
- * introduced. `learnerTarget` and `avgPct` shape the generated roster below so the
+ * introduced. Their paths hold only units the library actually has; the planned units
+ * the design also placed in them were removed with the rest of the placeholder catalogue. `learnerTarget` and `avgPct` shape the generated roster below so the
  * headline numbers are computed from real records rather than written into the screens.
  */
 const SEED_PROGRAMS: {
@@ -52,7 +53,7 @@ const SEED_PROGRAMS: {
     client: 'פבריקם',
     audience: 'שותפי HR',
     role: 'משאבי אנוש',
-    units: ['u1', 'u2', 'u12'],
+    units: ['u1', 'u2'],
     status: 'טיוטה',
     owner: SEED_OWNER,
     cohort: 'מחזור טרם נקבע',
@@ -66,7 +67,7 @@ const SEED_PROGRAMS: {
     client: 'אדוונצ׳ר וורקס',
     audience: 'מנהלי לקוחות',
     role: 'מכירות',
-    units: ['u1', 'u2', 'u4', 'u6', 'u13'],
+    units: ['u1', 'u2'],
     status: 'מוכן לפרסום',
     owner: SEED_OWNER,
     cohort: 'קיקאוף 8 בספטמבר',
@@ -80,7 +81,7 @@ const SEED_PROGRAMS: {
     client: 'קונטוסו',
     audience: 'מנהלים בדרג ראשון',
     role: 'מנהל עובדים',
-    units: ['u1', 'u2', 'u3', 'u7', 'u8', 'u11', 'u6'],
+    units: ['u1', 'u2'],
     status: 'פורסם',
     owner: SEED_OWNER,
     cohort: 'דדליין 14 בספטמבר',
@@ -94,7 +95,7 @@ const SEED_PROGRAMS: {
     client: 'טיילספין',
     audience: 'פיננסים',
     role: 'כספים',
-    units: ['u1', 'u9', 'u15', 'u6'],
+    units: ['u1'],
     status: 'בארכיון',
     owner: 'רון שגב',
     cohort: 'הסתיים',
@@ -108,7 +109,7 @@ const SEED_PROGRAMS: {
     client: 'נורת׳ווינד',
     audience: 'מוקד שירות',
     role: 'כללי',
-    units: ['u1', 'u2', 'u6', 'u5', 'u7'],
+    units: ['u1', 'u2'],
     status: 'פורסם',
     owner: 'רון שגב',
     cohort: 'מחזור 1 · אוגוסט',
@@ -122,7 +123,7 @@ const SEED_PROGRAMS: {
     client: 'פבריקם',
     audience: 'שיווק ותוכן',
     role: 'שיווק',
-    units: ['u1', 'u2', 'u4', 'u14'],
+    units: ['u1', 'u2'],
     status: 'טיוטה',
     owner: 'ליאת ברק',
     cohort: 'מחזור טרם נקבע',

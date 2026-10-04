@@ -10,6 +10,7 @@ import {
   learningHours,
   overallScore,
   programStats,
+  programUnits,
   programsByScope,
   type ProgramScope,
 } from '../app/progress';
@@ -196,7 +197,7 @@ export function Dashboard() {
                                 {program.audience} · {program.cohort}
                               </span>
                             </span>
-                            <span className="progrow__cell">{program.units.length} יחידות</span>
+                            <span className="progrow__cell">{programUnits(program).length} יחידות</span>
                             <span className="progrow__cell">{s?.learners ? s.learners : '—'}</span>
                             <span>
                               <span className={STATUS_CHIP[program.status]}>{PROGRAM_STATUS_LABEL[program.status]}</span>
