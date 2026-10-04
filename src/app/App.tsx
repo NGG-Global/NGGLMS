@@ -6,7 +6,6 @@ import { ProgramView } from '../learner/ProgramView';
 import { UnitOverview } from '../learner/UnitOverview';
 import { UnitOpening } from '../learner/UnitOpening';
 import { UnitPlay } from '../learner/UnitPlay';
-import { Explainers, ExplainerEpisodePage } from '../learner/Explainers';
 import { Dashboard } from '../admin/Dashboard';
 import { Programs } from '../admin/Programs';
 import { ProgramBuilder } from '../admin/ProgramBuilder';
@@ -90,24 +89,9 @@ export function App() {
       />
 
       {/* Admin side. */}
-      {/* Claude instruction series. Open to both roles: it is reference material about
-          the tool, not a programme a learner is enrolled on. */}
-      <Route
-        path="/explainers"
-        element={
-          <Gate>
-            <Explainers />
-          </Gate>
-        }
-      />
-      <Route
-        path="/explainers/:episodeId"
-        element={
-          <Gate>
-            <ExplainerEpisodePage />
-          </Gate>
-        }
-      />
+      {/* The Claude guide (src/learner/Explainers.tsx) is withdrawn: the platform carries
+          only the Copilot Essentials films for now. Old links land on the home screen. */}
+      <Route path="/explainers/*" element={<Navigate to="/" replace />} />
 
       <Route
         path="/admin"

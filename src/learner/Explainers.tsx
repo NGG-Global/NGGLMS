@@ -1,3 +1,9 @@
+// WITHDRAWN — not routed or linked from anywhere (see src/app/App.tsx).
+// The Claude guide was taken out of the interface in October 2026, when the platform was
+// narrowed to the Copilot Essentials films. The component, its content in
+// src/content/explainers.ts and the films in the blob store are kept so it can be
+// restored by adding the routes and the top-bar link back.
+
 import { Link, useParams } from 'react-router-dom';
 import { Shell } from '../app/Shell';
 import { assetUrl, videoUrl } from '../app/paths';

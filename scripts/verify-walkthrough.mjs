@@ -58,11 +58,12 @@ await a.screenshot({ path: `${OUT}/w-programs.png`, fullPage: true });
 console.log('\n── library map and builder (Redesign A) ──');
 await a.goto(BASE + '#/admin/library', { waitUntil: 'networkidle' });
 await a.waitForSelector('.catgroup');
-(await a.$$('.topictile')).length === 8 ? ok('topic index: 8 topics') : bad('topic tiles: ' + (await a.$$('.topictile')).length);
+(await a.$$('.topictile')).length === 1 ? ok('topic index: Copilot fundamentals only') : bad('topic tiles: ' + (await a.$$('.topictile')).length);
 // The library lists only produced units; the planned u3–u16 entries were removed.
-(await a.$$('.ucard')).length === 3 ? ok('3 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
-(await a.$$('.ucard .nbar[data-made="true"]')).length === 3 ? ok('every unit is produced and drawn solid') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
-(await a.$$('.topictile:disabled')).length === 5 ? ok('topics without units are disabled') : bad('disabled topic tiles: ' + (await a.$$('.topictile:disabled')).length);
+(await a.$$('.ucard')).length === 2 ? ok('2 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
+(await a.$$('.ucard .nbar[data-made="true"]')).length === 2 ? ok('every unit is produced and drawn solid') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
+(await a.$$('.topictile:disabled')).length === 0 ? ok('no empty topics') : bad('disabled topic tiles: ' + (await a.$$('.topictile:disabled')).length);
+(await a.$('.topbar__link')) ? bad('the withdrawn Claude guide is still linked') : ok('no Claude guide link in the top bar');
 await a.goto(BASE + '#/admin/library/u1', { waitUntil: 'networkidle' });
 await a.waitForSelector('.uhero');
 !(await a.$('.banner--warn')) ? ok('produced unit carries no in-production banner') : bad('in-production banner on u1');
@@ -108,45 +109,29 @@ await l.screenshot({ path: `${OUT}/w-lhome.png`, fullPage: true });
 const locked = await l.$('.jrow2[data-state="locked"]');
 if (locked) { await locked.click(); await l.waitForTimeout(400); (await l.$('.toast')) ? ok('locked row flashes a note') : bad('locked row silent'); }
 
-const pid = await l.evaluate(() => location.hash.split('/')[2] || 'p1');
-await l.goto(`${BASE}#/learn/p1/u2`, { waitUntil: 'networkidle' });
+// The Copilot Essentials units have no read-aloud opening, so "start" goes straight to
+// the first nugget. The opening flow itself is still in the code for a unit that has one.
+await l.goto(`${BASE}#/learn/p1/u17`, { waitUntil: 'networkidle' });
 await l.waitForSelector('.unitpage');
-(await l.$('.openrow')) ? ok('opening is a first-class row in the unit') : bad('no opening row');
+!(await l.$('.openrow')) ? ok('unit without an opening lists only its nuggets') : bad('opening row on a unit without one');
 const startLabel = (await l.textContent('.btn--primary')).trim();
 console.log('   start button:', startLabel);
-/פתיח/.test(startLabel) ? ok('start button offers the opening') : bad('start label: ' + startLabel);
+!/פתיח/.test(startLabel) ? ok('start button goes to the first nugget') : bad('start label: ' + startLabel);
 await l.screenshot({ path: `${OUT}/w-unit.png`, fullPage: true });
 
-console.log('\n── the opening screen ──');
+console.log('\n── the player ──');
 await l.click('.btn--primary');
-await l.waitForSelector('.opening__panel', { timeout: 8000 });
-ok('routed to the opening');
-(await l.$$('.introplayer__wave i')).length === 28 ? ok('28 waveform bars') : bad('bars: ' + (await l.$$('.introplayer__wave i')).length);
-console.log('   step:', (await l.textContent('.opening__step')).trim());
-console.log('   time:', (await l.textContent('.introplayer__time')).trim());
-console.log('   hint:', (await l.textContent('.opening__hint')).trim());
-console.log('   up-next rows:', (await l.$$('.upnext__row')).length);
-await l.screenshot({ path: `${OUT}/w-opening-idle.png`, fullPage: true });
-
-await l.click('.introplayer__btn');
-await l.waitForTimeout(3500);
-const play = await l.evaluate(() => { const x = (window.__audio || []).filter((y) => y.src.includes('u2-intro')).pop(); return x ? { rs: x.readyState, ct: +x.currentTime.toFixed(1), paused: x.paused } : null; });
-console.log('   intro audio:', JSON.stringify(play), '· clock', (await l.textContent('.introplayer__time')).trim());
-play && play.rs >= 3 && play.paused === false ? ok('intro narration playing from the real file') : bad('intro not playing: ' + JSON.stringify(play));
-const fill = await l.$eval('.introplayer__track i', (e) => e.style.width);
-parseFloat(fill) > 0 ? ok('progress fill tracks the audio (' + fill + ')') : bad('progress not moving');
-await l.screenshot({ path: `${OUT}/w-opening-playing.png`, fullPage: true });
-
-await l.click('.opening__cta .btn');
 await l.waitForSelector('.frame', { timeout: 8000 });
 ok('advanced into the player');
 console.log('   landed on:', (await l.textContent('.rail__item[aria-current="true"] .rail__body b')).trim());
+(await l.$$('.rail__item')).length === 2 ? ok('rail: 2 nuggets') : bad('rail items: ' + (await l.$$('.rail__item')).length);
+(await l.$('video.frame__video')) ? ok('nugget plays its film') : bad('no video element for the nugget');
+await l.screenshot({ path: `${OUT}/w-player.png`, fullPage: true });
 
-await l.goto(`${BASE}#/learn/p1/u2`, { waitUntil: 'networkidle' });
-await l.waitForSelector('.unitpage');
-const second = (await l.textContent('.btn--primary')).trim();
-console.log('   start button after hearing it:', second);
-!/פתיח/.test(second) ? ok('opening not offered again once heard') : bad('still routing through the opening');
+await l.goto(`${BASE}#/learn/p1/u17/opening`, { waitUntil: 'networkidle' });
+/\/play/.test(await l.evaluate(() => location.hash)) ? ok('an opening link redirects to the player') : bad('opening link did not redirect');
+await l.goto(`${BASE}#/explainers`, { waitUntil: 'networkidle' });
+!/explainers/.test(await l.evaluate(() => location.hash)) ? ok('the withdrawn Claude guide redirects home') : bad('Claude guide still routed');
 
 console.log('\n═══ errors ═══');
 errs.length ? errs.slice(0, 8).forEach(bad) : ok('none on either side');

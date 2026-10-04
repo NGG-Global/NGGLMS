@@ -21,15 +21,14 @@ export interface TopicStyle {
   ink: string;
 }
 
-/** Curriculum order — the order the catalogue map reads in, not the filter order. */
+/**
+ * Curriculum order — the order the catalogue map reads in, not the filter order.
+ *
+ * One topic for now: the library holds only the Copilot Essentials films. The design's
+ * other seven topics (CORE, PROB, PRMT, VRFY, RESP, PRAC, PROC) were removed with the
+ * units that filled them; add a topic back here when a unit for it is produced.
+ */
 const TOPICS: [name: string, code: string, hue: number][] = [
-  ['מיומנויות AI ליבה', 'CORE', 350],
-  ['פתרון בעיות', 'PROB', 35],
-  ['ניסוח בקשות', 'PRMT', 75],
-  ['אימות ובדיקה', 'VRFY', 150],
-  ['AI אחראי', 'RESP', 290],
-  ['שיטות עבודה מומלצות', 'PRAC', 320],
-  ['תכנון תהליכים', 'PROC', 240],
   ['יסודות Copilot', 'COPL', 200],
 ];
 

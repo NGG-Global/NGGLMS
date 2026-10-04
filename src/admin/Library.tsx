@@ -84,7 +84,12 @@ export function Library() {
           <div>
             <h1>ספריית התוכן של NGG</h1>
             <p>
-              {unitsLabel(library.length)} ב-{coveredTopics} מתוך {catalogTopics.length} נושאים.{' '}
+              {unitsLabel(library.length)}{' '}
+              {coveredTopics === catalogTopics.length
+                ? coveredTopics === 1
+                  ? 'בנושא אחד.'
+                  : `ב-${coveredTopics} נושאים.`
+                : `ב-${coveredTopics} מתוך ${catalogTopics.length} נושאים.`}{' '}
               {inProduction === 0
                 ? 'כל היחידות מופקות ומוכנות להשמעה.'
                 : `${produced} מופקות ומוכנות להשמעה, ${inProduction} בהפקה ומוצגות ללומד כ״בהכנה״.`}

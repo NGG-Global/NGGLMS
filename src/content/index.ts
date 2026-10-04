@@ -1,7 +1,6 @@
 import type { Segment, UnitContent } from './types';
 import { unit01 } from './unit-01';
 import { unit02 } from './unit-02';
-import { unit03 } from './unit-03';
 import { library, libraryUnit, type LibraryUnit } from './library';
 import { hasNarration } from './narration-manifest';
 import { videoTrack } from './video-manifest';
@@ -11,11 +10,16 @@ export * from './library';
 export * from './topics';
 export { hasNarration, narrationTrack, narrationTracks } from './narration-manifest';
 
-/** Playable units, keyed by the `contentId` referenced from the library. */
+/**
+ * Playable units, keyed by the `contentId` referenced from the library.
+ *
+ * The ids are new with the Copilot Essentials films. Saved progress is keyed by
+ * contentId, and records made against the retired units ('unit-01', 'unit-02') must not
+ * be read as scores on the new ones, so the ids were changed rather than reused.
+ */
 export const builtUnits: Record<string, UnitContent> = {
-  'unit-01': unit01,
-  'unit-02': unit02,
-  'unit-03': unit03,
+  'copilot-01': unit01,
+  'copilot-02': unit02,
 };
 
 export interface SegmentHealth {

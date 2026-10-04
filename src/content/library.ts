@@ -1,14 +1,15 @@
 // NGG content library.
 //
-// Only units that exist. Each entry carries a `contentId` pointing at a produced unit
-// module, so everything the admin side lists can actually be played.
+// Only units that exist. The library holds the Copilot Essentials films and nothing
+// else: every unit sits under the "יסודות Copilot" topic, and each carries a `contentId`
+// pointing at a produced unit module whose nuggets are those films.
 //
-// The catalogue used to also hold fourteen planned units (u3–u16) lifted from the
-// platform design, which made the library look fuller than the content behind it.
-// They were removed so the library reflects what NGG has produced. Those ids are
-// retired: programmes saved before the removal may still reference them, and the
-// screens ignore any id the library does not know. Give a new unit a fresh id rather
-// than reusing one of them, or it will silently appear inside those old programmes.
+// Retired ids — do not reuse them for a new unit. Programmes saved before a unit was
+// retired may still reference its id, and the screens ignore ids the library does not
+// know; a new unit given an old id would silently appear inside those programmes.
+//   u2       the responsible-AI unit, retired when the library was narrowed to Copilot
+//   u3–u16   planned units lifted from the platform design, never produced
+// u1 keeps its id: the Copilot Essentials unit 1 replaced its content in place.
 
 export interface LibraryNugget {
   title: string;
@@ -63,16 +64,16 @@ export const library: LibraryUnit[] = [
       id: "u1",
       title: "לעבוד עם AI",
       summary: "איפה Copilot משתלב בעבודה, על איזה מידע התשובה שלו נשענת, איך מנהלים איתו שיחה שמתקדמת לתוצאה טובה, ומתי בודקים לפני שסומכים.",
-      topic: "מיומנויות AI ליבה",
+      topic: "יסודות Copilot",
       roles: ["כללי"],
       minutes: 11,
       contentType: "וידאו + בוחן",
       assessment: "בוחן",
-      tags: ["מיומנויות AI ליבה", "שיטות עבודה מומלצות"],
+      tags: ["יסודות Copilot", "ליבה"],
       recencyRank: 13,
       objective: "להכיר את Microsoft 365 Copilot ואת Copilot Chat, לבחור את המקור שהתשובה צריכה להישען עליו, לנסח בקשה שממשיכים לדייק בשיחה, ולהתאים את רמת הבדיקה להשפעה של טעות.",
       recommendedFor: "כל העובדים. מומלץ כיחידת הפתיחה של כל תוכנית AI.",
-      contentId: "unit-01",
+      contentId: "copilot-01",
       outcomes: ["לזהות איפה Copilot משתלב בעבודה היומיומית", "לבחור את המקור הנכון לפני שמנסחים בקשה", "לנסח בקשה עם מטרה, הקשר, מקור וציפייה לתוצאה", "לשפר תשובה בשיחה במקום להתחיל מחדש", "להתאים את רמת הבדיקה להשפעה של טעות"],
       nuggets: [
         { title: "מה זה Copilot ואיפה מתחילים", type: "וידאו", minutes: 3, summary: "Copilot משתלב ב-Word, Outlook ו-Teams, והמקום הפשוט להתחיל ממנו הוא Copilot Chat.", takeaway: "העבודה עם הצ׳אט היא שיחה: נותנים כיוון, רואים מה התקבל, ומדייקים." },
@@ -88,29 +89,6 @@ export const library: LibraryUnit[] = [
       ]
     },
     {
-      id: "u2",
-      title: "AI בטוח ואחראי",
-      summary: "איפה עובר הגבול במידע רגיש, בהטיה ובהסלמה — בכלל שאפשר לזכור.",
-      topic: "AI אחראי",
-      roles: ["כללי"],
-      minutes: 20,
-      contentType: "תרחיש",
-      assessment: "תרחיש",
-      tags: ["AI אחראי", "ליבה"],
-      recencyRank: 12,
-      objective: "ליישם כלל ברור לגבי מה נכנס לעוזר, לזהות איפה הטיה יוצרת סיכון אמיתי, ולהסלים בזמן.",
-      recommendedFor: "כל העובדים. בדרך כלל ממוקמת מיד אחרי יחידת הפתיחה.",
-      contentId: "unit-02",
-      outcomes: ["ליישם כלל ברור למידע רגיש", "לזהות איפה הטיה יוצרת סיכון", "לבחור את הכלי הנכון למשימה רגישה", "להסלים לפני שהבעיה מתפוצצת"],
-      nuggets: [
-        { title: "מה לא מדביקים לצ׳אט", type: "וידאו", minutes: 5, summary: "רשומות לקוחות, נתוני שכר, תוצאות שלא פורסמו, כל דבר תחת סודיות. כלל פשוט עובד טוב יותר ממדיניות ארוכה.", takeaway: "אם לא הייתם שולחים את זה במייל חיצוני — אל תדביקו." },
-        { title: "כלים ארגוניים מול כלים ציבוריים", type: "וידאו", minutes: 5, summary: "כלים ארגוניים מאושרים משאירים את המידע בתוך הארגון. כלים צרכניים לא.", takeaway: "דעו באיזה כלי אתם נמצאים לפני שאתם מקלידים." },
-        { title: "הטיה נכנסת, הטיה יוצאת", type: "וידאו", minutes: 5, summary: "מודלים משקפים את הנתונים שאימנו אותם. סינון, דירוג והערכה של אנשים זה המקום הרגיש ביותר.", takeaway: "לעולם לא נותנים ל-AI להחליט על בני אדם." },
-        { title: "מתי מסלימים", type: "וידאו", minutes: 5, summary: "נושאים משפטיים, HR, בטיחות והתחייבויות ללקוח דורשים בעל בית אנושי ותיעוד.", takeaway: "הסלמה מוקדמת זולה. מאוחרת — לא." }
-      ],
-      task: { title: "תרחיש", lead: "שלוש בקשות מגיעות לתיבה שלכם באותו בוקר. אחת מהן לא צריכה להתקרב לעוזר AI.", items: ["עובד מבקש שתסכמו את סיכום הפגישה של אתמול.", "משאבי אנוש מבקשים לדרג שנים־עשר מועמדים פנימיים לפי הערכות ביצועים.", "שיווק מבקש חמש חלופות לשורת נושא לניוזלטר."], ask: "איזו בקשה היא המסוכנת, ומה הייתם עושים במקום?", cta: "שליחת תשובה" }
-    },
-    {
       id: "u17",
       title: "Copilot ב-Outlook וב-Teams",
       summary: "מסכמים שרשור ארוך ועונים עליו בלי התחייבות מיותרת, ומוציאים מפגישה את מה שבאמת הוחלט ולמי.",
@@ -119,12 +97,12 @@ export const library: LibraryUnit[] = [
       minutes: 4,
       contentType: "וידאו + תרגיל",
       assessment: "תרגיל",
-      tags: ["יסודות Copilot"],
+      tags: ["יסודות Copilot", "ליבה"],
       recencyRank: 14,
       objective: "להשתמש ב-Copilot ב-Outlook וב-Teams כדי להבין שרשורים ופגישות, לנסח מהם תשובה או סיכום, ולבדוק את מה שיוצא לפני שהוא נשלח.",
       recommendedFor: "כל העובדים שעובדים ב-Microsoft 365. מומלץ אחרי יחידת היסודות.",
       prerequisite: "לעבוד עם AI",
-      contentId: "unit-03",
+      contentId: "copilot-02",
       outcomes: ["לסכם שרשור מייל לפי מה סוכם, מה פתוח ומה מבקשים ממני", "לנסח תשובה בלי להכניס התחייבות שלא התכוונו אליה", "לשאול על פגישה שאלות ספציפיות במקום לבקש סיכום כללי", "לבדוק מה באמת הוחלט ולמי הוצמדה כל משימה לפני שליחה"],
       nuggets: [
         { title: "Copilot ב-Outlook: מהשרשור לתשובה", type: "וידאו", minutes: 2, summary: "מסכמים שרשור לפי מה סוכם, מה פתוח ומה מבקשים ממני, ומנסחים תשובה שמשנים בה דבר אחד בכל פעם.", takeaway: "כשמשנים טון, בודקים שלא השתנתה גם המשמעות." },
@@ -133,7 +111,7 @@ export const library: LibraryUnit[] = [
     }
 ];
 
-export const topics: string[] = ["מיומנויות AI ליבה", "AI אחראי", "פתרון בעיות", "ניסוח בקשות", "אימות ובדיקה", "שיטות עבודה מומלצות", "תכנון תהליכים", "יסודות Copilot"];
+export const topics: string[] = ["יסודות Copilot"];
 
 export const roles: string[] = ["כללי", "מנהלים", "ניהול פרויקטים", "משאבי אנוש", "מכירות", "שיווק", "כספים"];
 
@@ -150,7 +128,7 @@ export const seedFlagshipProgram = {
   "description": "ללמוד לעבוד עם AI בצורה אפקטיבית, ליישם אותו בעבודה היומיומית ולדעת איפה האדם חייב להישאר במשוואה.",
   "units": [
     "u1",
-    "u2"
+    "u17"
   ],
   "welcome": "ברוכים הבאים. עשו יחידה אחת בכל פעם — החלקים המעשיים הם אלה שנשארים."
 };
