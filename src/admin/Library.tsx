@@ -18,6 +18,7 @@ import {
 } from '../content';
 import { formatTime } from '../player/timeline';
 import { useStore } from '../state/store';
+import { programUnits } from '../app/progress';
 import { PROGRAM_STATUS_LABEL, type Program } from '../state/types';
 import { ClientLogo } from '../app/ClientLogo';
 import { AdminLayout } from './AdminLayout';
@@ -67,6 +68,8 @@ export function Library() {
     .filter((g) => g.units.length > 0);
 
   const produced = library.filter(isPlayable).length;
+  const coveredTopics = catalogTopics.filter((t) => library.some((u) => u.topic === t)).length;
+  const inProduction = library.length - produced;
 
   const clear = () => {
     setRole('הכול');
@@ -81,8 +84,10 @@ export function Library() {
           <div>
             <h1>ספריית התוכן של NGG</h1>
             <p>
-              {library.length} יחידות ב-{catalogTopics.length} נושאים. {produced} מופקות ומוכנות להשמעה, השאר ניתנות
-              לשיבוץ ומוצגות ללומד כ״בהכנה״.
+              {unitsLabel(library.length)} ב-{coveredTopics} מתוך {catalogTopics.length} נושאים.{' '}
+              {inProduction === 0
+                ? 'כל היחידות מופקות ומוכנות להשמעה.'
+                : `${produced} מופקות ומוכנות להשמעה, ${inProduction} בהפקה ומוצגות ללומד כ״בהכנה״.`}
             </p>
           </div>
           <span className="spacer" />
@@ -91,10 +96,12 @@ export function Library() {
               <i className="catlegend__made" />
               מופק
             </span>
-            <span>
-              <i className="catlegend__hatch" />
-              בהפקה
-            </span>
+            {inProduction > 0 && (
+              <span>
+                <i className="catlegend__hatch" />
+                בהפקה
+              </span>
+            )}
             <span className="mono">כל פס = נאגט, רוחב לפי דקות</span>
           </div>
         </div>
@@ -110,16 +117,14 @@ export function Library() {
                 className="topictile"
                 style={topicVars(topic)}
                 disabled={!shown}
-                title={shown ? undefined : 'אין יחידות בנושא הזה שמתאימות לסינון'}
+                title={shown ? undefined : all.length ? 'אין יחידות בנושא הזה שמתאימות לסינון' : 'עדיין אין יחידות בנושא הזה'}
                 onClick={() =>
                   document.getElementById(topicAnchor(topic))?.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }
               >
                 <span className="topictile__code">{topicStyle(topic).code}</span>
                 <b>{topic}</b>
-                <span>
-                  {unitsLabel(all.length)} · {totalMinutes(all)} דק׳
-                </span>
+                <span>{all.length ? `${unitsLabel(all.length)} · ${totalMinutes(all)} דק׳` : 'אין עדיין יחידות'}</span>
               </button>
             );
           })}
@@ -278,8 +283,8 @@ export function LibraryUnitPage() {
                 <b>{unit.assessment}</b>
               </div>
               <div>
-                <span>בשימוש ב-NGG</span>
-                <b>{unit.usedInPrograms} תוכניות</b>
+                <span>משובצת ב</span>
+                <b>{usedBy.length === 1 ? 'תוכנית אחת' : `${usedBy.length} תוכניות`}</b>
               </div>
             </div>
             <div className="uhero__acts">
@@ -540,7 +545,7 @@ function AddToProgram({ unit }: { unit: LibraryUnit }) {
                 <span className="addmenu__t">
                   <b>{p.title || 'תוכנית ללא שם'}</b>
                   <span>
-                    {p.client || 'לקוח לא הוגדר'} · {already ? 'כבר במסלול' : `${p.units.length} יחידות`}
+                    {p.client || 'לקוח לא הוגדר'} · {already ? 'כבר במסלול' : `${programUnits(p).length} יחידות`}
                   </span>
                 </span>
               </button>

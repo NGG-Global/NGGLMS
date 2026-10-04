@@ -59,20 +59,24 @@ console.log('\n── library map and builder (Redesign A) ──');
 await a.goto(BASE + '#/admin/library', { waitUntil: 'networkidle' });
 await a.waitForSelector('.catgroup');
 (await a.$$('.topictile')).length === 8 ? ok('topic index: 8 topics') : bad('topic tiles: ' + (await a.$$('.topictile')).length);
-(await a.$$('.ucard')).length === 16 ? ok('16 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
-(await a.$$('.ucard .nbar[data-made="true"]')).length === 2 ? ok('two produced units drawn solid, the rest striped') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
-await a.goto(BASE + '#/admin/library/u3', { waitUntil: 'networkidle' });
+// The library lists only produced units; the planned u3–u16 entries were removed.
+(await a.$$('.ucard')).length === 3 ? ok('3 units grouped by topic') : bad('unit cards: ' + (await a.$$('.ucard')).length);
+(await a.$$('.ucard .nbar[data-made="true"]')).length === 3 ? ok('every unit is produced and drawn solid') : bad('produced nugget bars: ' + (await a.$$('.ucard .nbar[data-made="true"]')).length);
+(await a.$$('.topictile:disabled')).length === 5 ? ok('topics without units are disabled') : bad('disabled topic tiles: ' + (await a.$$('.topictile:disabled')).length);
+await a.goto(BASE + '#/admin/library/u1', { waitUntil: 'networkidle' });
 await a.waitForSelector('.uhero');
-(await a.$('.banner--warn')) ? ok('unit in production says so on its page') : bad('no in-production banner on u3');
-(await a.$$('.structbar__n')).length === 5 ? ok('structure bar: 5 nuggets') : bad('structure bar nuggets: ' + (await a.$$('.structbar__n')).length);
+!(await a.$('.banner--warn')) ? ok('produced unit carries no in-production banner') : bad('in-production banner on u1');
+(await a.$$('.structbar__n')).length === 4 ? ok('structure bar: 4 nuggets') : bad('structure bar nuggets: ' + (await a.$$('.structbar__n')).length);
 await a.screenshot({ path: `${OUT}/w-unit-admin.png`, fullPage: true });
+await a.goto(BASE + '#/admin/library/u3', { waitUntil: 'networkidle' });
+(await a.$('.uhero')) ? bad('retired unit u3 still has a page') : ok('retired unit u3 is gone from the library');
 for (let s = 0; s < 4; s++) {
   await a.goto(`${BASE}#/admin/programs/p2/build?step=${s}`, { waitUntil: 'networkidle' });
   await a.waitForSelector('.bstep[aria-current="step"]');
   await a.waitForTimeout(250);
   await a.screenshot({ path: `${OUT}/w-builder-${s + 1}.png`, fullPage: true });
 }
-(await a.$$('.bpath__strip > button')).length === 3 ? ok('builder path strip: 3 units') : bad('path strip units: ' + (await a.$$('.bpath__strip > button')).length);
+(await a.$$('.bpath__strip > button')).length === 2 ? ok('builder path strip: 2 units') : bad('path strip units: ' + (await a.$$('.bpath__strip > button')).length);
 (await a.$('.readybar')) ? ok('review step shows the readiness bar') : bad('no readiness bar on the review step');
 
 await a.goto(BASE + '#/admin/analytics', { waitUntil: 'networkidle' });

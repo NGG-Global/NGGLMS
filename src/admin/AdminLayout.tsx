@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { library } from '../content';
 import { useStore } from '../state/store';
+import { programUnits } from '../app/progress';
 import { Shell } from '../app/Shell';
 import './admin.css';
 
@@ -45,7 +46,7 @@ export function AdminLayout({ crumb, children }: Props) {
               <div className="draftcard__k">טיוטה בעבודה</div>
               <div className="draftcard__t">{draft.title}</div>
               <div className="draftcard__m">
-                {draft.client} · {draft.units.length} יחידות
+                {draft.client} · {programUnits(draft).length} יחידות
               </div>
               <Link className="btn btn--primary btn--sm btn--block" to={`/admin/programs/${draft.id}/build`}>
                 להמשיך בבנייה

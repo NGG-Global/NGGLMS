@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../state/store';
 import { builtUnits, hasNarration, libraryUnit } from '../content';
 import { unitCompletion } from '../app/progress';
@@ -115,6 +115,12 @@ export function UnitOpening() {
   );
 
   if (!identity) return null;
+
+  // A unit without an opening has no step to show here: an old or hand-typed link lands
+  // on the first nugget instead of an error.
+  if (program && unit && content && !intro) {
+    return <Navigate to={`/learn/${program.id}/${unit.id}/play`} replace />;
+  }
 
   if (!program || !unit || !content || !contentId || !intro) {
     return (

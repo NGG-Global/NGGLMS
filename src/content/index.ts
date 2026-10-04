@@ -1,6 +1,7 @@
 import type { Segment, UnitContent } from './types';
 import { unit01 } from './unit-01';
 import { unit02 } from './unit-02';
+import { unit03 } from './unit-03';
 import { library, libraryUnit, type LibraryUnit } from './library';
 import { hasNarration } from './narration-manifest';
 import { videoTrack } from './video-manifest';
@@ -14,6 +15,7 @@ export { hasNarration, narrationTrack, narrationTracks } from './narration-manif
 export const builtUnits: Record<string, UnitContent> = {
   'unit-01': unit01,
   'unit-02': unit02,
+  'unit-03': unit03,
 };
 
 export interface SegmentHealth {
@@ -45,6 +47,15 @@ export interface UnitHealth {
   introHasAudio: boolean;
 }
 
+/**
+ * True when a learner will hear this nugget: its narration file is delivered, or a
+ * rendered video covers it. A video carries its own voice track, so a nugget produced
+ * as a finished film needs no separate narration file.
+ */
+export function segmentHasVoice(unitN: string, s: Segment): boolean {
+  return hasNarration(s.src, s.end) || Boolean(videoTrack(unitN, s.n, s.end - s.start));
+}
+
 function cueCount(s: Segment): number {
   if (s.timed) return s.timed.reduce((sum, block) => sum + block[2].length, 0);
   return s.cues?.length ?? 0;
@@ -62,7 +73,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     durationSec: s.end - s.start,
     cueCount: cueCount(s),
     sceneCount: Object.keys(s.scenes).length,
-    hasAudio: hasNarration(s.src, s.end),
+    hasAudio: segmentHasVoice(content.unit.n, s),
     hasVideo: Boolean(videoTrack(content.unit.n, s.n, s.end - s.start)),
   }));
   return {
@@ -73,7 +84,7 @@ export function unitHealth(contentId: string): UnitHealth | null {
     silentSegments: segments.filter((s) => !s.hasAudio),
     videoSegments: segments.filter((s) => s.hasVideo),
     totalSec: segments.reduce((sum, s) => sum + s.durationSec, 0),
-    introHasAudio: hasNarration(content.unit.intro.src, content.unit.intro.end),
+    introHasAudio: content.unit.intro ? hasNarration(content.unit.intro.src, content.unit.intro.end) : false,
   };
 }
 

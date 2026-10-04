@@ -862,20 +862,18 @@ function Shelf({
   const [tab, setTab] = useState<string>('rec');
   const [query, setQuery] = useState('');
   const [onlyPlayable, setOnlyPlayable] = useState(false);
+  const { workspace } = useStore();
 
-  // For the programme's role first, then whatever NGG uses most; a general role
-  // leaves the ordering to usage alone.
-  const recommended = useMemo(
-    () =>
-      library
-        .filter((u) => u.roles.includes(draft.role) || u.usedInPrograms >= 14)
-        .sort(
-          (a, b) =>
-            Number(b.roles.includes(draft.role) && draft.role !== 'כללי') -
-              Number(a.roles.includes(draft.role) && draft.role !== 'כללי') || b.usedInPrograms - a.usedInPrograms,
-        ),
-    [draft.role],
-  );
+  // Units for the programme's role, plus the general ones every audience can take. The
+  // programme's own role first, then whatever the workspace already uses most — counted
+  // from saved programmes, not from a figure written into the catalogue.
+  const recommended = useMemo(() => {
+    const uses = (id: string) => workspace.programs.filter((p) => p.units.includes(id)).length;
+    const forRole = (u: LibraryUnit) => Number(u.roles.includes(draft.role) && draft.role !== 'כללי');
+    return library
+      .filter((u) => u.roles.includes(draft.role) || u.roles.includes('כללי'))
+      .sort((a, b) => forRole(b) - forRole(a) || uses(b.id) - uses(a.id));
+  }, [draft.role, workspace.programs]);
 
   const q = query.trim().toLowerCase();
   const base = q

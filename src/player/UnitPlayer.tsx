@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Scene, UnitContent } from '../content/types';
 import { hasNarration } from '../content/narration-manifest';
+import { segmentHasVoice } from '../content';
 import { videoTrack } from '../content/video-manifest';
 import { assetUrl, videoUrl } from '../app/paths';
 import { buildTimeline, formatTime, type Timeline } from './timeline';
@@ -345,14 +346,14 @@ export function UnitPlayer({
       <aside className="player__rail">
         <div className="card card--flush">
           <div className="rail__head">
-            <h2>חמישה מקטעים</h2>
+            <h2>{segments.length === 1 ? 'מקטע אחד' : `${segments.length} מקטעים`}</h2>
             <p>
               {unitMinutes} דקות · {doneCount} מתוך {segments.length} הושלמו
             </p>
           </div>
           {segments.map((s, i) => {
             const done = Boolean(progress[s.id]?.practised);
-            const playable = hasNarration(s.src, s.end);
+            const playable = segmentHasVoice(content.unit.n, s);
             return (
               <button
                 key={s.id}
@@ -375,13 +376,17 @@ export function UnitPlayer({
         </div>
 
         <div className="card card--pad">
-          <h3 style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-3)' }}>פתיח היחידה</h3>
+          {/* A unit without an opening still says what it covers, without promising a recording. */}
+          <h3 style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-3)' }}>
+            {content.unit.intro ? 'פתיח היחידה' : 'על היחידה'}
+          </h3>
           <p style={{ marginTop: 5, fontSize: 13, lineHeight: 1.6, color: 'var(--ink-2)' }}>{content.unit.lead}</p>
-          {hasNarration(content.unit.intro.src, content.unit.intro.end) ? (
-            <IntroPlayer intro={content.unit.intro} open={introOpen} onToggle={setIntroOpen} />
-          ) : (
-            <p style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-4)' }}>הקלטת הפתיח לא נמצאת בספרייה.</p>
-          )}
+          {content.unit.intro &&
+            (hasNarration(content.unit.intro.src, content.unit.intro.end) ? (
+              <IntroPlayer intro={content.unit.intro} open={introOpen} onToggle={setIntroOpen} />
+            ) : (
+              <p style={{ marginTop: 8, fontSize: 12, color: 'var(--ink-4)' }}>הקלטת הפתיח לא נמצאת בספרייה.</p>
+            ))}
         </div>
       </aside>
     </div>
@@ -395,7 +400,7 @@ function IntroPlayer({
   open,
   onToggle,
 }: {
-  intro: UnitContent['unit']['intro'];
+  intro: NonNullable<UnitContent['unit']['intro']>;
   open: boolean;
   onToggle: (next: boolean) => void;
 }) {

@@ -39,7 +39,8 @@ export function UnitOverview() {
   const intro = content?.unit.intro;
   const introLength = intro ? intro.end - intro.start : 0;
   const introHeard = Boolean(content?.unit && contentId && introHeardFor(identity.id)[contentId]);
-  const viaOpening = Boolean(content) && !introHeard && !completion.complete;
+  // A unit without an opening starts at its first nugget.
+  const viaOpening = Boolean(intro) && !introHeard && !completion.complete;
   const startTo = viaOpening
     ? `/learn/${program.id}/${unit.id}/opening`
     : `/learn/${program.id}/${unit.id}/play`;
