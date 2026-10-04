@@ -173,11 +173,12 @@ export function programStats(workspace: Workspace, program: Program): ProgramSta
 
 /** Mean exercise accuracy for one produced unit, across everyone who has attempted it. */
 export function unitScore(workspace: Workspace, contentId: string): number | null {
+  const live = liveSegments(contentId);
   let correct = 0;
   let outOf = 0;
   for (const perLearner of Object.values(workspace.progress)) {
-    for (const record of Object.values(perLearner[contentId] ?? {})) {
-      if (!record.outOf) continue;
+    for (const [segmentId, record] of Object.entries(perLearner[contentId] ?? {})) {
+      if (!record.outOf || !live.has(segmentId)) continue;
       correct += record.score ?? 0;
       outOf += record.outOf;
     }
@@ -185,14 +186,24 @@ export function unitScore(workspace: Workspace, contentId: string): number | nul
   return outOf ? Math.round((correct / outOf) * 100) : null;
 }
 
+/**
+ * Segment ids the unit currently has. Saved progress outlives content: records against
+ * a retired unit or a replaced nugget stay in the workspace, and counting them would
+ * report scores on exercises nobody can take any more.
+ */
+function liveSegments(contentId: string): Set<string> {
+  return new Set(builtUnits[contentId]?.segments.map((s) => s.id) ?? []);
+}
+
 /** Mean exercise accuracy across every produced unit. */
 export function overallScore(workspace: Workspace): number | null {
   let correct = 0;
   let outOf = 0;
   for (const perLearner of Object.values(workspace.progress)) {
-    for (const perUnit of Object.values(perLearner)) {
-      for (const record of Object.values(perUnit)) {
-        if (!record.outOf) continue;
+    for (const [contentId, perUnit] of Object.entries(perLearner)) {
+      const live = liveSegments(contentId);
+      for (const [segmentId, record] of Object.entries(perUnit)) {
+        if (!record.outOf || !live.has(segmentId)) continue;
         correct += record.score ?? 0;
         outOf += record.outOf;
       }
