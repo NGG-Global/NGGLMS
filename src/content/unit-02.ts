@@ -1,4 +1,4 @@
-// Unit 02 — "Copilot ב-Outlook וב-Teams"
+// Unit 02 — "Copilot באפליקציות"
 //
 // The second unit of the Copilot Essentials films. Each nugget is a finished video with
 // its own voice track, served from the blob store, so `src` names the video, `start` is 0
@@ -15,7 +15,7 @@ import type { UnitContent } from './types';
 export const unit02: UnitContent = {
   "unit": {
     "n": "02",
-    "title": "Copilot ב-Outlook וב-Teams",
+    "title": "Copilot באפליקציות",
     "lead": "ביחידה הזאת עוברים מהיסודות לכלים שבהם העבודה כבר קורית: מסכמים שרשור ב-Outlook ועונים עליו, ומוציאים מפגישה ב-Teams את מה שבאמת הוחלט."
   },
   "segments": [

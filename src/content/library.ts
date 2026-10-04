@@ -90,7 +90,7 @@ export const library: LibraryUnit[] = [
     },
     {
       id: "u17",
-      title: "Copilot ב-Outlook וב-Teams",
+      title: "Copilot באפליקציות",
       summary: "מסכמים שרשור ארוך ועונים עליו בלי התחייבות מיותרת, ומוציאים מפגישה את מה שבאמת הוחלט ולמי.",
       topic: "יסודות Copilot",
       roles: ["כללי"],
